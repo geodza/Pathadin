@@ -34,7 +34,7 @@ class SlideGraphicsItem(QGraphicsItem):
         # self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
         self.setFlag(QGraphicsItem.ItemUsesExtendedStyleOption, True)
 
-        self.thread_pool = ThreadPoolExecutor()
+        self.thread_pool = ThreadPoolExecutor(max_workers=8)
         self.ongoing_cell_loading = {}
         self.paint_called_count = 0
 

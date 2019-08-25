@@ -1,3 +1,5 @@
+import os
+from bisect import bisect_left
 import typing
 from concurrent.futures import ThreadPoolExecutor
 import openslide
@@ -33,8 +35,9 @@ class SlideGraphicsItem(QGraphicsItem):
         # self.setFlag(QGraphicsItem.ItemClipsToShape, True)
         # self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
         self.setFlag(QGraphicsItem.ItemUsesExtendedStyleOption, True)
-
-        self.thread_pool = ThreadPoolExecutor(max_workers=8)
+        max_workers = os.cpu_count()
+        max_workers = max_workers - 1 if max_workers > 1 else max_workers
+        self.thread_pool = ThreadPoolExecutor(max_workers=max_workers)
         self.ongoing_cell_loading = {}
         self.paint_called_count = 0
 
@@ -49,9 +52,22 @@ class SlideGraphicsItem(QGraphicsItem):
         # painter.setClipRect(option.exposedRect)
 
         current_scale = painter.transform().m11()
-        level = self.slide_helper.get_best_level_for_downsample(1 / current_scale)
-        level_downsample = self.slide_helper.get_downsample_for_level(level)
+        current_downsample = 1 / current_scale
+        best_level_index = bisect_left(self.slide_helper.level_downsamples, current_downsample)
+        # best_level_index=best_level_index-1 if best_level_index==len(self.slide_helper.level_downsamples) else best_level_index
+        best_level_index = 0 if best_level_index - 1 == -1 else best_level_index - 1
+        best_downsample = self.slide_helper.level_downsamples[best_level_index]
+
+        # level = self.slide_helper.get_best_level_for_downsample(1 / current_scale)
+        level = best_level_index
+        # level_downsample = self.slide_helper.get_downsample_for_level(level)
+        level_downsample = best_downsample
         painter.scale(level_downsample, level_downsample)
+
+        # print("current_scale: {}; downsample: {}; best_downsample: {}; 1/downsample: {}".format(current_scale,
+        #                                                                                         int(level_downsample),
+        #                                                                                         int(best_downsample),
+        #                                                                                         1 / level_downsample))
 
         scene_to_level = QTransform.fromScale(1 / level_downsample, 1 / level_downsample)
         level_to_scene = QTransform.fromScale(level_downsample, level_downsample)
@@ -126,7 +142,7 @@ class SlideGraphicsItem(QGraphicsItem):
             QPixmapCache.insert(cache_key, cell_pixmap)
             self.ongoing_cell_loading[cache_key] = False
             cache_mutex_locker.unlock()
-            self.scene().update(scene_rect_to_update)
+            self.scene().update(scene_rect_to_update.translated(self.pos()))
 
         return done_callback
 

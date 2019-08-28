@@ -38,32 +38,32 @@ class SlideViewerMainWindow(QMainWindow):
         self.main_toolbar.setIconSize(QSize(24, 24))
 
         menuBar = self.menuBar()
-        self.actions_menu = MyMenu("actions", menuBar)
+        self.actions_menu = MyMenu("Actions", menuBar)
         menuBar.addMenu(self.actions_menu)
         # zoom_menu is dynamically populated in on_select_slide_file_action
-        self.zoom_menu = MyMenu("zoom", menuBar)
+        self.zoom_menu = MyMenu("Zoom", menuBar)
         menuBar.addMenu(self.zoom_menu)
-        self.grid_menu = MyMenu("grid", menuBar)
+        self.grid_menu = MyMenu("Grid", menuBar)
         menuBar.addMenu(self.grid_menu)
 
-        self.select_slide_file_action = SelectSlideFileAction("&load", self.actions_menu,
+        self.select_slide_file_action = SelectSlideFileAction("&Open image", self.actions_menu,
                                                               self.on_select_slide_file_action, self.ctx.icon_open)
         self.main_toolbar.addAction(self.select_slide_file_action)
 
-        self.grid_toggle_action = MyAction("toggle &grid", self.grid_menu, self.on_grid_toggle, self.ctx.icon_grid)
+        self.grid_toggle_action = MyAction("Toggle &grid", self.grid_menu, self.on_grid_toggle, self.ctx.icon_grid)
         self.main_toolbar.addAction(self.grid_toggle_action)
 
-        self.grid_change_size_action = MyAction("grid &size", self.grid_menu, self.on_grid_change_size_action)
+        self.grid_change_size_action = MyAction("Grid &size", self.grid_menu, self.on_grid_change_size_action)
 
-        self.take_screenshot_action = MyAction("&take screenshot", self.actions_menu, self.on_take_screenshot_action,
+        self.take_screenshot_action = MyAction("&Take screenshot", self.actions_menu, self.on_take_screenshot_action,
                                                self.ctx.icon_screenshot)
         self.main_toolbar.addAction(self.take_screenshot_action)
 
-        self.select_background_color_action = MyAction("&background color", self.actions_menu,
+        self.select_background_color_action = MyAction("&Background color", self.actions_menu,
                                                        self.on_select_background_color_action, self.ctx.icon_palette)
         self.add_dynamic_command()
 
-        self.fit_action = MyAction("&fit", self.zoom_menu, None, self.ctx.icon_fit, "fit")
+        self.fit_action = MyAction("&Fit", self.zoom_menu, None, self.ctx.icon_fit, "fit")
         self.main_toolbar.addAction(self.fit_action)
 
         self.zoom_action = MyAction("zoom", self, self.on_zoom_line_edit_pressed, self.ctx.icon_magnifier)

@@ -1,6 +1,7 @@
-from PyQt5.QtGui import QPixmapCache, QPixmap, QIcon, QCloseEvent
+from PyQt5.QtGui import QPixmapCache, QPixmap, QIcon, QCloseEvent, QImageReader, QImage, QPainter
+from PyQt5.QtSvg import QSvgRenderer
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLineEdit, QPushButton, QAction, QLabel, QDialog, \
-    QSpinBox, QHBoxLayout, QFormLayout, QDialogButtonBox, QColorDialog, QApplication
+    QSpinBox, QHBoxLayout, QFormLayout, QDialogButtonBox, QColorDialog, QApplication, QWidgetAction
 from PyQt5.QtCore import Qt, QSize, QSettings
 from PyQt5.QtGui import QBrush, QPen, QColor, QPixmapCache, QTransform
 
@@ -21,18 +22,20 @@ class SlideViewerMainWindow(QMainWindow):
         self.ctx = ctx
         self.text = None
         self.debug = debug
+        self.dynamic_zoom_actions = []
 
         widget = QWidget(self)
         layout = QVBoxLayout(widget)
         self.slide_viewer_widget = SlideViewerWidget(widget, self.on_load_slide_callback)
         self.slide_viewer_widget.view.zoomChanged.connect(self.on_view_zoom_changed)
+        self.slide_viewer_widget.slideFileChanged.connect(self.on_slide_file_changed)
         layout.addWidget(self.slide_viewer_widget)
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
         self.main_toolbar = self.addToolBar("main_toolbar")
         self.main_toolbar.layout().setSpacing(5)
-        self.main_toolbar.setIconSize(QSize(20, 20))
+        self.main_toolbar.setIconSize(QSize(24, 24))
 
         menuBar = self.menuBar()
         self.actions_menu = MyMenu("actions", menuBar)
@@ -43,34 +46,34 @@ class SlideViewerMainWindow(QMainWindow):
         self.grid_menu = MyMenu("grid", menuBar)
         menuBar.addMenu(self.grid_menu)
 
-        self.fit_action = MyAction("&fit", self.zoom_menu, None, "fit")
-        self.fit_action.setIcon(QIcon(QPixmap.fromImage(self.ctx.icon_fit)))
+        self.select_slide_file_action = SelectSlideFileAction("&load", self.actions_menu,
+                                                              self.on_select_slide_file_action, self.ctx.icon_open)
+        self.main_toolbar.addAction(self.select_slide_file_action)
+
+        self.grid_toggle_action = MyAction("toggle &grid", self.grid_menu, self.on_grid_toggle, self.ctx.icon_grid)
+        self.main_toolbar.addAction(self.grid_toggle_action)
+
+        self.grid_change_size_action = MyAction("grid &size", self.grid_menu, self.on_grid_change_size_action)
+
+        self.take_screenshot_action = MyAction("&take screenshot", self.actions_menu, self.on_take_screenshot_action,
+                                               self.ctx.icon_screenshot)
+        self.main_toolbar.addAction(self.take_screenshot_action)
+
+        self.select_background_color_action = MyAction("&background color", self.actions_menu,
+                                                       self.on_select_background_color_action, self.ctx.icon_palette)
+        self.add_dynamic_command()
+
+        self.fit_action = MyAction("&fit", self.zoom_menu, None, self.ctx.icon_fit, "fit")
         self.main_toolbar.addAction(self.fit_action)
 
-        self.select_slide_file_action = SelectSlideFileAction("&load", self.actions_menu,
-                                                              self.on_select_slide_file_action)
-
-        self.zoom_action = MyAction("zoom", self, self.on_zoom_line_edit_pressed)
-        self.zoom_action.setIcon(QIcon(QPixmap.fromImage(self.ctx.icon_magnifier)))
+        self.zoom_action = MyAction("zoom", self, self.on_zoom_line_edit_pressed, self.ctx.icon_magnifier)
         self.main_toolbar.addAction(self.zoom_action)
+        self.zoom_menu.triggered.connect(self.on_zoom_menu_action)
 
         self.zoom_line_edit = QLineEdit()
         self.zoom_line_edit.returnPressed.connect(self.on_zoom_line_edit_pressed)
         self.zoom_line_edit.setMaximumWidth(50)
         self.main_toolbar.addWidget(self.zoom_line_edit)
-
-        self.grid_toggle_action = MyAction("toggle &grid", self.grid_menu, self.on_grid_toggle)
-        self.grid_toggle_action.setIcon(QIcon(QPixmap.fromImage(self.ctx.icon_grid)))
-        self.main_toolbar.addAction(self.grid_toggle_action)
-
-        self.grid_change_size_action = MyAction("grid &size", self.grid_menu, self.on_grid_change_size_action)
-
-        self.take_screenshot_action = MyAction("&take screenshot", self.actions_menu, self.on_take_screenshot_action)
-
-        self.select_background_color_action = MyAction("&background color", self.actions_menu,
-                                                       self.on_select_background_color_action)
-
-        self.add_dynamic_command()
 
         self.read_settings()
 
@@ -78,19 +81,26 @@ class SlideViewerMainWindow(QMainWindow):
         # self.zoom_line_edit.setText("{:.4F}".format(new_zoom))
         self.zoom_line_edit.setText("{:.1f}".format(1 / new_zoom))
 
+    def on_slide_file_changed(self, new_slide_file):
+        self.update_dynamic_zoom_actions(new_slide_file)
+
     def on_select_slide_file_action(self, file_path):
         self.slide_viewer_widget.load(file_path)
-        self.setup_zoom_menu(file_path)
 
-    def setup_zoom_menu(self, file_path):
-        self.zoom_menu.clear()
+    def update_dynamic_zoom_actions(self, file_path):
+        for action in self.dynamic_zoom_actions:
+            self.zoom_menu.removeAction(action)
+            self.main_toolbar.removeAction(action)
+        self.dynamic_zoom_actions = []
         slide_helper = SlideHelper(file_path)
         for downsample in slide_helper.level_downsamples:
-            downsample_action = MyAction(str(downsample), self.zoom_menu, None, downsample)
+            downsample_action = MyAction(str(downsample), self.zoom_menu, None, None, downsample)
+            f = downsample_action.font()
+            f.setPointSize(11)
+            downsample_action.setFont(f)
+            self.dynamic_zoom_actions.append(downsample_action)
             self.zoom_menu.addAction(downsample_action)
-
-        self.zoom_menu.addAction(self.fit_action)
-        self.zoom_menu.triggered.connect(self.on_zoom_menu_action)
+            self.main_toolbar.addAction(downsample_action)
 
     def on_zoom_menu_action(self, action: QAction):
         if action.text() != "&fit":
@@ -130,7 +140,8 @@ class SlideViewerMainWindow(QMainWindow):
         button_box.rejected.connect(dialog.reject)
         res = dialog.exec()
         if res == QDialog.Accepted:
-            self.slide_viewer_widget.slide_graphics_grid_item.update_grid_size((grid_w.value(), grid_h.value()))
+            self.slide_viewer_widget.slide_graphics_grid_item.grid_size = (grid_w.value(), grid_h.value())
+            self.slide_viewer_widget.slide_graphics_grid_item.update_lines()
 
     def on_grid_toggle(self):
         if self.slide_viewer_widget.slide_graphics_grid_item:

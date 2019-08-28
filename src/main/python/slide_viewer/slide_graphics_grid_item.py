@@ -1,18 +1,12 @@
 import os
 from bisect import bisect_left
 import typing
-from concurrent.futures import ThreadPoolExecutor
 from math import log
 
-import openslide
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QRectF, QSizeF, QPointF, QRect, Qt, QMutex, QMutexLocker, QPoint, QLineF
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGraphicsItem, QWidget, QStyleOptionGraphicsItem
-
-from slide_viewer.common import pilimage_to_pixmap
-from slide_viewer.config import debug, cell_size
-from slide_viewer.slide_helper import SlideHelper
 
 
 class SlideGraphicsGridItem(QGraphicsItem):
@@ -23,10 +17,10 @@ class SlideGraphicsGridItem(QGraphicsItem):
         self.min_zoom = min_zoom
         self.max_zoom = max_zoom
         self.paint_called_count = 0
-        self.update_grid_size(grid_size)
+        self.update_lines()
+        self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
 
-    def update_grid_size(self, grid_size):
-        self.grid_size = grid_size
+    def update_lines(self):
         top, left, bottom, right = self.bounding_rect.top(), self.bounding_rect.left(), self.bounding_rect.bottom(), self.bounding_rect.right()
         w, h = self.grid_size[0], self.grid_size[1]
         vertical_lines_count = int(self.boundingRect().width() // self.grid_size[0] + 1)

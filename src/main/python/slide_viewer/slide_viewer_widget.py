@@ -1,7 +1,8 @@
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtGui import QBrush, QPen, QColor, QPixmapCache, QTransform
-from PyQt5.QtWidgets import QWidget, QGraphicsScene, QVBoxLayout, QCommonStyle, QStyle, QApplication
-from PyQt5.QtCore import Qt, QRectF, QPointF, QPoint, QEvent
+from PyQt5.QtGui import QBrush, QPen, QColor, QPixmapCache, QTransform, QDropEvent, QDragMoveEvent, QDragEnterEvent
+from PyQt5.QtWidgets import QWidget, QGraphicsScene, QVBoxLayout, QCommonStyle, QStyle, QApplication, \
+    QGraphicsSceneDragDropEvent
+from PyQt5.QtCore import Qt, QRectF, QPointF, QPoint, QEvent, QObject, QMimeData, pyqtSignal
 
 from slide_viewer.config import debug, initial_scene_background_color
 from slide_viewer.slide_graphics_grid_item import SlideGraphicsGridItem
@@ -11,6 +12,7 @@ from slide_viewer.slide_viewer_graphics_view import SlideViewerGraphicsView
 
 
 class SlideViewerWidget(QWidget):
+    slideFileChanged = pyqtSignal(str)
 
     def __init__(self, parent: QWidget = None, on_slide_load_callback=None):
         super().__init__(parent)
@@ -29,8 +31,26 @@ class SlideViewerWidget(QWidget):
         self.layout.addWidget(self.view)
         self.setLayout(self.layout)
 
-        self.view_top_left = None
-        self.view_scene_center = None
+        self.scene.installEventFilter(self)
+        self.view.minZoomChanged.connect(self.onMinZoomChanged)
+
+    def eventFilter(self, target: QObject, event: QEvent) -> bool:
+        drag_events = [QEvent.GraphicsSceneDragEnter, QEvent.GraphicsSceneDragMove]
+        drop_events = [QEvent.GraphicsSceneDrop]
+        if event.type() in drag_events and self.mime_data_is_url(event.mimeData()):
+            event.accept()
+            return True
+        elif event.type() in drop_events and self.mime_data_is_url(event.mimeData()):
+            file_path = event.mimeData().urls()[0].toLocalFile()
+            # print(file_path)
+            self.load(file_path)
+            event.accept()
+            return True
+
+        return super().eventFilter(target, event)
+
+    def mime_data_is_url(self, mime_data: QMimeData):
+        return mime_data.hasUrls() and len(mime_data.urls()) == 1
 
     def load(self, file_path):
         QPixmapCache.clear()
@@ -41,28 +61,20 @@ class SlideViewerWidget(QWidget):
 
         self.slide_graphics_item = SlideGraphicsItem(file_path)
         self.scene.addItem(self.slide_graphics_item)
+        unlimited_rect = QRectF(-2 ** 31, -2 ** 31, 2 ** 32, 2 ** 32)
+        self.view.setSceneRect(unlimited_rect)
+        self.view.update_fit_and_min_zoom()
         # self.update_debug_item_rect()
         self.view.fit_scene()
 
         self.slide_graphics_grid_item = SlideGraphicsGridItem(self.slide_graphics_item.boundingRect(),
                                                               self.view.min_zoom, self.view.max_zoom)
         self.scene.addItem(self.slide_graphics_grid_item)
-        return
+        self.slideFileChanged.emit(file_path)
 
-    # def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
-    #     if self.slide_graphics_item:
-    #         self.update_view_scene_rect_and_min_zoom()
-    # zoom = self.view.get_current_view_scale()
-    # if zoom < self.min_zoom:
-    #     print("zoom: {}, min_zoom:{}".format(zoom, self.min_zoom))
-    #     self.view.set_zoom_center(self.min_zoom)
-
-    # def event(self, a0: QtCore.QEvent) -> bool:
-    #     acc = super().event(a0)
-    #     if a0.type() != QEvent.Resize:
-    #         if self.scene and self.view:
-    #             self.view_scene_center = self.view.mapToScene(self.view.rect().center())
-    #     return acc
+    def onMinZoomChanged(self, new_min_zoom):
+        if self.slide_graphics_grid_item:
+            self.slide_graphics_grid_item.min_zoom = new_min_zoom
 
     def update_debug_view_scene_rect(self):
         if self.debug:

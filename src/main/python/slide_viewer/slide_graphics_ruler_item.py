@@ -12,39 +12,15 @@ from slide_viewer.common import pilimage_to_pixmap
 from slide_viewer.config import debug, initial_cell_size
 from slide_viewer.slide_helper import SlideHelper
 
-cache_mutex = QMutex()
-
-
-def load_tile(slide_path, level0_pos, level, size):
-    with openslide.open_slide(slide_path) as slide:
-        tile_pilimage = slide.read_region((int(level0_pos[0]), int(level0_pos[1])), level,
-                                          (int(size[0]), int(size[1])))
-        return tile_pilimage
-
-
-class SlideGraphicsItem(QGraphicsItem):
-    def __init__(self, slide_path: str):
+class SlideGraphicsRulerItem(QGraphicsItem):
+    def __init__(self, start:QPointF):
         super().__init__()
         self.slide_helper = SlideHelper(slide_path)
         self.level0_size = self.slide_helper.level_dimensions[0]
         self.level0_qrectf = QRectF(QRect(0, 0, self.level0_size[0], self.level0_size[1]))
         self.cell_size = initial_cell_size
+
         self.debug = debug
-        # level = self.slide_helper.get_max_level()
-        # level_rect = self.slide_helper.get_rect_for_level(level)
-        # self.cell_size_x = max(level_rect.width(), level_rect.height())
-        # self.cell_size_y = max(level_rect.width(), level_rect.height())
-        # while level_rect_size < initial_cell_size and level > 0:
-        #     level -= 1
-        #     level_rect = self.slide_helper.get_rect_for_level(level)
-        #     level_rect_size = max(level_rect.width(), level_rect.height())
-        #     if level_rect_size < initial_cell_size:
-        #         mx, my = level_rect.width(), level_rect.height()
-        #         sx, sy = (mx // 100) * 100, (my // 100) * 100
-        #         self.cell_size_x = sx
-        #         self.cell_size_y = sy
-        self.cell_size_x = initial_cell_size
-        self.cell_size_y = initial_cell_size
 
         # self.setFlag(QGraphicsItem.ItemClipsToShape, True)
         # self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
@@ -85,8 +61,8 @@ class SlideGraphicsItem(QGraphicsItem):
 
         scene_to_level = QTransform.fromScale(1 / level_downsample, 1 / level_downsample)
         level_to_scene = QTransform.fromScale(level_downsample, level_downsample)
-        level_to_cell = QTransform.fromScale(1 / self.cell_size_x, 1 / self.cell_size_y)
-        cell_to_level = QTransform.fromScale(self.cell_size_x, self.cell_size_y)
+        level_to_cell = QTransform.fromScale(1 / self.cell_size, 1 / self.cell_size)
+        cell_to_level = QTransform.fromScale(self.cell_size, self.cell_size)
 
         exposed_scene_rect = option.exposedRect
         exposed_level_rect = scene_to_level.mapRect(exposed_scene_rect)
@@ -111,7 +87,7 @@ class SlideGraphicsItem(QGraphicsItem):
                         cache_mutex_locker.unlock()
                         cell_pilimage_future = self.thread_pool.submit(load_tile, self.slide_helper.slide_path,
                                                                        (cell_scene_rect.left(), cell_scene_rect.top()),
-                                                                       level, (self.cell_size_x, self.cell_size_y))
+                                                                       level, (self.cell_size, self.cell_size))
                         # we must update whole cell_scene_rect and not just cell_exposed_scene_rect because by the
                         # time the tile loads, our view can be already in another place (if we scroll a bit) and then
                         # exposedRect will differ from old exposedRect

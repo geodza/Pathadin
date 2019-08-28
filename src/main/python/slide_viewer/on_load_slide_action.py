@@ -1,11 +1,12 @@
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog
 
 from slide_viewer.my_action import MyAction
 
 
 class SelectSlideFileAction(MyAction):
-    def __init__(self, title, parent, callback):
-        super().__init__(title, parent, self.on_select_slide_file)
+    def __init__(self, title, parent, callback, icon: QIcon):
+        super().__init__(title, parent, self.on_select_slide_file, icon)
         self.callback = callback
 
     def on_select_slide_file(self):

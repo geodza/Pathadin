@@ -1,3 +1,4 @@
+from PyQt5.QtCore import QMimeDatabase
 from PyQt5.QtWidgets import QFileDialog
 
 from slide_viewer.my_action import MyAction
@@ -13,27 +14,25 @@ class SelectImageFileAction(MyAction):
         if file_path:
             self.callback(file_path)
 
-    def get_available_image_formats(self):
-        available_qt_formats = [
-            "BMP",
-            "GIF",
-            "JPG",
-            "PNG",
-            "PBM",
-            "PGM",
-            "PPM",
-            "XBM",
-            "XPM",
-            "SVG",
+    def get_mime_types(self):
+        return [
+            "image/jpeg",
+            "image/tiff",
+            "image/bmp",
+            "image/png",
+            "image/x-portable-bitmap",
+            "image/x-portable-graymap",
+            "image/x-portable-pixmap",
+            "image/x-xbitmap",
+            "image/x-xpixmap"
         ]
-        available_extensions = ["." + available_format for available_format in available_qt_formats]
-        return available_extensions
 
     def open_file_name_dialog(self):
-        options = QFileDialog.Options()
-        file_ext_strings = ["*" + ext for ext in self.get_available_image_formats()]
-        file_ext_string = " ".join(file_ext_strings)
-        file_name, _ = QFileDialog.getSaveFileName(self.window, "Select file", "screenshot.png",
-                                                   "supported formats ({});;".format(file_ext_string),
-                                                   options=options)
-        return file_name
+        dialog = QFileDialog(self.parent())
+        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.setMimeTypeFilters(self.get_mime_types())
+        dialog.setWindowTitle("Select file")
+        dialog.setAcceptMode(QFileDialog.AcceptSave)
+        if dialog.exec() and dialog.selectedFiles():
+            selected_file = dialog.selectedFiles()[0]
+            return selected_file

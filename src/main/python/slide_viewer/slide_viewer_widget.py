@@ -17,11 +17,12 @@ class SlideViewerWidget(QWidget):
     def __init__(self, parent: QWidget = None, on_slide_load_callback=None):
         super().__init__(parent)
         self.debug = debug
-        self.slide_helper = None
+        self.slide_helper: SlideHelper = None
         self.on_slide_load_callback = on_slide_load_callback
         self.scene = QGraphicsScene(self)
         self.view = SlideViewerGraphicsView(self.scene, parent)
         self.view.setBackgroundBrush(QColor(initial_scene_background_color))
+        self.view.setDisabled(True)
         self.slide_graphics_item = None
         self.slide_graphics_grid_item = None
         self.debug_view_scene_rect = None
@@ -32,7 +33,7 @@ class SlideViewerWidget(QWidget):
         self.setLayout(self.layout)
 
         self.scene.installEventFilter(self)
-        self.view.minZoomChanged.connect(self.onMinZoomChanged)
+        self.view.minScaleChanged.connect(self.on_min_zoom_changed)
 
     def eventFilter(self, target: QObject, event: QEvent) -> bool:
         drag_events = [QEvent.GraphicsSceneDragEnter, QEvent.GraphicsSceneDragMove]
@@ -63,16 +64,17 @@ class SlideViewerWidget(QWidget):
         self.scene.addItem(self.slide_graphics_item)
         unlimited_rect = QRectF(-2 ** 31, -2 ** 31, 2 ** 32, 2 ** 32)
         self.view.setSceneRect(unlimited_rect)
-        self.view.update_fit_and_min_zoom()
+        self.view.update_fit_and_min_scale()
         # self.update_debug_item_rect()
         self.view.fit_scene()
 
         self.slide_graphics_grid_item = SlideGraphicsGridItem(self.slide_graphics_item.boundingRect(),
-                                                              self.view.min_zoom, self.view.max_zoom)
+                                                              self.view.min_scale, self.view.max_scale)
         self.scene.addItem(self.slide_graphics_grid_item)
+        self.view.setDisabled(False)
         self.slideFileChanged.emit(file_path)
 
-    def onMinZoomChanged(self, new_min_zoom):
+    def on_min_zoom_changed(self, new_min_zoom):
         if self.slide_graphics_grid_item:
             self.slide_graphics_grid_item.min_zoom = new_min_zoom
 

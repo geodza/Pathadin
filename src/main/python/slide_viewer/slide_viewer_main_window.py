@@ -16,7 +16,6 @@ from slide_viewer.my_action import MyAction
 from slide_viewer.my_menu import MyMenu
 from slide_viewer.on_load_slide_action import SelectSlideFileAction
 from slide_viewer.screenshot_builders import build_screenshot_image_from_view
-from slide_viewer.slide_helper import SlideHelper
 from slide_viewer.slide_viewer_widget import SlideViewerWidget
 from slide_viewer.select_image_file_action import SelectImageFileAction
 
@@ -34,7 +33,7 @@ class SlideViewerMainWindow(QMainWindow):
         widget = QWidget(self)
         layout = QVBoxLayout(widget)
         self.slide_viewer_widget = SlideViewerWidget(widget, self.on_load_slide_callback)
-        self.slide_viewer_widget.view.zoomChanged.connect(self.on_view_zoom_changed)
+        self.slide_viewer_widget.view.scaleChanged.connect(self.on_view_zoom_changed)
         self.slide_viewer_widget.slideFileChanged.connect(self.on_slide_file_changed)
         layout.addWidget(self.slide_viewer_widget)
         widget.setLayout(layout)
@@ -88,9 +87,10 @@ class SlideViewerMainWindow(QMainWindow):
 
         self.read_settings()
 
-    def on_view_zoom_changed(self, new_zoom):
-        # self.zoom_line_edit.setText("{:.4F}".format(new_zoom))
-        self.zoom_line_edit.setText("{:.1f}".format(1 / new_zoom))
+    def on_view_zoom_changed(self, scale):
+        # self.zoom_line_edit.setText("{:.4F}".format(new_scale))
+        zoom = self.slide_viewer_widget.slide_helper.scale_to_zoom(scale)
+        self.zoom_line_edit.setText("{:.1f}".format(zoom))
 
     def on_slide_file_changed(self, new_slide_file):
         self.update_dynamic_zoom_actions(new_slide_file)
@@ -103,21 +103,26 @@ class SlideViewerMainWindow(QMainWindow):
             self.zoom_menu.removeAction(action)
             self.main_toolbar.removeAction(action)
         self.dynamic_zoom_actions = []
-        slide_helper = SlideHelper(file_path)
+        slide_helper = self.slide_viewer_widget.slide_helper
         for downsample in slide_helper.level_downsamples:
-            downsample_action = MyAction(str(downsample), self.zoom_menu, None, None, downsample)
-            f = downsample_action.font()
-            f.setPointSize(11)
-            downsample_action.setFont(f)
-            self.dynamic_zoom_actions.append(downsample_action)
-            self.zoom_menu.addAction(downsample_action)
-            self.main_toolbar.addAction(downsample_action)
+            zoom = int(slide_helper.downsample_to_zoom(downsample))
+            if zoom > 0:
+                action_text = "x{}".format(zoom)
+                scale = self.slide_viewer_widget.slide_helper.zoom_to_scale(zoom)
+                scale_action = MyAction(action_text, self.zoom_menu, None, None, scale)
+                f = scale_action.font()
+                f.setPointSize(11)
+                scale_action.setFont(f)
+                self.dynamic_zoom_actions.append(scale_action)
+                self.zoom_menu.addAction(scale_action)
+                self.main_toolbar.addAction(scale_action)
 
     def on_zoom_menu_action(self, action: QAction):
+        if not self.slide_viewer_widget.slide_helper:
+            return
         if action != self.fit_action:
-            downsample = action.data()
-            zoom = 1 / downsample
-            self.slide_viewer_widget.view.set_zoom_in_view_center(zoom)
+            scale = action.data()
+            self.slide_viewer_widget.view.set_scale_in_view_center(scale)
         else:
             self.slide_viewer_widget.view.fit_scene()
 
@@ -162,7 +167,8 @@ class SlideViewerMainWindow(QMainWindow):
     def on_zoom_line_edit_pressed(self):
         try:
             zoom = float(self.zoom_line_edit.text())
-            self.slide_viewer_widget.view.set_zoom_in_view_center(1 / zoom)
+            scale=self.slide_viewer_widget.slide_helper.zoom_to_scale(zoom)
+            self.slide_viewer_widget.view.set_scale_in_view_center(scale)
         except:
             pass
 
@@ -193,6 +199,8 @@ class SlideViewerMainWindow(QMainWindow):
         self.slide_viewer_widget.view.setBackgroundBrush(color)
 
     def on_show_properties_action(self):
+        if not self.slide_viewer_widget.slide_helper:
+            return
         if self.props_dialog:
             self.props_dialog.close()
         self.props_dialog = QDialog(self)
@@ -261,6 +269,6 @@ class SlideViewerMainWindow(QMainWindow):
         self.text = text
 
     def on_execute_command_text(self):
-        # self.slide_viewer_widget.view.set_zoom_in_view_center(0.1)
+        # self.slide_viewer_widget.view.set_scale_in_view_center(0.1)
         print("exec", self.text)
         exec(self.text)

@@ -7,12 +7,12 @@ from PyQt5.QtGui import QTransform, QVector2D, QPainter, QMouseEvent, QWheelEven
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QWidget
 
 view_mutex = QMutex()
-zoom_step_factor = 1.25
+scale_step_factor = 1.25
 
 
-class ZoomTimeLineData:
-    def __init__(self, zoom_factor):
-        self.zoom_factor = zoom_factor
+class ScaleTimeLineData:
+    def __init__(self, scale_factor):
+        self.scale_factor = scale_factor
         self.prev_time_line_value = 0
 
 
@@ -31,9 +31,8 @@ class ViewParams:
 
 
 class SlideViewerGraphicsView(QGraphicsView):
-    zoomChanged = pyqtSignal(float)
-    minZoomChanged = pyqtSignal(float)
-    fitZoomChanged = pyqtSignal(float)
+    scaleChanged = pyqtSignal(float)
+    minScaleChanged = pyqtSignal(float)
 
     def __init__(self, scene: QGraphicsScene, parent: typing.Optional[QWidget] = ...):
         super().__init__(scene, parent)
@@ -44,29 +43,29 @@ class SlideViewerGraphicsView(QGraphicsView):
         self.current = ViewParams()
         self.last = ViewParams()
         self.mouse_move_timer = None
-        self.fit_zoom = 1
-        self.min_zoom = 1
-        self.max_zoom = 2.5
+        self.fit_scale = 1
+        self.min_scale = 1
+        self.max_scale = 2.5
         self.pan = None
 
     def reset(self):
         self.resetTransform()
         self.horizontalScrollBar().setValue(0)
         self.verticalScrollBar().setValue(0)
-        self.zoomChanged.emit(self.get_current_view_scale())
+        self.scaleChanged.emit(self.get_current_view_scale())
 
     def fit_scene(self):
         self.reset()
-        # self.update_view_scene_rect_and_min_zoom()
-        self.scale(self.fit_zoom, self.fit_zoom)
+        # self.update_view_scene_rect_and_min_scale()
+        self.scale(self.fit_scale, self.fit_scale)
         self.centerOn(self.scene().sceneRect().center())
-        self.zoomChanged.emit(self.get_current_view_scale())
+        self.scaleChanged.emit(self.get_current_view_scale())
 
     def viewportEvent(self, event: QEvent) -> bool:
         self.update_view_params(event, self.current)
         res = super().viewportEvent(event)
         self.update_view_params(event, self.last)
-        self.update_fit_and_min_zoom()
+        self.update_fit_and_min_scale()
         return res
 
     def update_view_params(self, event: QEvent, view_params: ViewParams):
@@ -82,69 +81,68 @@ class SlideViewerGraphicsView(QGraphicsView):
             view_params.mouse_pos = event.pos()
             view_params.mouse_scene_pos = self.mapToScene(event.pos())
 
-    def update_fit_and_min_zoom(self):
+    def update_fit_and_min_scale(self):
         vw, vh = self.width(), self.height()
         item_rect = self.scene().sceneRect()
         if item_rect:
             iw, ih = item_rect.width(), item_rect.height()
             max_items_per_screen = 1.5
-            self.fit_zoom = min(vw / iw, vh / ih)
-            self.min_zoom = self.fit_zoom / max_items_per_screen
-            self.fitZoomChanged.emit(self.fit_zoom)
-            self.minZoomChanged.emit(self.min_zoom)
+            self.fit_scale = min(vw / iw, vh / ih)
+            self.min_scale = self.fit_scale / max_items_per_screen
+            self.minScaleChanged.emit(self.min_scale)
 
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         steps_count = abs(event.angleDelta().y()) / 120
-        is_zoom_in = event.angleDelta().y() > 0
-        zoom_factor_ = zoom_step_factor if is_zoom_in else 1 / zoom_step_factor
-        zoom_factor = zoom_factor_ ** steps_count
-        self.launch_zoom_time_line(zoom_factor)
+        is_scale_in = event.angleDelta().y() > 0
+        scale_factor_ = scale_step_factor if is_scale_in else 1 / scale_step_factor
+        scale_factor = scale_factor_ ** steps_count
+        self.launch_scale_time_line(scale_factor)
         event.accept()
 
-    def launch_zoom_time_line(self, zoom_factor):
-        zoom_timeline = QTimeLine(250, self)
-        zoom_timeline.setUpdateInterval(15)
-        zoom_timeline.setProperty("zoom_time_line_data", ZoomTimeLineData(zoom_factor))
-        zoom_timeline.valueChanged.connect(self.on_zoom_timeline_value_changed)
-        zoom_timeline.start()
+    def launch_scale_time_line(self, scale_factor):
+        timeline = QTimeLine(250, self)
+        timeline.setUpdateInterval(15)
+        timeline.setProperty("scale_time_line_data", ScaleTimeLineData(scale_factor))
+        timeline.valueChanged.connect(self.on_scale_timeline_value_changed)
+        timeline.start()
 
-    def on_zoom_timeline_value_changed(self, time_line_value):
-        zoom_time_line_data: ZoomTimeLineData = self.sender().property("zoom_time_line_data")
-        current_zoom = self.get_current_view_scale()
-        time_line_value_delta = time_line_value - zoom_time_line_data.prev_time_line_value
-        new_zoom = current_zoom * zoom_time_line_data.zoom_factor ** time_line_value_delta
-        self.set_zoom_in_mouse_point(new_zoom)
-        zoom_time_line_data.prev_time_line_value = time_line_value
+    def on_scale_timeline_value_changed(self, time_line_value):
+        scale_time_line_data: ScaleTimeLineData = self.sender().property("scale_time_line_data")
+        current_scale = self.get_current_view_scale()
+        time_line_value_delta = time_line_value - scale_time_line_data.prev_time_line_value
+        new_scale = current_scale * scale_time_line_data.scale_factor ** time_line_value_delta
+        self.set_scale_in_mouse_point(new_scale)
+        scale_time_line_data.prev_time_line_value = time_line_value
         self.current.view_scene_top_left = self.mapToScene(self.viewport().rect().topLeft())
         self.last.view_scene_top_left = self.mapToScene(self.viewport().rect().topLeft())
 
-    def set_zoom_in_mouse_point(self, new_zoom):
+    def set_scale_in_mouse_point(self, new_scale):
         m, top_left_old = self.current.mouse_scene_pos, self.current.view_scene_top_left
-        old_zoom = self.get_current_view_scale()
-        new_zoom = self.limit_new_zoom(new_zoom)
+        old_scale = self.get_current_view_scale()
+        new_scale = self.limit_new_scale(new_scale)
 
-        top_left_new = m - (m - top_left_old) * old_zoom / new_zoom
+        top_left_new = m - (m - top_left_old) * old_scale / new_scale
         self.reset()
         # print("top_left", top_left_new.x())
-        transform = QTransform().scale(new_zoom, new_zoom).translate(-top_left_new.x(), -top_left_new.y())
+        transform = QTransform().scale(new_scale, new_scale).translate(-top_left_new.x(), -top_left_new.y())
         self.setTransform(transform, False)
-        self.zoomChanged.emit(self.get_current_view_scale())
+        self.scaleChanged.emit(self.get_current_view_scale())
 
-    def set_zoom_in_view_center(self, new_zoom):
-        new_zoom = self.limit_new_zoom(new_zoom)
+    def set_scale_in_view_center(self, new_scale):
+        new_scale = self.limit_new_scale(new_scale)
         # view_scene_center = self.mapToScene(self.viewport().rect().center())
         view_scene_center = self.mapToScene(self.rect().center())
         self.reset()
-        self.scale(new_zoom, new_zoom)
+        self.scale(new_scale, new_scale)
         self.centerOn(view_scene_center)
-        self.zoomChanged.emit(self.get_current_view_scale())
+        self.scaleChanged.emit(self.get_current_view_scale())
 
-    def limit_new_zoom(self, new_zoom):
-        if new_zoom > self.max_zoom:
-            new_zoom = self.max_zoom
-        elif new_zoom < self.min_zoom:
-            new_zoom = self.min_zoom
-        return new_zoom
+    def limit_new_scale(self, new_scale):
+        if new_scale > self.max_scale:
+            new_scale = self.max_scale
+        elif new_scale < self.min_scale:
+            new_scale = self.min_scale
+        return new_scale
 
     def get_current_view_scale(self):
         scale = self.transform().m11()

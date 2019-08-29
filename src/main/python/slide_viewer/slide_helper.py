@@ -11,6 +11,9 @@ class SlideHelper():
             self.level_downsamples = slide.level_downsamples
             self.level_dimensions = slide.level_dimensions
             self.level_count = slide.level_count
+            self.objective_power = 1
+            self.properties = dict(slide.properties) if slide.properties else {}
+            self.objective_power = float(self.properties.get(openslide.PROPERTY_NAME_OBJECTIVE_POWER, 1))
 
     def get_slide_path(self):
         return self.slide_path
@@ -37,8 +40,16 @@ class SlideHelper():
             return slide.get_best_level_for_downsample(downsample)
 
     def get_properties(self):
-        with openslide.open_slide(self.slide_path) as slide:
-            return dict(slide.properties)
+        return self.properties
+
+    def scale_to_zoom(self, scale):
+        return self.objective_power * scale
+
+    def zoom_to_scale(self, zoom):
+        return zoom / self.objective_power
+
+    def downsample_to_zoom(self, downsample):
+        return self.objective_power / downsample
 
     def read_region_pixmap(self, level0_pos, level, size):
         with openslide.open_slide(self.slide_path) as slide:

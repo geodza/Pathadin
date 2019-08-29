@@ -10,12 +10,12 @@ from PyQt5.QtWidgets import QGraphicsItem, QWidget, QStyleOptionGraphicsItem
 
 
 class SlideGraphicsGridItem(QGraphicsItem):
-    def __init__(self, bounding_rect: QRectF, min_zoom, max_zoom, grid_size=(512, 512)):
+    def __init__(self, bounding_rect: QRectF, min_scale, max_scale, grid_size=(512, 512)):
         super().__init__()
         self.bounding_rect = bounding_rect
         self.grid_size = grid_size
-        self.min_zoom = min_zoom
-        self.max_zoom = max_zoom
+        self.min_scale = min_scale
+        self.max_scale = max_scale
         self.paint_called_count = 0
         self.update_lines()
         self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
@@ -37,8 +37,8 @@ class SlideGraphicsGridItem(QGraphicsItem):
         self.paint_called_count += 1
         # painter.setClipRect(option.exposedRect)
 
-        current_zoom = 1 / painter.transform().m11()
-        alpha = 255 - 250 * log(1 + current_zoom - 1 / self.max_zoom, 1 / self.min_zoom)
+        current_scale = 1 / painter.transform().m11()
+        alpha = 255 - 250 * log(1 + current_scale - 1 / self.max_scale, 1 / self.min_scale)
 
         qpen = QPen(QBrush(QColor(0, 0, 0, alpha)), 1)
         qpen.setCosmetic(True)

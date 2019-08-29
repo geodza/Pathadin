@@ -42,3 +42,7 @@ class AppContext(ApplicationContext):
     @cached_property
     def icon_palette(self):
         return QIcon(self.get_resource('color_lens.svg'))
+
+    @cached_property
+    def icon_description(self):
+        return QIcon(self.get_resource('description.svg'))

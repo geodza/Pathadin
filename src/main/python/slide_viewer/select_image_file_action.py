@@ -5,9 +5,10 @@ from slide_viewer.my_action import MyAction
 
 
 class SelectImageFileAction(MyAction):
-    def __init__(self, title, parent, callback):
+    def __init__(self, title, parent, callback, default_file_name="temp"):
         super().__init__(title, parent, self.on_select_image_file)
         self.callback = callback
+        self.default_file_name = default_file_name
 
     def on_select_image_file(self):
         file_path = self.open_file_name_dialog()
@@ -31,6 +32,8 @@ class SelectImageFileAction(MyAction):
         dialog = QFileDialog(self.parent())
         dialog.setFileMode(QFileDialog.AnyFile)
         dialog.setMimeTypeFilters(self.get_mime_types())
+        dialog.selectMimeTypeFilter(self.get_mime_types()[0])
+        dialog.selectFile(self.default_file_name)
         dialog.setWindowTitle("Select file")
         dialog.setAcceptMode(QFileDialog.AcceptSave)
         if dialog.exec() and dialog.selectedFiles():

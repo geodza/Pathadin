@@ -1,8 +1,14 @@
-from PyQt5.QtGui import QPixmapCache, QPixmap, QIcon, QCloseEvent, QImageReader, QImage, QPainter
+import json
+from collections import OrderedDict
+from datetime import date, datetime
+
+from PyQt5.QtGui import QPixmapCache, QPixmap, QIcon, QCloseEvent, QImageReader, QImage, QPainter, QTextDocument, \
+    QFontMetrics
 from PyQt5.QtSvg import QSvgRenderer
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLineEdit, QPushButton, QAction, QLabel, QDialog, \
-    QSpinBox, QHBoxLayout, QFormLayout, QDialogButtonBox, QColorDialog, QApplication, QWidgetAction
-from PyQt5.QtCore import Qt, QSize, QSettings
+    QSpinBox, QHBoxLayout, QFormLayout, QDialogButtonBox, QColorDialog, QApplication, QWidgetAction, QMessageBox, \
+    QTextEdit, QScrollArea
+from PyQt5.QtCore import Qt, QSize, QSettings, QFileInfo, QFile
 from PyQt5.QtGui import QBrush, QPen, QColor, QPixmapCache, QTransform
 
 from slide_viewer.config import debug, initial_main_window_size, initial_scene_background_color
@@ -23,6 +29,7 @@ class SlideViewerMainWindow(QMainWindow):
         self.text = None
         self.debug = debug
         self.dynamic_zoom_actions = []
+        self.props_dialog = None
 
         widget = QWidget(self)
         layout = QVBoxLayout(widget)
@@ -49,6 +56,10 @@ class SlideViewerMainWindow(QMainWindow):
         self.select_slide_file_action = SelectSlideFileAction("&Open image", self.actions_menu,
                                                               self.on_select_slide_file_action, self.ctx.icon_open)
         self.main_toolbar.addAction(self.select_slide_file_action)
+
+        self.show_properties_action = MyAction("Show &properties", self.actions_menu,
+                                               self.on_show_properties_action, self.ctx.icon_description)
+        self.main_toolbar.addAction(self.show_properties_action)
 
         self.grid_toggle_action = MyAction("Toggle &grid", self.grid_menu, self.on_grid_toggle, self.ctx.icon_grid)
         self.main_toolbar.addAction(self.grid_toggle_action)
@@ -103,7 +114,7 @@ class SlideViewerMainWindow(QMainWindow):
             self.main_toolbar.addAction(downsample_action)
 
     def on_zoom_menu_action(self, action: QAction):
-        if action.text() != "&fit":
+        if action != self.fit_action:
             downsample = action.data()
             zoom = 1 / downsample
             self.slide_viewer_widget.view.set_zoom_in_view_center(zoom)
@@ -161,7 +172,11 @@ class SlideViewerMainWindow(QMainWindow):
             image.save(image_file)
 
         if self.slide_viewer_widget.slide_graphics_grid_item:
-            select_image_file_action = SelectImageFileAction("internal", self, on_select_image_file)
+            now = datetime.now()
+            now_str = now.strftime("%d-%m-%Y_%H-%M-%S")
+            slide_name = QFileInfo(QFile(self.slide_viewer_widget.slide_helper.slide_path)).baseName()
+            default_file_name = "{}_screen_{}".format(slide_name, now_str)
+            select_image_file_action = SelectImageFileAction("internal", self, on_select_image_file, default_file_name)
             select_image_file_action.trigger()
 
     def on_select_background_color_action(self):
@@ -176,6 +191,40 @@ class SlideViewerMainWindow(QMainWindow):
 
     def on_background_color_change(self, color):
         self.slide_viewer_widget.view.setBackgroundBrush(color)
+
+    def on_show_properties_action(self):
+        if self.props_dialog:
+            self.props_dialog.close()
+        self.props_dialog = QDialog(self)
+        layout = QVBoxLayout(self.props_dialog)
+        self.props_dialog.setLayout(layout)
+        text_editor = QTextEdit(self.props_dialog)
+        text_editor.setReadOnly(True)
+        layout.addWidget(text_editor)
+
+        props = self.slide_viewer_widget.slide_helper.get_properties()
+        main_props = {prop: val for prop, val in props.items() if prop.startswith("openslide")}
+        ordered_props = OrderedDict(main_props.items())
+        ordered_props.update(props)
+        main_props_text = json.dumps(main_props, indent=2)
+        full_props_text = json.dumps(ordered_props, indent=2)
+        text_editor.setText(full_props_text)
+
+        font = text_editor.document().defaultFont()
+        font_metrics = QFontMetrics(font)
+        text_width = font_metrics.size(0, full_props_text).width()
+        main_text_height = font_metrics.size(0, main_props_text).height() / 2
+
+        margins = self.props_dialog.layout().contentsMargins()
+        margins_size = QSize(margins.left() + margins.right(), margins.top() + margins.bottom())
+        margins_size += QSize(text_editor.horizontalScrollBar().height(), text_editor.verticalScrollBar().width())
+        if text_width > self.width():
+            text_width = self.width()
+        if main_text_height > self.height():
+            main_text_height = self.width()
+        size = QSize(text_width, main_text_height) + margins_size
+        self.props_dialog.resize(size)
+        self.props_dialog.show()
 
     def write_settings(self):
         settings = QSettings("dieyepy", "dieyepy")

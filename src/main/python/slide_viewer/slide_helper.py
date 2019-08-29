@@ -36,6 +36,10 @@ class SlideHelper():
         with openslide.open_slide(self.slide_path) as slide:
             return slide.get_best_level_for_downsample(downsample)
 
+    def get_properties(self):
+        with openslide.open_slide(self.slide_path) as slide:
+            return dict(slide.properties)
+
     def read_region_pixmap(self, level0_pos, level, size):
         with openslide.open_slide(self.slide_path) as slide:
             tile_pilimage = slide.read_region((int(level0_pos[0]), int(level0_pos[1])), level,

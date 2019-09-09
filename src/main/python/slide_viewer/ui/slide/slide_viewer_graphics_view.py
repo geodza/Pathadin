@@ -1,10 +1,14 @@
-import time
 import typing
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QTimeLine, QMutex, QMutexLocker, QObject, Qt, QTimer, QPoint, QPointF, QRect, QRectF, \
-    pyqtSignal, QEvent
-from PyQt5.QtGui import QTransform, QVector2D, QPainter, QMouseEvent, QWheelEvent, QResizeEvent
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QWidget
+
+from PyQt5 import QtGui
+from PyQt5.QtCore import QTimeLine, QMutex, QObject, Qt, QTimer, QPointF, pyqtSignal, QEvent
+from PyQt5.QtGui import QTransform, QVector2D, QMouseEvent, QWheelEvent, QResizeEvent, QKeyEvent, QPainterPath
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QWidget, QGraphicsItemGroup, QGraphicsItem
+
+from slide_viewer.ui.annotation.annotation_data import AnnotationData
+from slide_viewer.ui.annotation.annotation_path_item import AnnotationPathItem
+from slide_viewer.ui.annotation.annotation_type import AnnotationType
+from slide_viewer.ui.annotation.annotation_item_factory import create_annotation_item
 
 view_mutex = QMutex()
 scale_step_factor = 1.25
@@ -33,6 +37,9 @@ class ViewParams:
 class SlideViewerGraphicsView(QGraphicsView):
     scaleChanged = pyqtSignal(float)
     minScaleChanged = pyqtSignal(float)
+    annotationItemAdded = pyqtSignal(QGraphicsItemGroup)
+    annotationItemsSelected = pyqtSignal(list)
+    annotationItemRemoved = pyqtSignal(int)
 
     def __init__(self, scene: QGraphicsScene, parent: typing.Optional[QWidget] = ...):
         super().__init__(scene, parent)
@@ -47,6 +54,15 @@ class SlideViewerGraphicsView(QGraphicsView):
         self.min_scale = 1
         self.max_scale = 2.5
         self.pan = None
+        self.move_mode = "straighten"
+        self.mouse_move_between_press_and_release = False
+
+        self.annotation_type: AnnotationType = None
+        self.annotation_item = None
+        self.annotation_items = []
+        self.annotation_item_in_progress = False
+
+        self.installEventFilter(self)
 
     def reset(self):
         self.resetTransform()
@@ -148,25 +164,128 @@ class SlideViewerGraphicsView(QGraphicsView):
         scale = self.transform().m11()
         return scale
 
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        self.mouse_move_between_press_and_release = False
+
     def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
-        self.pan = (self.current.mouse_pos - self.last.mouse_pos) / self.get_current_view_scale()
-        self.mouse_move_timer = QTimer(self)
-        self.mouse_move_timer.setInterval(0)
-        self.mouse_move_timer.timeout.connect(self.on_almost_immediate_move)
-        self.mouse_move_timer.setSingleShot(True)
-        self.mouse_move_timer.start()
-        event.accept()
+        self.mouse_move_between_press_and_release = True
+        if event.buttons() & Qt.LeftButton == Qt.LeftButton:
+            self.pan = (self.current.mouse_pos - self.last.mouse_pos) / self.get_current_view_scale()
+            self.mouse_move_timer = QTimer(self)
+            self.mouse_move_timer.setInterval(0)
+            self.mouse_move_timer.timeout.connect(self.on_almost_immediate_move)
+            self.mouse_move_timer.setSingleShot(True)
+            self.mouse_move_timer.start()
+            event.accept()
+        elif self.annotation_type and self.annotation_item_in_progress:
+            point_scene = self.current.mouse_scene_pos
+            if self.annotation_type == AnnotationType.POLYGON and self.are_points_close(
+                    point_scene, self.annotation_item.first_point()):
+                point_scene = self.annotation_item.first_point()
+            self.annotation_item.set_last_point(point_scene)
+            event.accept()
 
     def on_almost_immediate_move(self):
         self.translate(self.pan.x(), self.pan.y())
 
-    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.LeftButton and self.mouse_move_timer and self.mouse_move_timer.isActive():
+            # print("release")
+            self.mouse_move_timer.stop()
+            self.launch_pan_time_line(self.pan * 3)
+            event.accept()
+        if not self.mouse_move_between_press_and_release:
+            self.on_mouse_click(event)
+
+    def on_mouse_click(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:
-            if self.mouse_move_timer and self.mouse_move_timer.isActive():
-                # print("release")
-                self.mouse_move_timer.stop()
-                self.launch_pan_time_line(self.pan * 3)
-        event.accept()
+            if not self.annotation_type:
+                self.on_select()
+            else:
+                if self.annotation_item_in_progress:
+                    if self.annotation_type == AnnotationType.POLYGON:
+                        if self.are_points_close(self.current.mouse_scene_pos,
+                                                 self.annotation_item.first_point()):
+                            self.on_finish_annotation_item()
+                        else:
+                            self.annotation_item.add_point(self.current.mouse_scene_pos)
+                    else:
+                        self.on_finish_annotation_item()
+                else:
+                    self.on_start_annotation_item()
+            event.accept()
+
+    def on_start_annotation_item(self):
+        if self.annotation_item:
+            self.scene().removeItem(self.annotation_item)
+        self.annotation_item = create_annotation_item(self.annotation_type)
+        self.scene().addItem(self.annotation_item)
+        self.annotation_item.setVisible(True)
+        self.annotation_item.add_point(self.current.mouse_scene_pos)
+        self.annotation_item.add_point(self.current.mouse_scene_pos)
+        # self.annotation_item.set_points([self.current.mouse_scene_pos, self.current.mouse_scene_pos])
+        self.setMouseTracking(True)
+        self.annotation_item_in_progress = True
+
+    def on_finish_annotation_item(self):
+        if self.annotation_item:
+            self.annotation_items.append(self.annotation_item)
+            self.annotationItemAdded.emit(self.annotation_item)
+        self.on_off_annotation_item()
+
+    def on_off_annotation_item(self):
+        self.annotation_item_in_progress = False
+        self.setMouseTracking(False)
+        self.annotation_item = None
+
+    def reset_annotation_items(self, annotation_data: typing.List[AnnotationData] = []):
+        for item in self.annotation_items:
+            if item and item.scene():
+                item.scene().removeItem(item)
+        self.annotation_items = []
+        for annotation_datum in annotation_data:
+            item = AnnotationPathItem(annotation_datum)
+            item.setVisible(True)
+            self.annotation_items.append(item)
+            self.scene().addItem(item)
+        # self.update()
+        # self.scene().update()
+
+    # def remove_annotation_item(self, item_number):
+    #     item = self.annotation_items[item_number]
+    #     if item and item.scene():
+    #         item.scene().removeItem(item)
+    #     del self.annotation_items[item_number]
+    #     self.annotationItemsRemoved.emit(item_number)
+
+    def on_select(self):
+        size = 10 / self.get_current_view_scale()
+        path = QPainterPath()
+        path.addEllipse(self.current.mouse_scene_pos, size, size)
+        self.scene().setSelectionArea(path, 0, Qt.IntersectsItemShape, self.viewportTransform())
+        print("select_path", path.boundingRect().toRect())
+        print(self.scene().selectedItems())
+        item_numbers = [self.annotation_items.index(item) for item in self.scene().selectedItems()]
+        self.annotationItemsSelected.emit(item_numbers)
+
+    def are_points_close(self, p1: QPointF, p2: QPointF):
+        length = QVector2D(p1 - p2).length()
+        # print(length)
+        return length < 10 / self.get_current_view_scale()
+
+    def eventFilter(self, source: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.KeyPress:
+            key_event: QKeyEvent = event
+            if key_event.key() == Qt.Key_Enter or key_event.key() == Qt.Key_Return:
+                self.on_enter_press()
+                return True
+
+        return super().eventFilter(source, event)
+
+    def on_enter_press(self):
+        if self.annotation_item_in_progress and self.annotation_type == AnnotationType.POLYGON:
+            self.annotation_item.set_last_point(self.annotation_item.first_point())
+            self.on_finish_annotation_item()
 
     def launch_pan_time_line(self, pan):
         pan_timeline = QTimeLine(400, self)

@@ -1,23 +1,26 @@
 import json
 from collections import OrderedDict
-from datetime import date, datetime
+from datetime import datetime
 
-from PyQt5.QtGui import QPixmapCache, QPixmap, QIcon, QCloseEvent, QImageReader, QImage, QPainter, QTextDocument, \
-    QFontMetrics
-from PyQt5.QtSvg import QSvgRenderer
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLineEdit, QPushButton, QAction, QLabel, QDialog, \
-    QSpinBox, QHBoxLayout, QFormLayout, QDialogButtonBox, QColorDialog, QApplication, QWidgetAction, QMessageBox, \
-    QTextEdit, QScrollArea
-from PyQt5.QtCore import Qt, QSize, QSettings, QFileInfo, QFile
-from PyQt5.QtGui import QBrush, QPen, QColor, QPixmapCache, QTransform
+from PyQt5.QtCore import Qt, QSize, QSettings, QFileInfo, QFile, QPoint
+from PyQt5.QtGui import QCloseEvent, QGuiApplication
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLineEdit, QPushButton, QAction, QDialog, \
+    QSpinBox, QHBoxLayout, QFormLayout, QDialogButtonBox, QColorDialog, QApplication, QToolTip, QActionGroup
 
+import json_utils
 from slide_viewer.config import debug, initial_main_window_size, initial_scene_background_color
-from slide_viewer.my_action import MyAction
-from slide_viewer.my_menu import MyMenu
-from slide_viewer.on_load_slide_action import SelectSlideFileAction
-from slide_viewer.screenshot_builders import build_screenshot_image_from_view
-from slide_viewer.slide_viewer_widget import SlideViewerWidget
-from slide_viewer.select_image_file_action import SelectImageFileAction
+from slide_viewer.ui.annotation.annotation_type import AnnotationType
+from slide_viewer.ui.annotation.annotation_utls import ordered_dict_to_data
+from slide_viewer.ui.common.my_action import MyAction
+from slide_viewer.ui.common.my_menu import MyMenu
+from slide_viewer.ui.common.select_image_file_action import SelectImageFileAction
+from slide_viewer.ui.common.select_json_file_action import SelectJsonFileAction
+from slide_viewer.ui.common.text_dialog import TextDialog
+from slide_viewer.ui.dict_tree_view_model.ordered_dicts_tree_model import OrderedDictsTreeModel
+from slide_viewer.ui.slide.on_load_slide_action import SelectSlideFileAction
+from slide_viewer.ui.slide.screenshot_builders import build_screenshot_image_from_view
+from slide_viewer.ui.slide.slide_viewer_widget import SlideViewerWidget
 
 
 class SlideViewerMainWindow(QMainWindow):
@@ -51,6 +54,13 @@ class SlideViewerMainWindow(QMainWindow):
         menuBar.addMenu(self.zoom_menu)
         self.grid_menu = MyMenu("Grid", menuBar)
         menuBar.addMenu(self.grid_menu)
+        self.annotations_menu = MyMenu("Annotations", menuBar)
+        menuBar.addMenu(self.annotations_menu)
+
+        self.export_annotations_action = MyAction("&Export annotations as JSON", self.annotations_menu,
+                                                  self.on_export_annotations)
+        self.import_annotations_action = MyAction("&Import annotations as JSON", self.annotations_menu,
+                                                  self.on_import_annotations)
 
         self.select_slide_file_action = SelectSlideFileAction("&Open image", self.actions_menu,
                                                               self.on_select_slide_file_action, self.ctx.icon_open)
@@ -65,13 +75,43 @@ class SlideViewerMainWindow(QMainWindow):
 
         self.grid_change_size_action = MyAction("Grid &size", self.grid_menu, self.on_grid_change_size_action)
 
-        self.take_screenshot_action = MyAction("&Take screenshot", self.actions_menu, self.on_take_screenshot_action,
+        self.take_screenshot_action = MyAction("&Save screenshot", self.actions_menu, self.on_take_screenshot_action,
                                                self.ctx.icon_screenshot)
         self.main_toolbar.addAction(self.take_screenshot_action)
+
+        self.copy_screenshot_action = MyAction("&Copy screenshot to clipboard", self.actions_menu,
+                                               self.on_copy_screenshot_action,
+                                               self.ctx.icon_camera)
+        self.main_toolbar.addAction(self.copy_screenshot_action)
 
         self.select_background_color_action = MyAction("&Background color", self.actions_menu,
                                                        self.on_select_background_color_action, self.ctx.icon_palette)
         self.add_dynamic_command()
+
+        self.annotation_group = QActionGroup(self.actions_menu)
+        separator = QAction(self.annotation_group)
+        separator.setSeparator(True)
+        self.pan_tool = MyAction("&Pan/select tool", self.annotation_group,
+                                 None, self.ctx.icon_pan_tool, None)
+        self.pan_tool.setCheckable(True)
+        self.pan_tool.setChecked(True)
+        self.line_annotation = MyAction("&Line annotation", self.annotation_group,
+                                        None, self.ctx.icon_line, AnnotationType.LINE)
+        self.line_annotation.setCheckable(True)
+        self.rect_annotation = MyAction("&Rect annotation", self.annotation_group,
+                                        None, self.ctx.icon_rect, AnnotationType.RECT)
+        self.rect_annotation.setCheckable(True)
+        self.ellipse_annotation = MyAction("&Ellipse annotation", self.annotation_group,
+                                           None, self.ctx.icon_ellipse, AnnotationType.ELLIPSE)
+        self.ellipse_annotation.setCheckable(True)
+        self.polygon_annotation = MyAction("&Polygon annotation. Press Enter to close current polygon",
+                                           self.annotation_group,
+                                           None, self.ctx.icon_polygon, AnnotationType.POLYGON)
+        self.polygon_annotation.setCheckable(True)
+        separator = QAction(self.annotation_group)
+        separator.setSeparator(True)
+        self.annotation_group.triggered.connect(self.on_annotation_group)
+        self.main_toolbar.addActions(self.annotation_group.actions())
 
         self.fit_action = MyAction("&Fit", self.zoom_menu, None, self.ctx.icon_fit, "fit")
         self.main_toolbar.addAction(self.fit_action)
@@ -86,6 +126,19 @@ class SlideViewerMainWindow(QMainWindow):
         self.main_toolbar.addWidget(self.zoom_line_edit)
 
         self.read_settings()
+
+    def on_annotation_group(self, action: QAction):
+        if action == self.pan_tool:
+            self.slide_viewer_widget.view.annotation_type = None
+            if self.slide_viewer_widget.view.annotation_item:
+                self.slide_viewer_widget.scene.removeItem(self.slide_viewer_widget.view.annotation_item)
+                self.slide_viewer_widget.view.annotation_item = None
+                self.slide_viewer_widget.view.annotation_item_in_progress = False
+            return
+        annotation_type = action.data()
+        self.slide_viewer_widget.view.annotation_type = annotation_type
+        self.slide_viewer_widget.view.annotation_item_in_progress = False
+        # action.setChecked(True)
 
     def on_view_zoom_changed(self, scale):
         # self.zoom_line_edit.setText("{:.4F}".format(new_scale))
@@ -167,10 +220,19 @@ class SlideViewerMainWindow(QMainWindow):
     def on_zoom_line_edit_pressed(self):
         try:
             zoom = float(self.zoom_line_edit.text())
-            scale=self.slide_viewer_widget.slide_helper.zoom_to_scale(zoom)
+            scale = self.slide_viewer_widget.slide_helper.zoom_to_scale(zoom)
             self.slide_viewer_widget.view.set_scale_in_view_center(scale)
         except:
             pass
+
+    def on_copy_screenshot_action(self):
+        if self.slide_viewer_widget.slide_graphics_grid_item:
+            image = build_screenshot_image_from_view(self.slide_viewer_widget.view)
+            QGuiApplication.clipboard().setImage(image)
+            for w in self.sender().associatedWidgets():
+                if w.parent() == self.main_toolbar:
+                    pos = w.mapToGlobal(QPoint()) + QPoint(w.width(), w.height())
+                    QToolTip.showText(pos, "Screenshot copied to clipboard!")
 
     def on_take_screenshot_action(self):
         def on_select_image_file(image_file: str):
@@ -181,7 +243,7 @@ class SlideViewerMainWindow(QMainWindow):
             now = datetime.now()
             now_str = now.strftime("%d-%m-%Y_%H-%M-%S")
             slide_name = QFileInfo(QFile(self.slide_viewer_widget.slide_helper.slide_path)).baseName()
-            default_file_name = "{}_screen_{}".format(slide_name, now_str)
+            default_file_name = f"{slide_name}_screen_{now_str}"
             select_image_file_action = SelectImageFileAction("internal", self, on_select_image_file, default_file_name)
             select_image_file_action.trigger()
 
@@ -201,38 +263,42 @@ class SlideViewerMainWindow(QMainWindow):
     def on_show_properties_action(self):
         if not self.slide_viewer_widget.slide_helper:
             return
-        if self.props_dialog:
-            self.props_dialog.close()
-        self.props_dialog = QDialog(self)
-        layout = QVBoxLayout(self.props_dialog)
-        self.props_dialog.setLayout(layout)
-        text_editor = QTextEdit(self.props_dialog)
-        text_editor.setReadOnly(True)
-        layout.addWidget(text_editor)
-
         props = self.slide_viewer_widget.slide_helper.get_properties()
         main_props = {prop: val for prop, val in props.items() if prop.startswith("openslide")}
         ordered_props = OrderedDict(main_props.items())
         ordered_props.update(props)
         main_props_text = json.dumps(main_props, indent=2)
         full_props_text = json.dumps(ordered_props, indent=2)
-        text_editor.setText(full_props_text)
 
-        font = text_editor.document().defaultFont()
-        font_metrics = QFontMetrics(font)
-        text_width = font_metrics.size(0, full_props_text).width()
-        main_text_height = font_metrics.size(0, main_props_text).height() / 2
-
-        margins = self.props_dialog.layout().contentsMargins()
-        margins_size = QSize(margins.left() + margins.right(), margins.top() + margins.bottom())
-        margins_size += QSize(text_editor.horizontalScrollBar().height(), text_editor.verticalScrollBar().width())
-        if text_width > self.width():
-            text_width = self.width()
-        if main_text_height > self.height():
-            main_text_height = self.width()
-        size = QSize(text_width, main_text_height) + margins_size
-        self.props_dialog.resize(size)
+        if self.props_dialog:
+            self.props_dialog.close()
+        self.props_dialog = TextDialog(full_props_text, main_props_text, True, self)
         self.props_dialog.show()
+
+    def on_export_annotations(self):
+        def on_select_file(file_path: str):
+            odicts = self.slide_viewer_widget.odicts_widget.view.model().odicts
+            json_utils.write(file_path, odicts)
+
+        if self.slide_viewer_widget.slide_helper:
+            slide_name = QFileInfo(QFile(self.slide_viewer_widget.slide_helper.slide_path)).baseName()
+            default_file_name = f"{slide_name}_annotations"
+            select_image_file_action = SelectJsonFileAction("internal", self, on_select_file, default_file_name)
+            select_image_file_action.trigger()
+
+    def on_import_annotations(self):
+        def on_select_file(file_path: str):
+            odicts = json_utils.read(file_path)
+            self.slide_viewer_widget.view.on_off_annotation_item()
+            self.slide_viewer_widget.odicts_widget.view.setModel(OrderedDictsTreeModel(odicts))
+            annotation_data = [ordered_dict_to_data(odict) for odict in odicts]
+            self.slide_viewer_widget.view.reset_annotation_items(annotation_data)
+
+        if self.slide_viewer_widget.slide_helper:
+            slide_name = QFileInfo(QFile(self.slide_viewer_widget.slide_helper.slide_path)).baseName()
+            default_file_name = f"{slide_name}_annotations"
+            select_image_file_action = SelectJsonFileAction("internal", self, on_select_file, default_file_name, False)
+            select_image_file_action.trigger()
 
     def write_settings(self):
         settings = QSettings("dieyepy", "dieyepy")

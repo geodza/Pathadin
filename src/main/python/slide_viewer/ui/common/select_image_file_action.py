@@ -1,7 +1,6 @@
-from PyQt5.QtCore import QMimeDatabase
 from PyQt5.QtWidgets import QFileDialog
 
-from slide_viewer.my_action import MyAction
+from slide_viewer.ui.common.my_action import MyAction
 
 
 class SelectImageFileAction(MyAction):

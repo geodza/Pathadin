@@ -1,15 +1,15 @@
 from typing import Union, List
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QMenu, QToolBar
+from PyQt5.QtWidgets import QAction, QMenu, QToolBar, QActionGroup
 
 
 class MyAction(QAction):
-    def __init__(self, title, parent: Union[QMenu, QToolBar], action_func=None, icon: QIcon = None,
+    def __init__(self, title, parent: Union[QMenu, QToolBar, QActionGroup], action_func=None, icon: QIcon = None,
                  data=None):
         super().__init__(title, parent)
         self.window = None
-        if isinstance(parent, QMenu) or isinstance(parent, QToolBar):
+        if isinstance(parent, QMenu) or isinstance(parent, QToolBar) or isinstance(parent, QActionGroup):
             self.window = parent.parent()
             parent.addAction(self)
         if action_func:

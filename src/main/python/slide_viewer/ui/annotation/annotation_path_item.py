@@ -1,7 +1,7 @@
 import typing
 from typing import List
 
-from PyQt5.QtCore import QPointF, QMarginsF, QRectF
+from PyQt5.QtCore import QPointF, QMarginsF, QRectF, Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPolygonItem, QGraphicsPathItem, QGraphicsItem
 
@@ -12,12 +12,18 @@ from slide_viewer.ui.annotation.annotation_type import AnnotationType
 
 
 class AnnotationPathItem(QGraphicsItemGroup):
-    def __init__(self, annotation_data: AnnotationData = None):
+    def __init__(self, annotation_data: AnnotationData = None, microns_per_pixel=1):
         super().__init__()
+        self.microns_per_pixel = microns_per_pixel
         self.shape_item = QGraphicsPathItem(self)
         self.annotation_text = AnnotationTextItem(self)
         self.annotation_data: AnnotationData = annotation_data
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.shape_item.setAcceptedMouseButtons(Qt.NoButton)
+        self.annotation_text.text.setAcceptedMouseButtons(Qt.NoButton)
+        self.annotation_text.background.setAcceptedMouseButtons(Qt.NoButton)
+        # self.setAcceptedMouseButtons(Qt.NoButton)
+        # self.setFlag(QGraphicsItem.ItemIsMovable, True)
+        # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
         self.update()
 
@@ -46,27 +52,30 @@ class AnnotationPathItem(QGraphicsItemGroup):
                 line_path = QPainterPath(p1)
                 line_path.lineTo(p2)
                 path.addPath(line_path)
+                self.annotation_data.name = str(int(QVector2D(p2 - p1).length() * self.microns_per_pixel))
         elif self.annotation_data.annotation_type == AnnotationType.POLYGON:
             path.addPolygon(QPolygonF(self.annotation_data.points))
         self.shape_item.setPath(path)
 
     def update_text(self):
-        self.prepareGeometryChange()
-        # length = QVector2D(
-        #     self.shape_item.boundingRect().topLeft() - self.shape_item.boundingRect().bottomRight()).length()
-        # self.annotation_text.text.setText(str(length))
-        self.annotation_text.prepareGeometryChange()
-        self.annotation_text.text.setText(self.annotation_data.name)
-        self.annotation_text.background.setRect(
-            self.annotation_text.text.boundingRect() + create_annotation_text_margins())
-        self.annotation_text.text.setPos(self.shape_item.boundingRect().center())
-        self.annotation_text.background.setPos(self.shape_item.boundingRect().center())
+        if self.shape_item.path().length():
+            self.prepareGeometryChange()
+            # length = QVector2D(
+            #     self.shape_item.boundingRect().topLeft() - self.shape_item.boundingRect().bottomRight()).length()
+            # self.annotation_text.text.setText(str(length))
+            self.annotation_text.prepareGeometryChange()
+            self.annotation_text.text.setText(self.annotation_data.name)
+            self.annotation_text.background.setRect(
+                self.annotation_text.text.boundingRect() + create_annotation_text_margins())
+            self.annotation_text.text.setPos(self.shape_item.boundingRect().center())
+            self.annotation_text.background.setPos(self.shape_item.boundingRect().center())
 
     def update_style(self):
         pen = self.shape_item.pen()
         pen.setColor(self.annotation_data.pen_color)
         # print("isSelected:", self.isSelected())
         pen.setWidth(5 if self.isSelected() else 2)
+        self.setCursor(Qt.ClosedHandCursor if self.isSelected() else Qt.ArrowCursor)
         pen.setCosmetic(True)
         self.shape_item.setPen(pen)
 
@@ -87,6 +96,9 @@ class AnnotationPathItem(QGraphicsItemGroup):
 
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: typing.Any) -> typing.Any:
         if change == QGraphicsItem.ItemSelectedHasChanged:
+            # print("shape_item", self.shape_item.shape().boundingRect().toRect())
+            # print("mouseGrabberItem", self.scene().mouseGrabberItem())
+            # print("is_selected", self.shape_item.isSelected(), self.isSelected())
             self.update_style()
         else:
             return super().itemChange(change, value)
@@ -96,13 +108,14 @@ class AnnotationPathItem(QGraphicsItemGroup):
 
     def shape(self) -> QPainterPath:
         text_background_shape = self.mapFromItem(self.annotation_text, self.annotation_text.shape())
-        print("shape_item", self.shape_item.shape().boundingRect().toRect())
-        print("background", text_background_shape.boundingRect().toRect())
+        # print("shape_item", self.shape_item.shape().boundingRect().toRect())
+        # print("background", text_background_shape.boundingRect().toRect())
         # path = self.shape_item.path() + text_background_shape
         path = text_background_shape
         shape_path = self.shape_item.shape()
         # shape_path = shape_path - shape_path.toReversed()
         # shape_path = shape_path - shape_path.translated(0.01,0)
         # path = shape_path + text_background_shape
-        path=shape_path
-        return path
+        path = shape_path
+        path = QPainterPathStroker().createStroke(path)
+        return path + text_background_shape

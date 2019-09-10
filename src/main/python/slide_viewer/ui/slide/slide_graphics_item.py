@@ -27,6 +27,10 @@ class SlideGraphicsItem(QGraphicsItem):
         super().__init__()
         self.slide_helper = SlideHelper(slide_path)
         self.level0_size = self.slide_helper.level_dimensions[0]
+        # self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        # self.setFlag(QGraphicsItem.ItemIsMovable, True)
+        # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        # self.prepareGeometryChange()
         self.level0_qrectf = QRectF(QRect(0, 0, self.level0_size[0], self.level0_size[1]))
         self.cell_size = initial_cell_size
         self.debug = debug
@@ -48,6 +52,7 @@ class SlideGraphicsItem(QGraphicsItem):
 
         # self.setFlag(QGraphicsItem.ItemClipsToShape, True)
         # self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
+
         self.setFlag(QGraphicsItem.ItemUsesExtendedStyleOption, True)
         max_workers = os.cpu_count()
         max_workers = max_workers - 1 if max_workers > 1 else max_workers
@@ -60,6 +65,10 @@ class SlideGraphicsItem(QGraphicsItem):
 
     def paint(self, painter: QtGui.QPainter, option: QStyleOptionGraphicsItem,
               widget: typing.Optional[QWidget] = ...) -> None:
+        # if self.scene().mouseGrabberItem():
+        #     print("grabber", self.scene().mouseGrabberItem())
+        # if self.isSelected():
+        #     print("SELECTED", self)
         painter.save()
         self.paint_called_count += 1
         # print("self.paint_called_count", self.paint_called_count)

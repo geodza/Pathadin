@@ -62,6 +62,8 @@ class SlideViewerGraphicsView(QGraphicsView):
         self.annotation_items = []
         self.annotation_item_in_progress = False
 
+        self.microns_per_pixel = 1
+
         self.installEventFilter(self)
 
     def reset(self):
@@ -166,10 +168,11 @@ class SlideViewerGraphicsView(QGraphicsView):
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         self.mouse_move_between_press_and_release = False
+        super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
         self.mouse_move_between_press_and_release = True
-        if event.buttons() & Qt.LeftButton == Qt.LeftButton:
+        if event.buttons() & Qt.LeftButton == Qt.LeftButton and not self.scene().mouseGrabberItem():
             self.pan = (self.current.mouse_pos - self.last.mouse_pos) / self.get_current_view_scale()
             self.mouse_move_timer = QTimer(self)
             self.mouse_move_timer.setInterval(0)
@@ -177,6 +180,7 @@ class SlideViewerGraphicsView(QGraphicsView):
             self.mouse_move_timer.setSingleShot(True)
             self.mouse_move_timer.start()
             event.accept()
+            return
         elif self.annotation_type and self.annotation_item_in_progress:
             point_scene = self.current.mouse_scene_pos
             if self.annotation_type == AnnotationType.POLYGON and self.are_points_close(
@@ -184,23 +188,29 @@ class SlideViewerGraphicsView(QGraphicsView):
                 point_scene = self.annotation_item.first_point()
             self.annotation_item.set_last_point(point_scene)
             event.accept()
+            return
+        super().mouseMoveEvent(event)
 
     def on_almost_immediate_move(self):
         self.translate(self.pan.x(), self.pan.y())
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
-        if event.button() == Qt.LeftButton and self.mouse_move_timer and self.mouse_move_timer.isActive():
+        if event.button() == Qt.LeftButton and self.mouse_move_timer and self.mouse_move_timer.isActive() and not self.scene().mouseGrabberItem():
             # print("release")
             self.mouse_move_timer.stop()
             self.launch_pan_time_line(self.pan * 3)
             event.accept()
+            return
         if not self.mouse_move_between_press_and_release:
-            self.on_mouse_click(event)
+            if self.on_mouse_click(event):
+                event.accept()
+                return
+        super().mouseReleaseEvent(event)
 
-    def on_mouse_click(self, event: QMouseEvent):
+    def on_mouse_click(self, event: QMouseEvent) -> bool:
         if event.button() == Qt.LeftButton:
             if not self.annotation_type:
-                self.on_select()
+                return False
             else:
                 if self.annotation_item_in_progress:
                     if self.annotation_type == AnnotationType.POLYGON:
@@ -213,12 +223,13 @@ class SlideViewerGraphicsView(QGraphicsView):
                         self.on_finish_annotation_item()
                 else:
                     self.on_start_annotation_item()
-            event.accept()
+                return True
+        return False
 
     def on_start_annotation_item(self):
         if self.annotation_item:
             self.scene().removeItem(self.annotation_item)
-        self.annotation_item = create_annotation_item(self.annotation_type)
+        self.annotation_item = create_annotation_item(self.annotation_type, self.microns_per_pixel)
         self.scene().addItem(self.annotation_item)
         self.annotation_item.setVisible(True)
         self.annotation_item.add_point(self.current.mouse_scene_pos)
@@ -228,7 +239,7 @@ class SlideViewerGraphicsView(QGraphicsView):
         self.annotation_item_in_progress = True
 
     def on_finish_annotation_item(self):
-        if self.annotation_item:
+        if self.annotation_item and self.annotation_item.shape_item.path().length():
             self.annotation_items.append(self.annotation_item)
             self.annotationItemAdded.emit(self.annotation_item)
         self.on_off_annotation_item()
@@ -263,8 +274,8 @@ class SlideViewerGraphicsView(QGraphicsView):
         path = QPainterPath()
         path.addEllipse(self.current.mouse_scene_pos, size, size)
         self.scene().setSelectionArea(path, 0, Qt.IntersectsItemShape, self.viewportTransform())
-        print("select_path", path.boundingRect().toRect())
-        print(self.scene().selectedItems())
+        # print("select_path", path.boundingRect().toRect())
+        # print(self.scene().selectedItems())
         item_numbers = [self.annotation_items.index(item) for item in self.scene().selectedItems()]
         self.annotationItemsSelected.emit(item_numbers)
 

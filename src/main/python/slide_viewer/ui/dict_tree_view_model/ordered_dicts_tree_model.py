@@ -21,10 +21,11 @@ class StandardAttrKey(Enum):
 # hidden_standard_attr_keys = set(StandardAttrKey.annotation_type, StandardAttrKey.points)
 readonly_standard_attr_keys = set(
     [StandardAttrKey.annotation_type.name, StandardAttrKey.points.name, StandardAttrKey.area.name])
+standard_attr_keys = set(attr.name for attr in StandardAttrKey)
 
 
 def is_standard_attr_key(attr_key: str):
-    return attr_key in [attr.name for attr in StandardAttrKey]
+    return attr_key in standard_attr_keys
 
 
 class OrderedDictsTreeModel(QAbstractItemModel):

@@ -12,6 +12,7 @@ class SlideHelper():
             self.level_dimensions = slide.level_dimensions
             self.level_count = slide.level_count
             self.objective_power = 1
+            self.microns_per_pixel = 1
             self.properties = dict(slide.properties) if slide.properties else {}
             self.objective_power = float(self.properties.get(openslide.PROPERTY_NAME_OBJECTIVE_POWER, 1))
 
@@ -47,6 +48,9 @@ class SlideHelper():
 
     def zoom_to_scale(self, zoom):
         return zoom / self.objective_power
+
+    def pixels_to_microns(self, pixels):
+        return pixels * self.microns_per_pixel
 
     def downsample_to_zoom(self, downsample):
         return self.objective_power / downsample

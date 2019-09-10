@@ -11,6 +11,8 @@ class SlideGraphicsGridItem(QGraphicsItem):
     def __init__(self, bounding_rect: QRectF, min_scale, max_scale, grid_size=(512, 512)):
         super().__init__()
         self.bounding_rect = bounding_rect
+        # self.setFlag(QGraphicsItem.ItemIsMovable, True)
+        # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.grid_size = grid_size
         self.min_scale = min_scale
         self.max_scale = max_scale

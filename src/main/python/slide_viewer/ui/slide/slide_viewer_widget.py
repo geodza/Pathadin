@@ -76,6 +76,7 @@ class SlideViewerWidget(QWidget):
     def load(self, file_path):
         QPixmapCache.clear()
         self.slide_helper = SlideHelper(file_path)
+        self.view.microns_per_pixel = self.slide_helper.microns_per_pixel
 
         self.view.on_off_annotation_item()
         self.view.reset_annotation_items()

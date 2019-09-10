@@ -19,10 +19,10 @@ class AnnotatioDataFactory:
                               annotation_type)
 
 
-def create_annotation_item(type: AnnotationType):
+def create_annotation_item(type: AnnotationType, microns_per_pixel=1):
     if type == AnnotationType.LINE:
         # return AnnotationLineItem()
-        return AnnotationPathItem(AnnotatioDataFactory.default_annotation_data(AnnotationType.LINE))
+        return AnnotationPathItem(AnnotatioDataFactory.default_annotation_data(AnnotationType.LINE), microns_per_pixel)
     elif type == AnnotationType.RECT:
         # return AnnotationRectItem()
         return AnnotationPathItem(AnnotatioDataFactory.default_annotation_data(AnnotationType.RECT))

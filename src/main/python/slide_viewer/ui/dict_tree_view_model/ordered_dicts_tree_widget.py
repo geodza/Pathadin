@@ -5,7 +5,8 @@ from collections import OrderedDict
 from PyQt5.QtCore import Qt, QModelIndex, QMargins, QPoint
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QMenu
 
-from slide_viewer.ui.dict_tree_view_model.ordered_dicts_tree_model import OrderedDictsTreeModel, JSON_ROLE
+from slide_viewer.ui.dict_tree_view_model.ordered_dicts_tree_model import OrderedDictsTreeModel, JSON_ROLE, \
+    readonly_standard_attr_keys, is_standard_attr_key
 from slide_viewer.ui.dict_tree_view_model.ordered_dicts_tree_view import OrderedDictsTreeView
 from slide_viewer.ui.common.edit_text_dialog import EditTextDialog
 from slide_viewer.ui.common.my_action import MyAction
@@ -28,12 +29,16 @@ class OrderedDictsTreeWidget(QWidget):
 
     def on_context_menu(self, position: QPoint):
         index = self.view.currentIndex()
-        if OrderedDictsTreeModel.is_attr(index) and not OrderedDictsTreeModel.is_standard_attr_key(index):
+        if OrderedDictsTreeModel.is_attr(index):
             self.on_attr_context_menu(position, index)
         elif OrderedDictsTreeModel.is_dict(index):
             self.on_dict_context_menu(position, index)
 
     def on_attr_context_menu(self, position: QPoint, index: QModelIndex):
+        attr_key = self.view.model().index(index.row(), 0, index.parent()).data()
+        if is_standard_attr_key(attr_key):
+            return
+
         def delete_attr():
             self.view.model().delete_attr(index.parent().row(), index.row())
 

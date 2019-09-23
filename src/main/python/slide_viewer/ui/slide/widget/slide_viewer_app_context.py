@@ -1,19 +1,42 @@
 from PyQt5.QtGui import QIcon
 from fbs_runtime.application_context import cached_property
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
-from slide_viewer.ui.slide.slide_viewer_main_window import SlideViewerMainWindow
+
+from slide_viewer.ui.slide.widget.action.slide_viewer_main_window_simple_actions import MainWindowSimpleActions
+from slide_viewer.ui.slide.widget.action.slide_viewer_main_window_menubar import SlideViewerMainWindowMenubar
+from slide_viewer.ui.slide.widget.action.slide_viewer_main_window_toolbar import SlideViewerMainWindowToolbar
+from slide_viewer.ui.slide.widget.action.slide_viewer_main_window_zoom_action_group import MainWindowZoomActionGroup
+from slide_viewer.ui.slide.widget.action.slide_viewer_main_window_zoom_editor import SlideViewerMainWindowZoomEditor
+from slide_viewer.ui.slide.widget.slide_viewer_main_window import SlideViewerMainWindow
+from slide_viewer.ui.slide.widget.action.slide_viewer_main_window_annotation_action_group import \
+    MainWindowAnnotationActionGroup
+
 
 class AppContext(ApplicationContext):
 
     def __init__(self, *args, **kwargs):
         super(AppContext, self).__init__(*args, **kwargs)
-        self.slide_viewer_main_window = SlideViewerMainWindow(self)
+        mw = SlideViewerMainWindow(self)
+        simple_actions = MainWindowSimpleActions(mw, self)
+        zoom_action_group = MainWindowZoomActionGroup(mw, self)
+        zoom_editor = SlideViewerMainWindowZoomEditor(mw, self)
+
+        annotation_action_group = MainWindowAnnotationActionGroup(mw, self)
+        toolbar = SlideViewerMainWindowToolbar(mw, self, simple_actions, zoom_action_group, annotation_action_group,
+                                               zoom_editor)
+        menubar = SlideViewerMainWindowMenubar(mw, self, simple_actions, zoom_action_group, annotation_action_group)
+
+        mw.addToolBar(toolbar)
+        mw.setMenuBar(menubar)
+
+        self.slide_viewer_main_window = mw
 
     def run(self):
         # self.slide_viewer_main_window.resize(*initial_main_window_size)
         self.slide_viewer_main_window.show()
         # from slide_viewer.config import initial_main_window_size, slide_path
-        self.slide_viewer_main_window.on_select_slide_file_action(self.get_resource("initial_image.jpg"))
+        # self.slide_viewer_main_window.on_select_slide_file_action(self.get_resource("initial_image.jpg"))
+        self.slide_viewer_main_window.slide_viewer_widget.load(self.get_resource("initial_image.jpg"))
         # self.slide_viewer_main_window.on_select_slide_file_action(slide_path)
         return self.app.exec_()
 
@@ -68,7 +91,6 @@ class AppContext(ApplicationContext):
     @cached_property
     def icon_polygon(self):
         return QIcon(self.get_resource('polygon.svg'))
-
 
     @cached_property
     def icon_pan_tool(self):

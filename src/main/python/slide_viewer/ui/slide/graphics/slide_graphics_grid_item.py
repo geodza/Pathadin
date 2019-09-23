@@ -17,6 +17,8 @@ class SlideGraphicsGridItem(QGraphicsItem):
         self.min_scale = min_scale
         self.max_scale = max_scale
         self.paint_called_count = 0
+        self.vertical_lines = []
+        self.horizontal_lines = []
         self.update_lines()
         self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
 

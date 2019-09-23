@@ -1,15 +1,11 @@
-import json
 import typing
-from collections import OrderedDict
 
-from PyQt5.QtCore import Qt, QModelIndex, QMargins, QPoint
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QMenu
+from PyQt5.QtCore import Qt, QMargins
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QLabel, QGroupBox
 
-from slide_viewer.ui.dict_tree_view_model.ordered_dicts_tree_model import OrderedDictsTreeModel, JSON_ROLE, \
-    readonly_standard_attr_keys, is_standard_attr_key
+from slide_viewer.ui.dict_tree_view_model.action.context_menu_factory import context_menu_factory
 from slide_viewer.ui.dict_tree_view_model.ordered_dicts_tree_view import OrderedDictsTreeView
-from slide_viewer.ui.common.edit_text_dialog import EditTextDialog
-from slide_viewer.ui.common.my_action import MyAction
+from slide_viewer.ui.dict_tree_view_model.standard_attr_key import StandardAttrKey
 
 
 class OrderedDictsTreeWidget(QWidget):
@@ -17,56 +13,63 @@ class OrderedDictsTreeWidget(QWidget):
     def __init__(self, parent: typing.Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
-        self.view = OrderedDictsTreeView(self)
-        self.view.setModel(OrderedDictsTreeModel([]))
-        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.view.customContextMenuRequested.connect(self.on_context_menu)
+        self.instances_view = OrderedDictsTreeView(self)
+        self.instances_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.templates_view = OrderedDictsTreeView(self)
+        self.templates_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.templates_view.modelChanged.connect(self.update_default_template)
+        self.templates_view.odictsChanged.connect(self.on_odict_changed)
+        self.templates_view.odictsInserted.connect(self.update_default_template)
+        self.templates_view.odictsRemoved.connect(self.update_default_template)
+
+        self.instances_view.customContextMenuRequested.connect(
+            context_menu_factory(self.instances_view, self.templates_view, False))
+        self.templates_view.customContextMenuRequested.connect(
+            context_menu_factory(self.instances_view, self.templates_view, True))
+
+        templates_group = QGroupBox("Annotation templates", self)
+        templates_layout = QVBoxLayout(templates_group)
+        # templates_layout.addWidget(QLabel("Annotation templates"))
+        templates_layout.addWidget(self.templates_view)
+        templates_group.setLayout(templates_layout)
+
+        annotations_group = QGroupBox("Annotations", self)
+        annotations_layout = QVBoxLayout(annotations_group)
+        annotations_layout.addWidget(self.instances_view)
+        annotations_group.setLayout(annotations_layout)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.view)
+        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.addWidget(templates_group)
+        self.splitter.addWidget(annotations_group)
+        layout.addWidget(self.splitter)
+        self.splitter.setStretchFactor(0, 0)
+        self.splitter.setStretchFactor(1, 1)
+
         layout.setContentsMargins(QMargins())
         self.setLayout(layout)
 
-    def on_context_menu(self, position: QPoint):
-        index = self.view.currentIndex()
-        if OrderedDictsTreeModel.is_attr(index):
-            self.on_attr_context_menu(position, index)
-        elif OrderedDictsTreeModel.is_dict(index):
-            self.on_dict_context_menu(position, index)
+    def on_odict_changed(self, odict_numbers: typing.Iterable[int]):
+        default_template_number = self.find_first_default_odict(odict_numbers)
+        self.update_default_template(default_template_number)
 
-    def on_attr_context_menu(self, position: QPoint, index: QModelIndex):
-        attr_key = self.view.model().index(index.row(), 0, index.parent()).data()
-        if is_standard_attr_key(attr_key):
-            return
+    def find_first_default_odict(self, odict_numbers: typing.Iterable[int]):
+        default_template_number = None
+        for template_number in odict_numbers:
+            odict = self.templates_view.model().get_odict(template_number)
+            if odict.get(StandardAttrKey.default_template.name, False):
+                default_template_number = template_number
+                break
+        return default_template_number
 
-        def delete_attr():
-            self.view.model().delete_attr(index.parent().row(), index.row())
-
-        menu = QMenu()
-        menu.addAction(MyAction("Delete attribute", menu, delete_attr))
-        menu.exec_(self.view.viewport().mapToGlobal(position))
-
-    def on_dict_context_menu(self, position: QPoint, index: QModelIndex):
-        def delete_dict():
-            self.view.model().delete_odict(index.row())
-
-        def add_attr():
-            self.view.model().add_attr([index.row()])
-
-        def edit_as_json():
-            dict_json = index.data(JSON_ROLE)
-            dialog = EditTextDialog(dict_json, self)
-
-            def edit_dict():
-                new_dict_json = dialog.text_editor.toPlainText()
-                new_dict = OrderedDict(json.loads(new_dict_json))
-                self.view.model().edit_odict(index.row(), new_dict)
-
-            dialog.accepted.connect(edit_dict)
-            dialog.show()
-
-        menu = QMenu()
-        menu.addAction(MyAction("Add attribute", menu, add_attr))
-        menu.addAction(MyAction("Edit as JSON", menu, edit_as_json))
-        menu.addAction(MyAction("Delete", menu, delete_dict))
-        menu.exec_(self.view.viewport().mapToGlobal(position))
+    def update_default_template(self, default_template_number=None):
+        if default_template_number is None and self.templates_view.model().rowCount():
+            default_template_number = self.find_first_default_odict(range(self.templates_view.model().rowCount()))
+            if default_template_number is None:
+                default_template_number = 0
+        for template_number in range(self.templates_view.model().rowCount()):
+            odict = self.templates_view.model().get_odict(template_number)
+            if odict.get(StandardAttrKey.default_template.name, False) != (template_number == default_template_number):
+                self.templates_view.model().edit_attr_by_key(template_number, StandardAttrKey.default_template.name,
+                                                             not odict.get(StandardAttrKey.default_template.name,
+                                                                           False))

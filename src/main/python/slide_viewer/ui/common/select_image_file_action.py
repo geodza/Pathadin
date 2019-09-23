@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QFileDialog
 
 from slide_viewer.ui.common.my_action import MyAction
+from slide_viewer.ui.common.formats import saveable_mime_types
 
 
 class SelectImageFileAction(MyAction):
@@ -15,17 +16,7 @@ class SelectImageFileAction(MyAction):
             self.callback(file_path)
 
     def get_mime_types(self):
-        return [
-            "image/jpeg",
-            "image/tiff",
-            "image/bmp",
-            "image/png",
-            "image/x-portable-bitmap",
-            "image/x-portable-graymap",
-            "image/x-portable-pixmap",
-            "image/x-xbitmap",
-            "image/x-xpixmap"
-        ]
+        return saveable_mime_types
 
     def open_file_name_dialog(self):
         dialog = QFileDialog(self.parent())

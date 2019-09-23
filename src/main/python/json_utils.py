@@ -9,7 +9,7 @@ def read(json_path):
         return val
 
 
-def write(json_path, val, mode="w"):
+def write(json_path, val, cls=json.JSONEncoder, mode="w"):
     make_if_not_exists(json_path)
     with open(json_path, mode) as f:
-        json.dump(val, f, indent=4)
+        json.dump(val, f, indent=4, cls=cls)

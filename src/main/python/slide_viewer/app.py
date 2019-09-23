@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtGui import *
 
 from slide_viewer.config import cache_size_in_kb
-from slide_viewer.ui.slide.slide_viewer_app_context import AppContext
+from slide_viewer.ui.slide.widget.slide_viewer_app_context import AppContext
 
 
 def excepthook(excType, excValue, tracebackobj):

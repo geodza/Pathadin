@@ -1,11 +1,11 @@
 import typing
 
-from PyQt5.QtCore import QRectF
+from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtGui import QPainterPath, QPolygonF
 from PyQt5.QtWidgets import QGraphicsSimpleTextItem, QGraphicsItem, QGraphicsRectItem, QGraphicsItemGroup
 
-from slide_viewer.ui.annotation.annotation_utls import create_annotation_text_font, create_annotation_text_brush, \
-    create_annotation_text_margins
+from slide_viewer.ui.slide.graphics.annotation.annotation_utls import create_annotation_text_brush, \
+    create_annotation_text_font, create_annotation_text_margins
 
 
 class AnnotationTextItem(QGraphicsItemGroup):
@@ -16,11 +16,13 @@ class AnnotationTextItem(QGraphicsItemGroup):
         self.background = QGraphicsRectItem(self)
         self.background.setBrush(create_annotation_text_brush())
         self.background.setFlag(QGraphicsItem.ItemIgnoresTransformations, True)
+        self.background.setAcceptedMouseButtons(Qt.NoButton)
 
         self.text = QGraphicsSimpleTextItem(self)
         self.text.setAcceptHoverEvents(False)
         self.text.setFlag(QGraphicsItem.ItemIgnoresTransformations, True)
         self.text.setFont(create_annotation_text_font())
+        self.text.setAcceptedMouseButtons(Qt.NoButton)
 
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
 
@@ -36,8 +38,8 @@ class AnnotationTextItem(QGraphicsItemGroup):
 
     def shape(self) -> QPainterPath:
         shape = self.background.shape()
-        # return self.account_ignore_transformation(shape)
-        return shape
+        return self.account_ignore_transformation(shape)
+        # return shape
 
     def account_ignore_transformation(self, shape):
         if not isinstance(shape, QPainterPath):

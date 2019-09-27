@@ -17,7 +17,7 @@ class StandardAttrKey(Enum):
 
 # hidden_standard_attr_keys = set(StandardAttrKey.annotation_type, StandardAttrKey.points)
 readonly_standard_attr_keys = set(
-    [StandardAttrKey.annotation_type.name, StandardAttrKey.points.name, StandardAttrKey.area.name])
+    [StandardAttrKey.annotation_type.name, StandardAttrKey.points.name, StandardAttrKey.area.name, StandardAttrKey.pen_color.name])
 standard_attr_keys = set(attr.name for attr in StandardAttrKey)
 
 ui_attr_keys = set([

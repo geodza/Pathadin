@@ -5,10 +5,9 @@ from PyQt5.QtCore import QItemSelection, QItemSelectionModel, QModelIndex, QAbst
 from PyQt5.QtWidgets import QTreeView, QWidget, QAbstractItemView
 
 from slide_viewer.ui.dict_tree_view_model.ordered_dicts_tree_model import OrderedDictsTreeModel
-from slide_viewer.ui.dict_tree_view_model.standard_attr_key import StandardAttrKey, ui_attr_keys
 
 
-class OrderedDictsTreeView(QTreeView):
+class ODictsTreeView(QTreeView):
     modelChanged = pyqtSignal(OrderedDictsTreeModel)
     odictSelected = pyqtSignal(list)
     odictsChanged = pyqtSignal(list)
@@ -46,26 +45,14 @@ class OrderedDictsTreeView(QTreeView):
         super().selectionChanged(selected, deselected)
         rows = set(i.row() for i in self.selectionModel().selection().indexes())
         print(f"selected: {rows}")
-        # if len(selected.indexes()):
-        #     first_index=selected.indexes()[0]
-        #     OrderedDictsTreeModel.is_attr(first_index)
-
+        #TODO attrs can be selected too
         odict_numbers = self.get_selected_odict_numbers()
         # print(f"OrderedDictsTreeView.selectionChanged: {odict_numbers}")
         self.odictSelected.emit(odict_numbers)
 
-    def currentChanged(self, current: QModelIndex, previous: QModelIndex) -> None:
-        super().currentChanged(current, previous)
-        # self.on_current_changed(current, previous)
-
     def setModel(self, model: QAbstractItemModel) -> None:
         super().setModel(model)
         self.span_first_column()
-        # self.model().dataChanged.connect(self.on_model_data_changed)
-        # self.model().rowsInserted.connect(self.on_model_rows_inserted)
-        # self.model().rowsRemoved.connect(self.on_model_rows_removed)
-        # self.selectionModel().currentChanged.connect(self.on_current_changed)
-        self.update_hidden([self.model().index(row, 0) for row in range(self.model().rowCount())])
         self.modelChanged.emit(model)
 
     def span_first_column(self):
@@ -75,21 +62,11 @@ class OrderedDictsTreeView(QTreeView):
     def on_model_data_changed(self, top_left: QModelIndex, bottom_right: QModelIndex):
         # print(f"on_model_data_changed: {top_left}")
         if OrderedDictsTreeModel.is_dict(top_left):
-            self.update_hidden([self.model().index(row, 0) for row in range(top_left.row(), bottom_right.row())])
             odict_numbers = [odict_number for odict_number in range(top_left.row(), bottom_right.row() + 1)]
             self.odictsChanged.emit(odict_numbers)
         else:
-            self.update_hidden([top_left.parent()])
             odict_numbers = [top_left.parent().row()]
             self.odictsChanged.emit(odict_numbers)
-
-    def update_hidden(self, odict_indices: list):
-        for odict_index in odict_indices:
-            odict = self.model().get_odict(odict_index.row())
-            hidden = odict.get(StandardAttrKey.ui_attrs_hidden.name, False)
-            for i, attr_key in enumerate(odict.keys()):
-                if attr_key in ui_attr_keys:
-                    self.setRowHidden(i, odict_index, hidden)
 
     def on_model_rows_removed(self, parent: QModelIndex, first: int, last: int):
         if OrderedDictsTreeModel.is_dict(parent):
@@ -99,20 +76,9 @@ class OrderedDictsTreeView(QTreeView):
 
     def on_model_rows_inserted(self, parent: QModelIndex, first: int, last: int):
         if OrderedDictsTreeModel.is_dict(parent):
-            self.update_hidden([parent])
             self.odictsChanged.emit([parent.row()])
         else:
-            self.update_hidden([self.model().index(row, 0) for row in range(first, last + 1)])
             self.odictsInserted.emit(list(range(first, last + 1)))
-
-    def select_odicts(self, odict_numbers: list):
-        if set(self.get_selected_odict_numbers()) == set(odict_numbers):
-            return
-        selection = QItemSelection()
-        for odict_number in odict_numbers:
-            odict_index = self.model().index(odict_number, 0)
-            selection.select(odict_index, odict_index)
-            self.selectionModel().select(selection, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
     def get_selected_odict_numbers(self):
         return list(set(index.row() for index in self.selectionModel().selection().indexes()))

@@ -15,6 +15,7 @@ class OrderedDictsTreeWidget(QWidget):
 
         self.instances_view = OrderedDictsTreeView(self)
         self.instances_view.setContextMenuPolicy(Qt.CustomContextMenu)
+
         self.templates_view = OrderedDictsTreeView(self)
         self.templates_view.setContextMenuPolicy(Qt.CustomContextMenu)
         self.templates_view.modelChanged.connect(self.update_default_template)
@@ -69,7 +70,8 @@ class OrderedDictsTreeWidget(QWidget):
                 default_template_number = 0
         for template_number in range(self.templates_view.model().rowCount()):
             odict = self.templates_view.model().get_odict(template_number)
-            if odict.get(StandardAttrKey.default_template.name, False) != (template_number == default_template_number):
+            attr_value = odict.get(StandardAttrKey.default_template.name, False)
+            is_default = template_number == default_template_number
+            if attr_value != is_default:
                 self.templates_view.model().edit_attr_by_key(template_number, StandardAttrKey.default_template.name,
-                                                             not odict.get(StandardAttrKey.default_template.name,
-                                                                           False))
+                                                             not attr_value)

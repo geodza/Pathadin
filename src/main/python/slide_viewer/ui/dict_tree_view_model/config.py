@@ -36,15 +36,15 @@ def odict_background(index: QModelIndex):
 
 
 def create_instances_model(odicts: list):
-    model = OrderedDictsTreeModel(odicts, readonly_standard_attr_keys, [StandardAttrKey.name.name],
+    model = OrderedDictsTreeModel(odicts, readonly_standard_attr_keys,
                                   StandardAttrKey.pen_color.name, None, is_instance_selectable,
                                   is_instance_editable)
     return model
 
 
 def create_templates_model(odicts: list):
-    model = OrderedDictsTreeModel(odicts, [],
-                                  [StandardAttrKey.name.name], StandardAttrKey.pen_color.name,
+    model = OrderedDictsTreeModel(odicts, readonly_standard_attr_keys,
+                                  StandardAttrKey.pen_color.name,
                                   odict_background,
                                   is_template_selectable, is_template_editable)
     return model

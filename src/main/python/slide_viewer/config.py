@@ -8,5 +8,12 @@ initial_scene_background_color = "#A088BDBC"
 # self.slide_viewer_widget.view.translate(-20,-20)
 # self.slide_viewer_widget.view.setBackgroundBrush(QColor("#85DCB0"))
 
-slide_path = r'G:\slide-43\slide-2019-08-12T14-43-33-R1-S6.mrxs'
+# slide_path = r'G:\slide-43\slide-2019-08-12T14-43-33-R1-S6.mrxs'
+# slide_path = r'C:\Users\User\GoogleDisk\Pictures\Animals\olen.jpg'
+# slide_path = r'C:\Users\User\GoogleDisk\Pictures\2.png'
+# slide_path = r'C:\Users\User\GoogleDisk\Pictures\mosaic1.jpg'
+# slide_path = r'D:\slide_cbir_47\temp\slides\Aperio\JP2K-33003-1.svs'
+slide_path = r'D:\slide_cbir_47\temp\slides\slide-43\slide-2019-08-12T14-43-33-R1-S6.mrxs'
+slide_annotations_path = r'D:\slide_cbir_47\temp\slides\slide-43\slide-2019-08-12T14-43-33-R1-S6_annotations.json'
+# slide_path = r'C:\Users\User\GoogleDisk\Pictures\Animals\animals.png'
 # slide_path = r'C:\Users\DIMA\PycharmProjects\slide_cbir_47\temp\slides\Aperio\CMU-1.svs'

@@ -1,54 +1,22 @@
-from typing import Union
+import inspect
 
-from PIL.ImageQt import ImageQt
-from PyQt5.QtCore import QRectF, QSize, QSizeF, QMargins, QRect, QMimeData, QEvent, Qt
-from PyQt5.QtGui import QTransform, QPixmap, QKeyEvent
+import numpy as np
+from PIL import Image
+from PyQt5.QtCore import QMimeData
+from dataclasses import fields
 
-from slide_viewer.config import debug
-
-
-def print_qrect(qrect: Union[QRect, QRectF]):
-    print("(topLeft: ({},{}) bottom_right: ({},{}) width: {} height: {}"
-          .format(qrect.left(), qrect.top(), qrect.right(), qrect.bottom(), qrect.width(), qrect.height()))
-
-
-def print_transform(transform: QTransform):
-    print(transform.m11(), transform.m12(), transform.m13(),
-          transform.m21(), transform.m22(), transform.m23(),
-          transform.m31(), transform.m32(), transform.m33())
-
-
-def print_margins(margins: QMargins):
-    print(margins.top(), margins.left(), margins.bottom(), margins.right())
-
-
-def pilimage_to_pixmap(pilimage):
-    qim = ImageQt(pilimage)
-    pix = QPixmap.fromImage(qim)
-    return pix
+if __name__ == '__main__':
+    im = Image.open(r'C:\Users\User\GoogleDisk\Pictures\32.png')
+    b = im.tobytes()
+    im2 = Image.frombuffer("L", (32, 32), b)
+    # imarr = np.array(im)
+    imarr2 = np.frombuffer(b, dtype=np.uint8)
+    imarr2[0] = 0
+    # im.show()
 
 
 def mime_data_is_url(mime_data: QMimeData):
     return mime_data.hasUrls() and len(mime_data.urls()) == 1
-
-
-def debug_only(debug_=debug):
-    def debug_only_wrap(func):
-        def func_wrap(*args, **kwargs):
-            if debug_:
-                func(*args, **kwargs)
-
-        return func_wrap
-
-    return debug_only_wrap
-
-
-def is_key_press_event(event: QEvent):
-    if event.type() == QEvent.KeyPress:
-        key_event: QKeyEvent = event
-        if key_event.key() == Qt.Key_Enter or key_event.key() == Qt.Key_Return:
-            return True
-    return False
 
 
 def join_odict_values(odict, odict_display_attr_keys):
@@ -60,3 +28,23 @@ def join_odict_values(odict, odict_display_attr_keys):
         display_values.append(display_value)
     display_str = "\n".join(display_values)
     return display_str
+
+
+# https://stackoverflow.com/questions/12627118/get-a-function-arguments-default-value
+def get_default_args(func):
+    signature = inspect.signature(func)
+    return {
+        k: v.default
+        for k, v in signature.parameters.items()
+        if v.default is not inspect.Parameter.empty
+    }
+
+
+def get_default_arg(func, attr: str):
+    signature = inspect.signature(func)
+    param = signature.parameters[attr]
+    return param.default
+
+
+def field_names(cls):
+    return [f.name for f in fields(cls)]

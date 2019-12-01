@@ -1,0 +1,53 @@
+{
+  "annotations": {
+    "1": {
+      "geometry": {
+        "annotation_type": 2,
+        "origin_point": [
+          0,
+          0
+        ],
+        "points": [
+          [
+            50863,
+            103724
+          ],
+          [
+            53799,
+            107087
+          ]
+        ]
+      },
+      "id": "1",
+      "label": "annotation_1",
+      "tree_view_config": {
+        "display_attrs": [
+          "label"
+        ],
+        "decoration_attr": "figure_graphics_view_config.color"
+      },
+      "text_graphics_view_config": {
+        "display_attrs": [
+          "label",
+          "stats.area"
+        ],
+        "hidden": false,
+        "background_color": "green"
+      },
+      "figure_graphics_view_config": {
+        "hidden": false,
+        "color": "green"
+      },
+      "stats": {
+        "area": 145608,
+        "area_px": 9880068,
+        "length": null,
+        "length_px": null
+      },
+      "filter_id": "3",
+      "filter_level": null,
+      "filter_results": null,
+      "user_attrs": {}
+    }
+  }
+}

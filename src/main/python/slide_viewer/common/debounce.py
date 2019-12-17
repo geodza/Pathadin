@@ -1,8 +1,7 @@
 from threading import Timer
-# https://tsilva.me/how-to-write-a-debouncer-function-in-python/
 from typing import Callable
 
-
+# https://tsilva.me/how-to-write-a-debouncer-function-in-python/
 def debounce_time(wait_sec: float, func: Callable) -> Callable:
     """Returns a debounced version of a function.
 
@@ -15,6 +14,7 @@ def debounce_time(wait_sec: float, func: Callable) -> Callable:
     def debounced_func(*args, **kwargs):
         nonlocal scheduled_timer
         if scheduled_timer and not scheduled_timer.finished.is_set():
+            # print(f'canceling {func} {scheduled_timer}')
             scheduled_timer.cancel()
         scheduled_timer = Timer(wait_sec, func, args=args, kwargs=kwargs)
         scheduled_timer.start()

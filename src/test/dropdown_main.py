@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLay
 
 from slide_viewer.ui.common.editor.dropdown import Dropdown
 from slide_viewer.common_qt.message_handler import qt_message_handler
-from slide_viewer.ui.model.filter.base_filter import FilterType
+from img.filter.base_filter import FilterType
 
 QtCore.qInstallMessageHandler(qt_message_handler)
 

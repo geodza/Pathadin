@@ -18,3 +18,4 @@ def slot_disconnected(signal, slot):
     signal.connect(slot)
     # except TypeError:
     #     yield
+

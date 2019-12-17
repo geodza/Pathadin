@@ -15,11 +15,21 @@ DataClass = Any
 Deepable = Union[OrderedDict, DataClass]
 
 
+def isnamedtupleinstance(x):
+    t = type(x)
+    # b = t.__bases__
+    # if len(b) != 1 or b[0] != tuple: return False
+    f = getattr(t, '_fields', None)
+    if not isinstance(f, tuple): return False
+    return all(type(n) == str for n in f)
+
+
 # def _len(obj):
 #     if isinstance()
 
 def is_deepable(obj) -> bool:
-    return isinstance(obj, OrderedDict) or is_dataclass(obj) or attr.has(type(obj)) or isinstance(obj, BaseModel)
+    return isinstance(obj, OrderedDict) or is_dataclass(obj) or attr.has(type(obj)) or isinstance(obj, BaseModel) \
+           or isnamedtupleinstance(obj)
 
 
 def deep_get(obj: Deepable, key: str) -> Any:
@@ -71,6 +81,8 @@ def deep_keys(obj: Deepable) -> list:
         return [name for name in obj.__fields__]
     elif is_dataclass(obj):
         return [f.name for f in fields(obj)]
+    elif isnamedtupleinstance(obj):
+        return list(obj._fields)
     else:
         raise ValueError(f'object {obj} is not Deepable')
 

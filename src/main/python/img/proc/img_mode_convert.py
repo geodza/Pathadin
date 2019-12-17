@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from slide_viewer.ui.common.img.img_object_convert import expose_pilimage_buffer_to_ndarray, \
-    expose_ndarray_buffer_to_pillowimage
 # def build_opencvcolor_to_pillowmode_dict():
 #     opencvcolor_to_pillowmode_dict = {}
 #     color_convertion_names = [c for c in dir(cv2) if c.startswith("COLOR")]
@@ -25,7 +23,10 @@ from slide_viewer.ui.common.img.img_object_convert import expose_pilimage_buffer
 #
 # def opencvcolorconvertion_to_pillowmode(colorconvertion: int):
 #     return opencvcolor_to_pillowmode_dict[colorconvertion]
-from slide_viewer.ui.model.filter.base_filter import FilterResults
+from img.filter.base_filter import FilterResults
+from img.model import NdImageData
+from img.proc.img_object_convert import expose_pilimage_buffer_to_ndarray, \
+    expose_ndarray_buffer_to_pillowimage
 
 
 # NOTE on colorspace in common
@@ -75,6 +76,10 @@ def convert_pilimage(pilimg: Image, required_mode: str) -> Image.Image:
         return pilimg
 
 
+def convert_ndimg2(img: NdImageData, mode: str) -> NdImageData:
+    return NdImageData(convert_ndimg(img.ndimg, img.color_mode, mode), mode)
+
+
 def convert_ndimg(ndimg: np.ndarray, current_mode: str, required_mode: str) -> np.ndarray:
     if current_mode == required_mode:
         return ndimg
@@ -85,7 +90,8 @@ def convert_ndimg(ndimg: np.ndarray, current_mode: str, required_mode: str) -> n
     #     return pilimg
     # else:
     for cvtcolor_value in cvtcolor_values:
-        ndimg = cv2.cvtColor(ndimg, cvtcolor_value)
+        if cvtcolor_value is not None:
+            ndimg = cv2.cvtColor(ndimg, cvtcolor_value)
     return ndimg
 
 

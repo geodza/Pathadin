@@ -8,13 +8,11 @@ from slide_viewer.ui.common.editor.dropdown import Dropdown
 from slide_viewer.ui.common.editor.list_editor import SelectListEditor
 from slide_viewer.ui.common.editor.range.gray_range_editor import GrayRangeEditor
 from slide_viewer.ui.common.editor.range.hsv_range_editor import HSVRangeEditor
-from slide_viewer.ui.odict.odict import ODictModel
-from slide_viewer.ui.odict.odicts_tree_model import ODictsTreeModel
-from slide_viewer.ui.model.filter.quantization_filter import PillowQuantizeMethod, QuantizationFilterData_
-from slide_viewer.ui.model.filter.threshold_filter import ThresholdFilterData_, ManualThresholdFilterData_, \
-    SkimageAutoThresholdFilterData_, ThresholdType, SkimageThresholdType
-from slide_viewer.ui.model.filter.base_filter import FilterData_, FilterType
-from slide_viewer.ui.model.color_mode import ColorMode
+from img.filter.threshold_filter import ThresholdFilterData_, ThresholdType
+from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresholdFilterData_
+from img.filter.manual_threshold import ManualThresholdFilterData_
+from img.filter.base_filter import FilterData_, FilterType
+from img.color_mode import ColorMode
 
 
 class ODictsTreeViewDelegate(QStyledItemDelegate):

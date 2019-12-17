@@ -1,7 +1,7 @@
 import typing
 from collections import OrderedDict
 
-from PyQt5.QtCore import QItemSelection, QModelIndex, pyqtSignal
+from PyQt5.QtCore import QItemSelection, QModelIndex, pyqtSignal, QItemSelectionModel
 from PyQt5.QtWidgets import QTreeView, QWidget, QAbstractItemView, QHeaderView
 from dataclasses import dataclass, InitVar
 
@@ -42,6 +42,13 @@ class DeepableTreeView(QTreeView):
     def setModel(self, model: DeepableTreeModel) -> None:
         super().setModel(model)
         self.span_first_column()
+
+    def select_keys(self, keys: typing.List[str]) -> None:
+        selection = QItemSelection()
+        for id_ in keys:
+            index = self.model().key_to_index(id_)
+            selection.select(index, self.model().key_to_index(id_, 1))
+        self.selectionModel().select(selection, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
     def span_first_column(self):
         for row in range(self.model().rowCount()):

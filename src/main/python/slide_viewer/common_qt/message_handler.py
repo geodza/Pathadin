@@ -19,12 +19,9 @@ def qt_message_handler(mode, context, message):
         mode = 'FATAL'
     else:
         mode = 'DEBUG'
-    print('qt_message_handler: line: %d, func: %s(), file: %s' % (
-        context.line, context.function, context.file))
-    print('  %s: %s\n' % (mode, message))
+    # print('qt_message_handler: line: %d, func: %s(), file: %s' % (
+    #     context.line, context.function, context.file))
+    # print('  %s: %s\n' % (mode, message))
     sys.stdout.flush()
 
 
-def install_qt_message_handler():
-    QtCore.registerMeta
-    QtCore.qInstallMessageHandler(qt_message_handler)

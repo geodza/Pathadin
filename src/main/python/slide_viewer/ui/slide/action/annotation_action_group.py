@@ -38,10 +38,6 @@ class AnnotationActionGroup(QActionGroup):
 
             return f
 
-        def is_active_view_with_slide_helper() -> bool:
-            view = active_view_provider.active_view
-            return view is not None and view.slide_helper is not None
-
         a1 = MyAction("&Pan/select tool", self, pan_closure(), icon_provider.get_icon(IconName.pan_tool))
         a2 = MyAction("&Line annotation", self, annotation_item_closure(AnnotationType.LINE),
                       icon_provider.get_icon(IconName.line))
@@ -59,6 +55,10 @@ class AnnotationActionGroup(QActionGroup):
             AnnotationType.ELLIPSE: a4,
             AnnotationType.POLYGON: a5,
         }
+
+        def is_active_view_with_slide_helper() -> bool:
+            view = active_view_provider.active_view
+            return view is not None and view.slide_helper is not None
 
         for action in self.actions():
             action.setCheckable(True)

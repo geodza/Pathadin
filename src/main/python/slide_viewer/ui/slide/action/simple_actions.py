@@ -101,6 +101,14 @@ class SimpleActions:
 
             return f
 
+        def annotation_service_closure(func):
+            def f(checked: bool):
+                view = active_view_provider.active_view
+                annotation_service = view.annotation_service
+                func(annotation_service, view.slide_helper.slide_path)
+
+            return f
+
         def sub_window_service_closure(func, checkable=False):
             def f(checked: bool):
                 if checkable:
@@ -119,8 +127,8 @@ class SimpleActions:
             ActionType.view_background_color: view_closure(on_select_view_background_color),
             ActionType.open: view_closure(on_open_image_file),
             ActionType.fit: view_closure(on_fit),
-            ActionType.export_annotations: annotations_tree_view_closure(on_export_annotations),
-            ActionType.import_annotations: annotations_tree_view_closure(on_import_annotations),
+            ActionType.export_annotations: annotation_service_closure(on_export_annotations),
+            ActionType.import_annotations: annotation_service_closure(on_import_annotations),
             ActionType.add_sub_window: sub_window_service_closure(on_add_sub_window),
             ActionType.tile_sub_windows: sub_window_service_closure(on_tile_sub_windows),
         }

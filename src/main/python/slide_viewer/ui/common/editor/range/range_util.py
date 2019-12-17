@@ -1,4 +1,4 @@
-from slide_viewer.ui.model.color_mode import ColorMode
+from img.color_mode import ColorMode
 
 
 def default_range(color_mode):

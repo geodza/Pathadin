@@ -79,38 +79,3 @@ def pilimage_to_pixmap(pilimg) -> QPixmap:
 def pilimage_to_qimage(pilimg) -> QImage:
     qim = ImageQt(pilimg)
     return qim
-
-
-def expose_ndarray_to_qimage(ndimg: np.ndarray, format: QImage.Format) -> QImage:
-    h, w, *ch = ndimg.shape
-    ch = ch[0] if ch else 1
-    img = QImage(ndimg, w, h, w * ch, format)
-    return img
-
-# def update_pixmap_by_pillowimage(pixmap: QPixmap, pilimg: Image.Image):
-#     qim = ImageQt(pilimg)
-#     result = pixmap.convertFromImage(qim)
-#     # print(result)
-
-
-#
-# def ndarray_to_qimage(ndimg: np.ndarray) -> QImage:
-#     print(ndimg.shape)
-#     # img = QImage(ndarray.ravel(), ndarray.shape[1], ndarray.shape[0], QImage.Format_Mono)
-#     ndimg = np.copy(img_as_ubyte(ndimg), order='C')
-#     bytes = ndimg.tobytes()
-#     img = QImage(bytes, ndimg.shape[1], ndimg.shape[0], QImage.Format_Indexed8)
-#
-#     img = img.copy()
-#     QGuiApplication.clipboard().setImage(img)
-#     # img = expose_ndarray_to_qimage(arr).copy()
-#     return img
-#
-#
-# def update_pixmap_by_ndarray(pixmap: QPixmap, ndimg: np.array):
-#     img = ndarray_to_qimage(ndimg)
-#     pixmap.convertFromImage(img)
-#
-#
-# def update_pixmap_by_qimage(pixmap: QPixmap, qimg: QImage):
-#     pixmap.convertFromImage(qimg)

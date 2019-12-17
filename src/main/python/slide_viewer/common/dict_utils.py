@@ -3,6 +3,8 @@ from typing import Collection, TypeVar, Type, Dict
 
 from dataclasses import fields, is_dataclass
 
+from slide_viewer.ui.odict.deep.base.deepable import deep_keys, is_deepable
+
 K = TypeVar('K')
 V = TypeVar('V')
 T = TypeVar('T')
@@ -33,6 +35,18 @@ def asodict(data) -> OrderedDict:
             v = asodict(v)
         data_dict[f.name] = v
     return data_dict
+
+
+def asodict2(data) -> OrderedDict:
+    if is_deepable(data):
+        data_dict = OrderedDict()
+        for k in deep_keys(data):
+            v = getattr(data, k)
+            vd = asodict2(v)
+            data_dict[k] = vd
+        return data_dict
+    else:
+        return data
 
 
 def dict_to_data_ignore_extra(dict_: Dict[K, V], data_type: Type[T]) -> T:

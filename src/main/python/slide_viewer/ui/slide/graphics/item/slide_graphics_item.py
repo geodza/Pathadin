@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QGraphicsItem, QWidget, QStyleOptionGraphicsItem
 
 from slide_viewer.config import debug, initial_cell_size
 from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.ui.common.img.img_object_convert import pilimage_to_pixmap
+from img.proc.img_object_convert import pilimage_to_pixmap
 
 cache_mutex = QMutex()
 

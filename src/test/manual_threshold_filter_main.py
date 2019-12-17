@@ -10,13 +10,14 @@ from slide_viewer.common.debounce import debounce
 from slide_viewer.ui.common.editor.dropdown import Dropdown
 from slide_viewer.ui.common.editor.range.gray_range_editor import GrayRangeEditor
 from slide_viewer.ui.common.editor.range.hsv_range_editor import HSVRangeEditor
-from slide_viewer.ui.common.img.img_formats import whole_slide_formats, pillow_formats
+from slide_viewer.common_qt.img_formats import whole_slide_formats, pillow_formats
 from slide_viewer.common_qt.message_handler import qt_message_handler
 from slide_viewer.filter.filter_processing import build_source_, \
     mask_result_
-from slide_viewer.ui.model.filter.region_data import RegionData
-from slide_viewer.ui.model.filter.threshold_filter import ManualThresholdFilterData, ThresholdType
-from slide_viewer.ui.model.filter.base_filter import FilterType
+from img.proc.region import RegionData
+from img.filter.threshold_filter import ThresholdType
+from img.filter.manual_threshold import ManualThresholdFilterData
+from img.filter.base_filter import FilterType
 from src.test.config import img_path
 
 QtCore.qInstallMessageHandler(qt_message_handler)

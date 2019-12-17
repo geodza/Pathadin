@@ -6,8 +6,8 @@ from PyQt5.QtCore import Qt, QMargins, pyqtSignal, pyqtProperty, QVariant, QSign
 from PyQt5.QtGui import QPainter, QPen, QImage
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QSizePolicy
 
-from slide_viewer.ui.common.img.img_mode_convert import convert_pilimage
-from slide_viewer.ui.common.img.img_object_convert import expose_ndarray_buffer_to_pillowimage, pilimage_to_qimage
+from img.proc.img_mode_convert import convert_pilimage
+from img.proc.img_object_convert import expose_ndarray_buffer_to_pillowimage, pilimage_to_qimage
 from slide_viewer.ui.common.editor.range.range_editor import RangeEditor
 
 

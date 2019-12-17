@@ -1,39 +1,53 @@
-from typing import Iterable, Tuple, List
+from typing import Iterable, List
 
-from PyQt5.QtCore import QPointF, QPoint
+from PyQt5.QtCore import QPointF, QPoint, QSizeF, QSize
 
-ituple = Tuple[int, int]
-ituples = Tuple[ituple, ...]
-ftuple = Tuple[float, float]
+from img.model import ftuple, ituple
 
 
-def qpointf_to_tuple(p: QPointF) -> ftuple:
+def qpointf_to_ftuple(p: QPointF) -> ftuple:
     return (p.x(), p.y())
 
 
-def qpoint_to_tuple(p: QPoint) -> ituple:
+def qpoint_to_ituple(p: QPoint) -> ituple:
     return (p.x(), p.y())
 
 
-def qpointfs_to_tuples(points: Iterable[QPointF]) -> List[ftuple]:
-    return list(map(qpointf_to_tuple, points))
+def qpointfs_to_ftuples(points: Iterable[QPointF]) -> List[ftuple]:
+    return list(map(qpointf_to_ftuple, points))
 
 
-def qpoints_to_tuples(points: Iterable[QPoint]) -> List[ituple]:
-    return list(map(qpoint_to_tuple, points))
+def qpoints_to_ituples(points: Iterable[QPoint]) -> List[ituple]:
+    return list(map(qpoint_to_ituple, points))
 
 
-def tuple_to_qpointf(p: ftuple) -> QPointF:
+def ftuple_to_qpointf(p: ftuple) -> QPointF:
     return QPointF(*p)
 
 
-def tuple_to_qpoint(p: ituple) -> QPoint:
+def ituple_to_qpoint(p: ituple) -> QPoint:
     return QPoint(*p)
 
 
-def tuples_to_qpoints(points: Iterable[ituple]) -> List[QPoint]:
-    return list(map(tuple_to_qpoint, points))
+def ituples_to_qpoints(points: Iterable[ituple]) -> List[QPoint]:
+    return list(map(ituple_to_qpoint, points))
 
 
-def tuples_to_qpointfs(points: Iterable[ftuple]) -> List[QPoint]:
-    return list(map(tuple_to_qpoint, points))
+def ftuples_to_qpointfs(points: Iterable[ftuple]) -> List[QPoint]:
+    return list(map(ituple_to_qpoint, points))
+
+
+def qsizef_to_ftuple(size: QSizeF) -> ftuple:
+    return (size.width(), size.height())
+
+
+def qsize_to_ituple(size: QSize) -> ituple:
+    return (size.width(), size.height())
+
+
+def ituple_to_qsize(size: ituple) -> QSize:
+    return QSize(*size)
+
+
+def ftuple_to_qsizef(size: ftuple) -> QSizeF:
+    return QSizeF(*size)

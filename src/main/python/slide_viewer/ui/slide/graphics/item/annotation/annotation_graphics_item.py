@@ -1,17 +1,14 @@
-from typing import Any, Optional, Callable
+from typing import Any, Optional
 
 from PyQt5.QtCore import QPointF, QRectF, pyqtSignal, QObject, QPoint
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsItem
 from dataclasses import dataclass, field, InitVar
 
-from slide_viewer.common_qt.qobjects_convert_util import qpointf_to_tuple, tuples_to_qpoints
-from slide_viewer.ui.common.metrics import calc_length, calc_geometry_area
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_figure_graphics_item import AnnotationFigureGraphicsItem, \
     AnnotationFigureGraphicsModel
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_text_graphics_item import AnnotationTextGraphicsItem, \
     AnnotationTextGraphicsModel
-from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationStats
 from slide_viewer.ui.slide.slide_stats_provider import SlideStatsProvider
 from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProvider
 
@@ -26,7 +23,8 @@ class AnnotationGraphicsModel:
 
 
 class AnnotationGraphicsItemSignals(QObject):
-    posChanged = pyqtSignal(QPoint)
+    posChanged = pyqtSignal(str, QPoint)
+    removedFromScene = pyqtSignal(str)
 
     def __init__(self, parent: Optional[QObject] = None) -> None:
         super().__init__(parent)
@@ -39,7 +37,7 @@ class AnnotationGraphicsItem(QGraphicsItemGroup):
     model: InitVar[Optional[AnnotationGraphicsModel]]
     is_in_progress: bool
     slide_stats_provider: SlideStatsProvider
-    removed_from_scene_callback: Callable[[str], None]
+    # removed_from_scene_callback: Callable[[str], None]
     figure: AnnotationFigureGraphicsItem = None
     text: AnnotationTextGraphicsItem = None
 
@@ -86,15 +84,13 @@ class AnnotationGraphicsItem(QGraphicsItemGroup):
         if change == QGraphicsItem.ItemPositionChange:
             if isinstance(value, QPointF):
                 value = value.toPoint()
-            # self.annotation_model.geometry.origin_point = qpointf_to_tuple(value)
-            # self.signals.annotationModelChanged.emit()
-            self.signals.posChanged.emit(value)
+            self.signals.posChanged.emit(self.id, value)
             return value
         elif change == QGraphicsItem.ItemPositionHasChanged:
             return super().itemChange(change, value)
         elif change == QGraphicsItem.ItemSceneHasChanged:
             if not value:
-                self.removed_from_scene_callback(self.id)
+                self.signals.removedFromScene.emit(self.id)
                 return
             return super().itemChange(change, value)
         else:

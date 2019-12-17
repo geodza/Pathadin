@@ -1,28 +1,31 @@
-from typing import Optional
+from typing import Optional, cast
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QModelIndex, QObject, QSize
+from PyQt5.QtCore import QModelIndex, QObject, QSize, pyqtBoundSignal
 from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
     QStyleOptionViewItem
-from dataclasses import dataclass, InitVar, replace, fields
+from dataclasses import dataclass, InitVar, replace
 
-from slide_viewer.common.dict_utils import dict_to_data_ignore_extra, asodict
+from img.color_mode import ColorMode
+from img.filter.base_filter import FilterData, FilterData_, FilterType
+from img.filter.kmeans_filter import KMeansFilterData
+from img.filter.manual_threshold import ManualThresholdFilterData, ManualThresholdFilterData_, \
+    GrayManualThresholdFilterData, GrayManualThresholdFilterData_, HSVManualThresholdFilterData, \
+    HSVManualThresholdFilterData_
+from img.filter.nuclei import NucleiFilterData, NucleiParams
+from img.filter.positive_pixel_count import PositivePixelCountFilterData
+from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresholdFilterData, \
+    SkimageAutoThresholdFilterData_, SkimageMeanThresholdFilterData, SkimageMinimumThresholdFilterData
+from img.filter.threshold_filter import ThresholdFilterData, ThresholdFilterData_, \
+    ThresholdType
+from img.proc.kmeans import KMeansInitType, KMeansParams_
+from img.proc.positive_pixel_count import PositivePixelCountParams
+from slide_viewer.common.dict_utils import dict_to_data_ignore_extra, asodict2
 from slide_viewer.ui.common.editor.dropdown import Dropdown
 from slide_viewer.ui.common.editor.list_editor import SelectListEditor
 from slide_viewer.ui.common.editor.range.gray_range_editor import GrayRangeEditor
 from slide_viewer.ui.common.editor.range.hsv_range_editor import HSVRangeEditor
-from slide_viewer.ui.model.color_mode import ColorMode
-from slide_viewer.ui.model.filter.base_filter import FilterData, FilterData_, FilterType
-from slide_viewer.ui.model.filter.kmeans_filter import KMeansInitType, KMeansParams_, KMeansFilterData
-from slide_viewer.ui.model.filter.nuclei import NucleiFilterData, NucleiParams
-from slide_viewer.ui.model.filter.quantization_filter import PillowQuantizeMethod, QuantizationFilterData, \
-    QuantizationFilterData_
-from slide_viewer.ui.model.filter.threshold_filter import ThresholdFilterData, ThresholdFilterData_, \
-    ManualThresholdFilterData, ManualThresholdFilterData_, GrayManualThresholdFilterData, \
-    GrayManualThresholdFilterData_, HSVManualThresholdFilterData, HSVManualThresholdFilterData_, \
-    SkimageAutoThresholdFilterData, SkimageAutoThresholdFilterData_, SkimageMeanThresholdFilterData, \
-    SkimageMinimumThresholdFilterData, ThresholdType, SkimageThresholdType
-from slide_viewer.ui.odict.deep.base.deepable import toplevel_key, deep_set
+from slide_viewer.ui.odict.deep.base.deepable import toplevel_key, deep_set, deep_keys
 from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
 
 
@@ -32,7 +35,7 @@ def commit_close_after_dropdown_select(delegate: QStyledItemDelegate, dropdown: 
         delegate.closeEditor.emit(dropdown)
 
     dropdown.selectedItemChanged.connect(on_selected_item_changed)
-    dropdown.activated.connect(on_selected_item_changed)
+    cast(pyqtBoundSignal, dropdown.activated).connect(on_selected_item_changed)
     return dropdown
 
 
@@ -53,8 +56,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
         filter_data: FilterData = self.model[filter_id]
         key = key.split('.')[-1]
         if key == FilterData_.filter_type:
-            filter_types = set(FilterType) - set([FilterType.QUANTIZATION])
-            dropdown = Dropdown(list(filter_types), value, parent)
+            dropdown = Dropdown(list(FilterType), value, parent)
             return commit_close_after_dropdown_select(self, dropdown)
         elif isinstance(filter_data, ThresholdFilterData):
             if key == ThresholdFilterData_.threshold_type:
@@ -62,7 +64,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
                 return commit_close_after_dropdown_select(self, dropdown)
             elif isinstance(filter_data, ManualThresholdFilterData):
                 if key == ManualThresholdFilterData_.color_mode:
-                    color_modes=set(ColorMode) - set([ColorMode.RGB])
+                    color_modes = set(ColorMode) - {ColorMode.RGB}
                     dropdown = Dropdown(list(color_modes), value, parent)
                     return commit_close_after_dropdown_select(self, dropdown)
                 elif isinstance(filter_data, HSVManualThresholdFilterData):
@@ -99,14 +101,6 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
                     return commit_close_after_dropdown_select(self, dropdown)
                 else:
                     raise ValueError(f"Unknown key {key} for filter {filter_data}")
-        elif isinstance(filter_data, QuantizationFilterData):
-            if key == QuantizationFilterData_.colors:
-                return super().createEditor(parent, option, index)
-            elif key == QuantizationFilterData_.method:
-                dropdown = Dropdown(list(PillowQuantizeMethod), value, parent)
-                return commit_close_after_dropdown_select(self, dropdown)
-            else:
-                raise ValueError(f"Unknown key {key} for filter {filter_data}")
         elif isinstance(filter_data, KMeansFilterData):
             if key == KMeansParams_.init:
                 dropdown = Dropdown(list(KMeansInitType), value, parent)
@@ -118,7 +112,13 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
             else:
                 raise ValueError(f"Unknown key {key} for filter {filter_data}")
         elif isinstance(filter_data, NucleiFilterData):
-            keys = [f.name for f in fields(NucleiParams)]
+            keys = deep_keys(NucleiParams)
+            if key in keys:
+                return super().createEditor(parent, option, index)
+            else:
+                raise ValueError(f"Unknown key {key} for filter {filter_data}")
+        elif isinstance(filter_data, PositivePixelCountFilterData):
+            keys = deep_keys(PositivePixelCountParams)
             if key in keys:
                 return super().createEditor(parent, option, index)
             else:
@@ -139,7 +139,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
         filter_data: FilterData = self.model[filter_id]
         value = editor.metaObject().userProperty().read(editor)
         # filter_data_dict = OrderedDict(asdict(filter_data))
-        filter_data_dict = asodict(filter_data)
+        filter_data_dict = asodict2(filter_data)
         deep_set(filter_data_dict, '.'.join(attr_path), value)
         # filter_data_dict.update({last_key: value})
         filter_type = filter_data_dict[FilterData_.filter_type]
@@ -166,12 +166,12 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
             else:
                 filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, GrayManualThresholdFilterData)
                 # raise ValueError(f"Unknown threshold_type: {threshold_type}")
-        elif filter_type == FilterType.QUANTIZATION:
-            filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, QuantizationFilterData)
         elif filter_type == FilterType.KMEANS:
             filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, KMeansFilterData)
         elif filter_type == FilterType.NUCLEI:
             filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, NucleiFilterData)
+        elif filter_type == FilterType.POSITIVE_PIXEL_COUNT:
+            filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, PositivePixelCountFilterData)
         else:
             filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, GrayManualThresholdFilterData)
             # raise ValueError(f"Unknown filter_type: {filter_type}")

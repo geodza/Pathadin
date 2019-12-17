@@ -11,10 +11,10 @@ from slide_viewer.common.dataclass_utils import dataclass_fields
 
 @unique
 class FilterType(Enum):
-    QUANTIZATION = auto()
     THRESHOLD = auto()
     KMEANS = auto()
     NUCLEI = auto()
+    POSITIVE_PIXEL_COUNT = auto()
 
 
 @dataclass(frozen=True)
@@ -42,6 +42,16 @@ class FilterResults:
 @dataclass_fields
 class FilterResults_(FilterResults):
     pass
+
+
+@dataclass
+class FilterResults2:
+    img: QImage
+
+
+@dataclass
+class ThresholdFilterResults(FilterResults2):
+    histogram_html: str
 
 # @dataclass()
 # class NucleiFilterResults(FilterResults):

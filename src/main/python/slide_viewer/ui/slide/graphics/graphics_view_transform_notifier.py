@@ -45,12 +45,15 @@ class GraphicsViewTransformNotifier(QGraphicsView):
         self.emit_transform_changed()
 
     def update(self) -> None:
+        super().update()
         self.viewUpdated.emit()
 
     def updateSceneRect(self, rect: QRectF) -> None:
+        super().updateSceneRect(rect)
         self.viewSceneRectUpdated.emit(rect)
 
     def updateScene(self, rects: typing.Iterable[QRectF]) -> None:
+        super().updateScene(rects)
         self.viewSceneRectsUpdated.emit(list(rects))
 
     # Forbid methods that use scrollbars

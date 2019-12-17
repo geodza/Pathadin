@@ -10,14 +10,17 @@ from slide_viewer.common.debug_only_decorator import debug_only
 from slide_viewer.common.slide_helper import SlideHelper
 from slide_viewer.common_qt.abcq_meta import ABCQMeta
 from slide_viewer.common_qt.almost_immediate_timer import AlmostImmediateTimer
+from slide_viewer.common_qt.debounce_signal import debounce_three_arg_slot_wrap
 from slide_viewer.common_qt.key_press_util import KeyPressEventUtil
-from slide_viewer.common_qt.qobjects_convert_util import qpointf_to_tuple, tuple_to_qpointf, qpoint_to_tuple
+from slide_viewer.common_qt.qobjects_convert_util import qpoint_to_ituple, \
+    ituple_to_qpoint
+from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.ui.common.common import mime_data_is_url
 from slide_viewer.ui.common.timeline.pan_time_line import PanTimeLine, PanTimeLineData
 from slide_viewer.ui.common.timeline.scale_time_line import ScaleTimeLineData, ScaleTimeLine
 from slide_viewer.ui.model.annotation_type import AnnotationType
 from slide_viewer.ui.odict.deep.model import TreeViewConfig, AnnotationModel
-from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
+from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene, build_annotation_graphics_model
 from slide_viewer.ui.slide.graphics.graphics_view_transform_notifier import GraphicsViewTransformNotifier
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_graphics_item import AnnotationGraphicsItem
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
@@ -27,7 +30,10 @@ from slide_viewer.ui.slide.graphics.item.debug.slide_graphics_debug_view_scene_r
 from slide_viewer.ui.slide.graphics.item.filter_graphics_item import FilterGraphicsItem
 from slide_viewer.ui.slide.graphics.item.grid_graphics_item import GridGraphicsItem
 from slide_viewer.ui.slide.graphics.item.slide_graphics_item import SlideGraphicsItem
+from slide_viewer.ui.slide.slide_stats_provider import SlideStatsProvider
+from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
 from slide_viewer.ui.slide.widget.interface import annotation_pixmap_provider
+from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProvider
 
 help_text = "" \
@@ -52,8 +58,10 @@ class ViewParams:
 
 
 @dataclass
-class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQMeta):
+class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, SlideStatsProvider, metaclass=ABCQMeta):
+    annotation_service: AnnotationService
     pixmap_provider: annotation_pixmap_provider
+    annotation_stats_processor: AnnotationStatsProcessor
     parent_: InitVar[typing.Optional[QWidget]] = field(default=None)
     fit_scale: float = 1
     min_scale: float = 1
@@ -83,10 +91,14 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
     gridVisibleChanged = pyqtSignal(bool)
     gridSizeChanged = pyqtSignal(tuple)
     filePathChanged = pyqtSignal(str)
+    dropped = pyqtSignal()
     backgroundBrushChanged = pyqtSignal(QBrush)
+
+    _annotationRemovedFromScene = pyqtSignal(str)
 
     def __post_init__(self, parent_: typing.Optional[QWidget]):
         super().__init__(parent_)
+        self.id = None  # debug purpose
         scene = GraphicsScene(scale_provider=self, parent_=self)
         self.setScene(scene)
         # unlimited_rect = QRectF(-2 ** 31, -2 ** 31, 2 ** 32, 2 ** 32)
@@ -103,6 +115,72 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
         # enables to switch between sub windows by mouse hover, but can slow down view browsing?
         # self.setMouseTracking(True)
         self.scene().addText(help_text)
+        self.annotation_service.added_signal().connect(self.on_annotation_model_added)
+        self.annotation_service.edited_signal().connect(self.on_annotation_model_edited)
+        self.annotation_service.deleted_signal().connect(self.on_annotation_models_deleted)
+        self._annotationRemovedFromScene.connect(self.__on_annotation_removed_from_scene)
+
+        # self.scene().annotationModelsSelected.connect(self.on_scene_annotations_selected)
+
+    def __on_annotation_removed_from_scene(self, id_: str):
+        with slot_disconnected(self.annotation_service.deleted_signal(), self.on_annotation_models_deleted):
+            self.annotation_service.delete([id_])
+
+    def on_annotation_models_deleted(self, ids: typing.List[str]):
+        with slot_disconnected(self._annotationRemovedFromScene, self.__on_annotation_removed_from_scene):
+            self.scene().remove_annotations(ids)
+
+    def on_annotation_model_added(self, annotation_model: AnnotationModel):
+        # print("on_annotation_model_added", annotation_model)
+        annotation = self.create_item_from_model(annotation_model)
+        self.scene().add_annotation(annotation)
+
+    def on_annotation_model_edited(self, id_: str, annotation_model: AnnotationModel):
+        # print(f"on_annotation_model_edited: {id(self)}")
+        with slot_disconnected(self.annotation_service.edited_signal(), self.on_annotation_model_edited):
+            stats = self.annotation_stats_processor.calc_stats(annotation_model)
+            self.annotation_service.edit_stats(id_, stats)
+
+        item = self.scene().annotations.get(id_)
+        item_model = build_annotation_graphics_model(annotation_model)
+        with slot_disconnected(item.signals.posChanged, self.on_pos_changed):
+            item.set_model(item_model)
+        # self.filter_graphics_item.update()
+        self.filter_graphics_item.update()
+        self.update()
+        self.invalidateScene()
+
+    def create_item_from_model(self, annotation_model: AnnotationModel):
+        annotation = AnnotationGraphicsItem(id=annotation_model.id, scale_provider=self,
+                                            model=build_annotation_graphics_model(annotation_model),
+                                            is_in_progress=False,
+                                            slide_stats_provider=self)
+
+        # def __on_pos_changed(p: QPoint):
+        #     print(f'__on_pos_changed: {self.id}')
+        # annotation.update()
+        # with slot_disconnected(self.annotation_service.edited_signal(), self.on_annotation_model_edited):
+        # self.annotation_service.edit_origin_point(annotation_model.id, qpoint_to_ituple(p))
+
+        def __on_removed_from_scene(id_: str):
+            self._annotationRemovedFromScene.emit(id_)
+
+        # annotation.signals.posChanged.connect(debounce_one_arg_slot(1 / 1000, __on_pos_changed))
+        annotation.signals.posChanged.connect(self.on_pos_changed)
+        annotation.signals.removedFromScene.connect(__on_removed_from_scene)
+        return annotation
+
+    @debounce_three_arg_slot_wrap(0.1)
+    def on_pos_changed(self, id_: str, p: QPoint):
+        # print(f'__on_pos_changed: {self.id}')
+        # annotation.update()
+        item = self.scene().annotations.get(id_)
+        # item.update()
+        # with slot_disconnected(self.annotation_service.edited_signal(), self.on_annotation_model_edited):
+        self.annotation_service.edit_origin_point(id_, qpoint_to_ituple(p))
+
+    def get_microns_per_pixel(self) -> float:
+        return self.slide_helper.microns_per_pixel
 
     def get_scale(self):
         return self.get_current_view_scale()
@@ -160,7 +238,7 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
         self.filePathChanged.emit(file_path)
 
         # self.setDisabled(False)
-        # self.update()
+        self.update()
         # self.adjustSize()
 
     def scene(self) -> GraphicsScene:
@@ -301,13 +379,16 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
             event.accept()
         elif self.annotation_type and self.annotation_is_in_progress:
             point_scene = self.current.mouse_scene_pos.toPoint()
-            first_point = tuple_to_qpointf(self.annotation_model.geometry.points[0])
+            # first_point = ituple_to_qpoint(self.annotation_model.geometry.points[0])
+            first_point = ituple_to_qpoint(self.annotation_service.get_first_point(self.annotation.id))
             if self.annotation_type == AnnotationType.POLYGON and self.are_points_close(
                     point_scene, first_point):
                 point_scene = first_point
-            self.annotation_model.geometry.points[-1] = qpointf_to_tuple(point_scene)
-            self.scene().edit_annotation(self.annotation_model)
-            # self.annotation.set_last_point(point_scene)
+            # self.annotation_model.geometry.points[-1] = qpoint_to_ituple(point_scene)
+            # print("mouseMove before edit_last_point")
+            self.annotation_service.edit_last_point(self.annotation.id, qpoint_to_ituple(point_scene))
+            # print("mouseMove after edit_last_point")
+            # self.scene().edit_annotation(self.annotation_model)
             self.annotation.update()
             event.accept()
         else:
@@ -344,35 +425,48 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
 
     def __annotation_progress_click(self):
         if self.annotation_type == AnnotationType.POLYGON:
-            if self.are_points_close(self.current.mouse_scene_pos,
-                                     tuple_to_qpointf(self.annotation_model.geometry.points[0])):
+            annotation_model = self.annotation_service.get(self.annotation.id)
+            if self.are_points_close(self.current.mouse_scene_pos.toPoint(),
+                                     ituple_to_qpoint(annotation_model.geometry.points[0])):
                 self.__on_finish_annotation()
             else:
-                self.annotation_model.geometry.points.append(qpointf_to_tuple(self.current.mouse_scene_pos.toPoint()))
-                self.scene().edit_annotation(self.annotation_model)
+                self.annotation_service.add_point(self.annotation.id,
+                                                  qpoint_to_ituple(self.current.mouse_scene_pos.toPoint()))
+            # if self.are_points_close(self.current.mouse_scene_pos.toPoint(),
+            #                          ituple_to_qpoint(self.annotation_model.geometry.points[0])):
+            #     self.__on_finish_annotation()
+            # else:
+            #     self.annotation_model.geometry.points.append(qpoint_to_ituple(self.current.mouse_scene_pos.toPoint()))
+            #     self.scene().edit_annotation(self.annotation_model)
         else:
             self.__on_finish_annotation()
 
     def on_start_annotation(self) -> None:
         if self.annotation:
             self.scene().removeItem(self.annotation)
-        start_point = qpoint_to_tuple(self.current.mouse_scene_pos.toPoint())
+        start_point = qpoint_to_ituple(self.current.mouse_scene_pos.toPoint())
         geometry = AnnotationGeometry(annotation_type=self.annotation_type, origin_point=(0, 0),
                                       points=[start_point, start_point])
         tree_view_config = TreeViewConfig(display_attrs=['label'],
                                           decoration_attr='figure_graphics_view_config.color')
-        annotation_id = self.scene().get_next_annotation_id()
-        annotation_label = self.annotation_label_template.format(annotation_id)
-        self.annotation_model = AnnotationModel(geometry=geometry, id=annotation_id, label=annotation_label,
-                                                tree_view_config=tree_view_config)
-        self.annotation: AnnotationGraphicsItem = self.scene().add_annotation(self.annotation_model)
+        # annotation_id = self.scene().get_next_annotation_id()
+        # annotation_label = self.annotation_label_template.format(annotation_id)
+        annotation_model = AnnotationModel(geometry=geometry, id="", label="",
+                                           tree_view_config=tree_view_config)
+        with slot_disconnected(self.annotation_service.added_signal(), self.on_annotation_model_added):
+            annotation_model = self.annotation_service.add(annotation_model)
+
+        self.annotation = self.create_item_from_model(annotation_model)
+        self.scene().add_annotation(self.annotation)
+        # self.annotation: AnnotationGraphicsItem = self.scene().add_annotation(self.annotation_model)
         self.annotation.is_in_progress = True
         self.setMouseTracking(True)
         self.annotation_is_in_progress = True
         self.annotation.update()
 
     def __on_finish_annotation(self) -> None:
-        if not self.annotation_model.geometry.is_distinguishable_from_point():
+        annotation_model = self.annotation_service.get(self.annotation.id)
+        if not annotation_model.geometry.is_distinguishable_from_point():
             self.scene().remove_annotations([self.annotation.id])
             # self.scene().removeItem(self.annotation)
 
@@ -387,11 +481,11 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
         if self.annotation:
             id = self.annotation.id
             self.annotation = None
-            self.annotation_model = None
+            # self.annotation_model = None
             self.scene().remove_annotations([id])
             # self.scene().removeItem(self.annotation)
 
-    def are_points_close(self, p1: QPointF, p2: QPointF) -> bool:
+    def are_points_close(self, p1: QPoint, p2: QPoint) -> bool:
         length = QVector2D(p1 - p2).length()
         return length < self.points_closeness_factor / self.get_current_view_scale()
 
@@ -407,6 +501,7 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
                 # print(file_path)
                 self.set_file_path(file_path)
                 event.accept()
+                self.dropped.emit()
                 return True
         elif KeyPressEventUtil.is_enter(event):
             self.on_enter_press()
@@ -423,9 +518,8 @@ class GraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQM
     def on_enter_press(self) -> None:
         if self.annotation_is_in_progress:
             if self.annotation_type == AnnotationType.POLYGON:
-                first_point = self.annotation_model.geometry.points[0]
-                self.annotation_model.geometry.points[-1] = first_point
-                self.scene().edit_annotation(self.annotation_model)
+                first_point = self.annotation_service.get_first_point(self.annotation.id)
+                self.annotation_service.edit_last_point(self.annotation.id, first_point)
             self.__on_finish_annotation()
 
     def on_esc_press(self):

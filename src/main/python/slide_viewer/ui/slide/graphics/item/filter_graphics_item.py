@@ -16,7 +16,6 @@ from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import An
 class FilterGraphicsItem(QGraphicsObject):
     pixmap_provider: AnnotationItemPixmapProvider
     slide_helper: SlideHelper
-    annotationItemChanged = pyqtSignal(int, AnnotationGraphicsItem)
 
     def __post_init__(self):
         QGraphicsObject.__init__(self)
@@ -32,6 +31,7 @@ class FilterGraphicsItem(QGraphicsObject):
         current_scale = painter.transform().m11()
         painter.save()
         for item in self.exposed_annotation_items(exposed_scene_rect):
+            # level_pixmap = self.pixmap_provider.get_pixmap(item.id, lambda: self.update())
             level_pixmap = self.pixmap_provider.get_pixmap(item.id, lambda: self.update())
             if level_pixmap:
                 level, pixmap = level_pixmap

@@ -4,6 +4,7 @@ from typing import Iterator
 from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal
 from dataclasses import dataclass, InitVar, FrozenInstanceError
 
+from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.ui.odict.deep.base.deepable import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable
 
 
@@ -83,7 +84,8 @@ class PyQAbstractItemModel(QAbstractItemModel):
             key_ = index.internalPointer()[0]
             return key_
         else:
-            return ''
+            raise ValueError("Invalid index")
+            # return ''
 
     def indexes_to_keys(self, indexes: typing.Iterable[QModelIndex]) -> typing.List[str]:
         return list(map(self.key, indexes))
@@ -130,7 +132,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
         parent_obj = self.value(parent_index)
         if last_key in deep_keys(parent_obj):
             old_value = deep_get(parent_obj, last_key)
-            if old_value is not None and is_deepable(old_value):
+            if False and old_value is not None and is_deepable(old_value):
                 try:
                     old_keys = set(deep_keys(old_value)) if is_deepable(old_value) else set()
                     new_keys = set(deep_keys(value)) if is_deepable(value) else set()
@@ -143,27 +145,29 @@ class PyQAbstractItemModel(QAbstractItemModel):
                         self[key + '.' + child_key] = deep_get(value, child_key)
                     for child_key in to_add:
                         self[key + '.' + child_key] = deep_get(value, child_key)
-                except FrozenInstanceError:
+                except (FrozenInstanceError, TypeError):
                     deep_set(parent_obj, last_key, value)
                     row = self.key_to_row(key)
-                    self.dataChanged.emit(parent_index.child(row, 0), parent_index.child(row, 1))
+                    self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
                 except Exception:
-                    raise ValueError(f"cant edit key {key}\nwith value: {value}\nleading_keys: {leading_keys}\nlast_key: {last_key}\nold_value: {old_value}\nvalue : {value}")
+                    raise ValueError(
+                        f"cant edit key {key}\nwith value: {value}\nleading_keys: {leading_keys}\nlast_key: {last_key}\nold_value: {old_value}\nvalue : {value}")
             else:
                 deep_set(parent_obj, last_key, value)
                 row = self.key_to_row(key)
-                self.dataChanged.emit(parent_index.child(row, 0), parent_index.child(row, 1))
+                # print(f"key: {key} last_key: {last_key}")
+                self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
         else:
             new_row = self.rowCount(parent_index)
             self.beginInsertRows(parent_index, new_row, new_row)
             deep_set(parent_obj, last_key, value)
             self.endInsertRows()
 
-    def clear(self)->None:
+    def clear(self) -> None:
         parent_index = QModelIndex()
-        n_rows=len(deep_keys(self.get_root()))
+        n_rows = len(deep_keys(self.get_root()))
         if n_rows:
-            self.beginRemoveRows(parent_index, 0, n_rows-1)
+            self.beginRemoveRows(parent_index, 0, n_rows - 1)
             self.get_root().clear()
             self.endRemoveRows()
 
@@ -183,12 +187,14 @@ class PyQAbstractItemModel(QAbstractItemModel):
     def __iter__(self) -> Iterator:
         return iter(deep_keys(self.get_root()))
 
+    def __contains__(self, key: str):
+        return key in deep_keys(self.get_root())
+
     def on_data_changed(self, top_left: QModelIndex, bottom_right: QModelIndex):
         parent, first, last = top_left.parent(), top_left.row(), bottom_right.row()
-        children = [parent.child(row, 0) for row in range(first, last + 1)]
+        children = [self.index(row, 0, parent) for row in range(first, last + 1)]
         keys = self.indexes_to_keys(children)
         self.objectsChanged.emit(keys)
-        # keys = [top_left.sibling(row, 0) for row in range(top_left.row(), bottom_right.row() + 1)]
 
     def on_rows_about_to_be_removed(self, parent: QModelIndex, first: int, last: int) -> None:
         if parent.isValid():

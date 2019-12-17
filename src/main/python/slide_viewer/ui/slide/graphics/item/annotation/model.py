@@ -1,6 +1,6 @@
-from typing import Optional, ClassVar, List, Union, Tuple
+from typing import Optional, ClassVar, List, Tuple
 
-from PyQt5.QtCore import QPoint, QPointF
+from PyQt5.QtCore import QPoint
 from PyQt5.QtGui import QColor
 from pydantic import BaseModel
 
@@ -24,7 +24,7 @@ class TextGraphicsViewConfig(BaseModel):
     snake_case_name: ClassVar = 'text_graphics_view_config'
     display_attrs: List[str] = ['label']
     hidden: bool = False
-    background_color: str =  '#32cd32'
+    background_color: str = '#32cd32'
 
 
 class FigureGraphicsViewConfig(BaseModel):
@@ -50,7 +50,9 @@ class AnnotationStats(BaseModel):
     # __slots__ = ['area', 'area_px', 'length', 'length_px', 'prop2']  # for pycharm hints only
     area: Optional[int]
     area_px: Optional[int]
+    area_text: Optional[str]
     length: Optional[int]
     length_px: Optional[int]
+    length_text: Optional[str]
     # dd: OrderedDict = OrderedDict()
     # prop2: int = attr.ib()

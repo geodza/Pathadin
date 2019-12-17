@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from slide_viewer.ui.model.filter.base_filter import FilterData
+from img.filter.base_filter import FilterData
 
 
 class FilterModelProvider(ABC):

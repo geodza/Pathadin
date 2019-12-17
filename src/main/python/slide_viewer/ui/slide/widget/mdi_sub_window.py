@@ -1,24 +1,20 @@
 import typing
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QMouseEvent, QWheelEvent
 from PyQt5.QtWidgets import QWidget, QMdiSubWindow
 
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
-
 
 class MdiSubWindow(QMdiSubWindow):
+    aboutToClose = pyqtSignal()
 
     def __init__(self, parent: typing.Optional[QWidget] = None,
                  flags: typing.Union[QtCore.Qt.WindowFlags, QtCore.Qt.WindowType] = Qt.WindowFlags()) -> None:
-        super().__init__(parent, flags)
+        QMdiSubWindow.__init__(self, parent, flags)
         self.setAttribute(Qt.WA_DeleteOnClose, True)
 
-    def widget(self) -> GraphicsView:
-        return typing.cast(GraphicsView, QMdiSubWindow.widget(self))
-
-    def setWidget(self, widget: GraphicsView) -> None:
+    def setWidget(self, widget: QWidget) -> None:
         super().setWidget(widget)
         widget.installEventFilter(self)
 
@@ -29,3 +25,7 @@ class MdiSubWindow(QMdiSubWindow):
             self.widget().setFocus()
             # return True
         return super().eventFilter(object, event)
+
+    def closeEvent(self, closeEvent: QtGui.QCloseEvent) -> None:
+        self.aboutToClose.emit()
+        super().closeEvent(closeEvent)

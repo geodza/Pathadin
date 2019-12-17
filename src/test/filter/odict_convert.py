@@ -2,8 +2,9 @@ import unittest
 
 from dataclasses import asdict
 
-from slide_viewer.ui.model.filter.threshold_filter import ThresholdFilterData_, ManualThresholdFilterData, ThresholdType
-from slide_viewer.ui.model.filter.base_filter import FilterData_, FilterType
+from img.filter.threshold_filter import ThresholdFilterData_, ThresholdType
+from img.filter.manual_threshold import ManualThresholdFilterData
+from img.filter.base_filter import FilterData_, FilterType
 
 
 class ODictConvertTest(unittest.TestCase):

@@ -44,6 +44,7 @@ class SyncActionGroup(QActionGroup):
             MyAction("Sync grid size", self, sync_closure(SyncOption.grid_size)),
             MyAction("Sync background brush", self, sync_closure(SyncOption.background_brush)),
             MyAction("Sync annotations", self, sync_closure(SyncOption.annotations)),
+            MyAction("Sync annotations filter", self, sync_closure(SyncOption.annotation_filter)),
         ]
 
         def on_sync_all(checked: bool):

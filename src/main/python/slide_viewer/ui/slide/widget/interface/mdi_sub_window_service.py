@@ -14,6 +14,7 @@ class SyncOption(Enum):
     file_path = auto()
     background_brush = auto()
     annotations = auto()
+    annotation_filter = auto()
 
     @staticmethod
     def single_options():

@@ -1,9 +1,11 @@
+from collections import Iterable
 from contextlib import contextmanager
 from functools import partial
 from sys import getsizeof
 from threading import RLock
 
 import cachetools
+import numpy as np
 from PIL import Image
 from PyQt5.QtGui import QImage
 from cachetools import LRUCache, Cache
@@ -38,6 +40,16 @@ def sizeof(item):
         img_size = item.width() * item.height() * item.depth() / 8
         img_object_size = getsizeof(img_size)
         return img_size + img_object_size
+    elif isinstance(item, np.ndarray):
+        return item.nbytes
+    elif isinstance(item, Iterable) and not isinstance(item, str):
+        items = list(item)
+        size = 0
+        for i in items:
+            size += sizeof(i)
+        return size
+        # sizes = [sizeof(i) for i in items]
+        # return sum(sizes)
     else:
         return getsizeof(item)
 
@@ -45,11 +57,12 @@ def sizeof(item):
 class DLRUCache(LRUCache):
 
     def __setitem__(self, key, value, cache_setitem=Cache.__setitem__):
-        print(f"caching for key: {key} value of size: {sizeof_fmt(self.getsizeof(value))}")
+        # print(f"caching with size {sizeof_fmt(self.getsizeof(value))} for key: {key} value")
         super().__setitem__(key, value, cache_setitem)
 
 
 cache_ = DLRUCache(cache_size_in_bytes, getsizeof=sizeof)
+
 
 # cache_ = debug_cache(cache_)
 # cache_.__setitem__("s", 123)
@@ -72,11 +85,14 @@ def cache_key_func(func_name):
     return partial(hashkey, func_name)
 
 
-def gcached(func_name):
-    return cachetools.cached(cache_, key=partial(hashkey, func_name), lock=cache_lock)
+# def gcached(func_name,*args):
+#     return cachetools.cached(cache_, key=partial(hashkey, func_name), lock=cache_lock)
+
+def gcached(method):
+    return cachetools.cached(cache_, key=partial(hashkey, method.__name__), lock=cache_lock)(method)
 
 
-@gcached("f")
+@gcached
 def f(s):
     print(f"running f {s}")
     return s

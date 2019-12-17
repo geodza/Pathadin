@@ -2,13 +2,23 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from slide_viewer.filter.threshold.skimage_threshold import skimage_threshold
-from slide_viewer.ui.common.img.img_mode_convert import convert_filter_results
-from slide_viewer.ui.common.img.img_object_convert import expose_pilimage_buffer_to_ndarray
-from slide_viewer.ui.model.filter.base_filter import FilterResults
-from slide_viewer.ui.model.filter.threshold_filter import ThresholdFilterData, SkimageAutoThresholdFilterData, \
-    ManualThresholdFilterData, HSVManualThresholdFilterData, GrayManualThresholdFilterData
-from slide_viewer.ui.slide.widget.histogram_builder import build_histogram_html_for_ndimg
+from img.filter.base_filter import FilterResults
+from img.filter.threshold_filter import ThresholdFilterData
+from img.filter.skimage_threshold import SkimageAutoThresholdFilterData
+from img.filter.manual_threshold import ManualThresholdFilterData, GrayManualThresholdFilterData, \
+    HSVManualThresholdFilterData
+from img.model import NdImageData
+from img.proc.threshold.skimage_threshold import skimage_threshold
+from img.proc.img_mode_convert import convert_filter_results
+from img.proc.img_object_convert import expose_pilimage_buffer_to_ndarray
+
+
+def ndimg_to_thresholded_ndimg(threshold_range, i: NdImageData) -> NdImageData:
+    lower, upper = threshold_range
+    lower, upper = np.array(lower), np.array(upper)
+    result_ndimg = cv2.inRange(i.ndimg, lower, upper)
+    # cv2.inRange(self.source_img, lower, upper, self.result_img)
+    return NdImageData(result_ndimg, "L")
 
 
 def process_threshold_filter(fr: FilterResults, filter_data: ThresholdFilterData) -> FilterResults:

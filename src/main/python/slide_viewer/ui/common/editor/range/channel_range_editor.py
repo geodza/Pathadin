@@ -8,8 +8,8 @@ from PyQt5.QtCore import Qt, QSize, QMargins, pyqtSignal
 from PyQt5.QtGui import QPainter, QBrush, QGradient, QLinearGradient
 from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, QLabel, QVBoxLayout
 
-from slide_viewer.ui.common.img.img_mode_convert import convert_pilimage
-from slide_viewer.ui.common.img.img_object_convert import expose_pilimage_buffer_to_ndarray, \
+from img.proc.img_mode_convert import convert_pilimage
+from img.proc.img_object_convert import expose_pilimage_buffer_to_ndarray, \
     expose_ndarray_buffer_to_pillowimage, pilimage_to_qimage
 
 

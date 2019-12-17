@@ -10,7 +10,7 @@ from PyQt5.QtGui import QVector2D
 #         pi, pj = polygon[i], polygon[i - 1]
 #         area += (pj.x() + pi.x()) * (pj.y() - pi.y())
 #     return abs(area) / 2
-from slide_viewer.common_qt.qobjects_convert_util import tuples_to_qpoints
+from slide_viewer.common_qt.qobjects_convert_util import ituples_to_qpoints
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
 from slide_viewer.ui.model.annotation_type import AnnotationType
 
@@ -25,7 +25,7 @@ def calc_polygon_area(points: typing.List[QPoint]) -> float:
 
 def calc_rect_area(p1: QPoint, p2: QPoint) -> float:
     rect = QRect(p1, p2)
-    return rect.width() * rect.height()
+    return abs(rect.width() * rect.height())
 
 
 def calc_ellipse_area(p1: QPoint, p2: QPoint) -> float:
@@ -38,7 +38,7 @@ def calc_length(p1: QPoint, p2: QPoint) -> float:
 
 def calc_geometry_area(geometry: AnnotationGeometry) -> float:
     annotation_type = geometry.annotation_type
-    points = tuples_to_qpoints(geometry.points)
+    points = ituples_to_qpoints(geometry.points)
     if annotation_type == AnnotationType.RECT:
         area_px = calc_rect_area(points[0], points[-1])
     elif annotation_type == AnnotationType.ELLIPSE:

@@ -1,24 +1,22 @@
 from typing import Optional, ClassVar, List, Tuple
 
-from PyQt5.QtCore import QPoint
-from PyQt5.QtGui import QColor
 from pydantic import BaseModel
 
 from slide_viewer.ui.model.annotation_type import AnnotationType
 
+#
+# class AnnotationFigureModel():
+#     type: AnnotationType
+#     points: List[QPoint]
+#     color: QColor
+#     hidden: bool
 
-class AnnotationFigureModel():
-    type: AnnotationType
-    points: List[QPoint]
-    color: QColor
-    hidden: bool
 
-
-class AnnotationTextModel:
-    text: str
-    background_color: QColor
-    hidden: bool
-
+# class AnnotationTextModel:
+#     text: str
+#     background_color: QColor
+#     hidden: bool
+#
 
 class TextGraphicsViewConfig(BaseModel):
     snake_case_name: ClassVar = 'text_graphics_view_config'

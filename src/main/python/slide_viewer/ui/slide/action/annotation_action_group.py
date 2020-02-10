@@ -4,13 +4,13 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QActionGroup, QAction
 from dataclasses import InitVar, dataclass
 
+from slide_viewer.common_qt.disableable_action import subscribe_disableable
 from slide_viewer.ui.common.action.my_action import MyAction
-from slide_viewer.ui.common.disability.decorator import subscribe_disableable
 from slide_viewer.ui.model.annotation_type import AnnotationType
 from slide_viewer.ui.slide.callback.on_annotation_item import on_annotation_item, on_selection_tool
+from slide_viewer.ui.slide.widget.icons import IconName
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider
 from slide_viewer.ui.slide.widget.interface.icon_provider import IconProvider
-from slide_viewer.ui.slide.widget.icons import IconName
 from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService
 
 
@@ -62,7 +62,8 @@ class AnnotationActionGroup(QActionGroup):
 
         for action in self.actions():
             action.setCheckable(True)
-            subscribe_disableable([sub_window_service.sub_window_activated], is_active_view_with_slide_helper, action)
+            subscribe_disableable([sub_window_service.sub_window_activated],
+                                  is_active_view_with_slide_helper, action)
 
         def on_sub_window_activated():
             if self.cleanup:
@@ -76,7 +77,7 @@ class AnnotationActionGroup(QActionGroup):
             view = active_view_provider.active_view
             if view and view.slide_helper:
                 self.setDisabled(False)
-                active_action = d[view.annotation_type]
+                active_action = d[view.graphics_view_annotation_service.annotation_type]
                 active_action.setChecked(True)
                 self.cleanup = cleanup
             else:

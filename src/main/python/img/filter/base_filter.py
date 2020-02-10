@@ -15,6 +15,7 @@ class FilterType(Enum):
     KMEANS = auto()
     NUCLEI = auto()
     POSITIVE_PIXEL_COUNT = auto()
+    KERAS_MODEL = auto()
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,7 @@ class FilterResults_(FilterResults):
 @dataclass
 class FilterResults2:
     img: QImage
+    bool_mask_ndimg: Optional[np.ndarray]
 
 
 @dataclass

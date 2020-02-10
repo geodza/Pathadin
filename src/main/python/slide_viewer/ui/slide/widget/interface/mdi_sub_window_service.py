@@ -39,6 +39,11 @@ class SubWindowService(ABC):
 
     @property
     @abstractmethod
+    def sub_window_slide_path_changed(self) -> pyqtBoundSignal(str):
+        pass
+
+    @property
+    @abstractmethod
     def active_sub_window(self) -> QMdiSubWindow:
         pass
 

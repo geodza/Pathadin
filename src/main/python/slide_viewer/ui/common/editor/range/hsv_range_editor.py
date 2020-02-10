@@ -51,9 +51,9 @@ class HSVRangeEditor(QWidget):
         layout.addWidget(self.s_editor, 0, 1)
         layout.addWidget(self.hue_sat_range_matrix_label, 2, 0)
         layout.addWidget(self.v_editor, 2, 1)
+        self.setLayout(layout)
         # layout.addWidget(self.v_editor, 2, 0, 1, 2)
         # layout.setSizeConstraint(QLayout.SetNoConstraint)
-        self.setLayout(layout)
         # self.setBackgroundRole(12)
         self.setAutoFillBackground(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -115,6 +115,7 @@ class HSVRangeEditor(QWidget):
         self.paint_hue_sat_matrix(painter)
         self.paint_hue_sat_range_matrix(painter)
         painter.end()
+        super().paintEvent(a0)
 
     def paint_hue_sat_matrix(self, painter: QPainter):
         s1 = self.hue_sat_matrix_label.width() / self.hue_sat_matrix_qimg.width()

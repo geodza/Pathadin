@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QFileDialog
 
 from slide_viewer.ui.common.action.my_action import MyAction
-from slide_viewer.common_qt.img_formats import saveable_mime_types
+from slide_viewer.common.img_formats import saveable_mime_types
 
 
 class SelectImageFileAction(MyAction):

@@ -4,10 +4,10 @@ from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
     QStyleOptionViewItem
 
 from slide_viewer.ui.common.editor.color_editor import ColorEditor
-from slide_viewer.ui.common.editor.dropdown import Dropdown
-from slide_viewer.ui.common.editor.list_editor import SelectListEditor
-from slide_viewer.ui.common.editor.range.gray_range_editor import GrayRangeEditor
-from slide_viewer.ui.common.editor.range.hsv_range_editor import HSVRangeEditor
+from slide_viewer.ui.common.editor import Dropdown
+from slide_viewer.ui.common.editor import SelectListEditor
+from slide_viewer.ui.common.editor.range import GrayRangeEditor
+from slide_viewer.ui.common.editor.range import HSVRangeEditor
 from img.filter.threshold_filter import ThresholdFilterData_, ThresholdType
 from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresholdFilterData_
 from img.filter.manual_threshold import ManualThresholdFilterData_

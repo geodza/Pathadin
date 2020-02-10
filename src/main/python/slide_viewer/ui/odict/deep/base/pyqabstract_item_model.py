@@ -4,7 +4,6 @@ from typing import Iterator
 from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal
 from dataclasses import dataclass, InitVar, FrozenInstanceError
 
-from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.ui.odict.deep.base.deepable import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable
 
 
@@ -177,6 +176,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
         self.beginRemoveRows(parent_index, row, row)
         deep_del(self.get_root(), key)
         self.endRemoveRows()
+        self.resetInternalData()
 
     def __getitem__(self, key: str) -> typing.Any:
         return deep_get(self.get_root(), key)

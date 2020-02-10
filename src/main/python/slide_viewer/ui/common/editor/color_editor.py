@@ -1,12 +1,8 @@
-import typing
-
-from PyQt5 import QtCore
-from PyQt5.QtCore import QObject, Qt, pyqtProperty, QMargins
+from PyQt5.QtCore import Qt, pyqtProperty, QMargins
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QWidget, QComboBox, QHBoxLayout, QItemEditorCreatorBase, QStyledItemDelegate, \
-    QStyleOptionViewItem
+from PyQt5.QtWidgets import QWidget, QComboBox, QHBoxLayout, QItemEditorCreatorBase
 
-from slide_viewer.ui.common.persistent_settings.user_custom_color import get_user_custom_color_names, \
+from slide_viewer.common_qt.persistent_settings.user_custom_color import get_user_custom_color_names, \
     add_user_custom_color
 
 

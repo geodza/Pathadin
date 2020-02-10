@@ -6,7 +6,7 @@ from PyQt5.QtCore import QPoint, QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView, QMenu
 
 from slide_viewer.ui.common.action.my_action import MyAction
-from slide_viewer.ui.common.dialog.edit_text_dialog import EditTextDialog
+from slide_viewer.common_qt.edit_text_dialog import EditTextDialog
 from slide_viewer.ui.odict.deep.base.deepable import CommonJSONEncoder, common_object_pairs_hook, is_deepable, deep_keys, \
     deep_get, deep_set
 from slide_viewer.ui.odict.deep.deepable_tree_view import DeepableTreeView

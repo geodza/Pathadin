@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
+from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 
 class ActiveViewProvider(ABC):

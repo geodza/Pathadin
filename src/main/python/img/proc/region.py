@@ -4,7 +4,7 @@ from typing import Tuple, Optional
 from PIL import Image
 from PyQt5.QtGui import QPolygon
 
-from img.model import ituples, ituple
+from img.pos import ituple, ituples
 from slide_viewer.cache_config import gcached
 from slide_viewer.common.slide_helper import SlideHelper
 from slide_viewer.common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple, ituples_to_qpoints, \
@@ -16,7 +16,7 @@ class RegionData(typing.NamedTuple):
     img_path: str
     level: typing.Optional[int] = None
     origin_point: typing.Optional[typing.Tuple[int, int]] = None
-    points: typing.Optional[typing.Tuple[typing.Tuple[int, int]]] = None
+    points: typing.Optional[typing.Tuple[typing.Tuple[int, int],...]] = None
     annotation_type: AnnotationType = AnnotationType.RECT
 
 

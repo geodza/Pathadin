@@ -4,7 +4,7 @@ from PyQt5.QtCore import QFileInfo, QFile
 
 from slide_viewer.ui.common.action.select_image_file_action import SelectImageFileAction
 from slide_viewer.common_qt.screenshot_builders import build_screenshot_image_from_view
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
+from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 
 def on_save_screenshot(view: GraphicsView) -> None:

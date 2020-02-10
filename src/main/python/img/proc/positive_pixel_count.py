@@ -4,7 +4,7 @@ import histomicstk.segmentation.positive_pixel_count as ppc
 import skimage.color
 from dataclasses import dataclass, asdict
 
-from img.model import NdImageData
+from img.ndimagedata import NdImageData
 
 colors = [(0, 0, 0), (0.5, 0.5, 0.5), (0.75, 0.75, 0.75), (1, 1, 1)]
 
@@ -41,4 +41,4 @@ def positive_pixel_count2(img: NdImageData, params: PositivePixelCountParams) ->
     stats, label_image = ppc.count_image(img.ndimg, ppc.Parameters(**asdict(params)))
     labeled_ndimg = skimage.color.label2rgb(label_image, colors=colors, bg_label=0)
     labeled_ndimg = skimage.util.img_as_ubyte(labeled_ndimg, force_copy=True)
-    return (NdImageData(labeled_ndimg, "RGB"), stats)
+    return (NdImageData(labeled_ndimg, "RGB", img.bool_mask_ndimg), stats)

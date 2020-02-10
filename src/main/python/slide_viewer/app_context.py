@@ -78,11 +78,19 @@ class AppContext(ApplicationContext, IconProvider, metaclass=ABCQMeta):
         for i in range(windows):
             w = self.main_window.add_sub_window()
             w.widget().id = i
-            w.widget().pixmap_provider.id = i
+            # w.widget().graphics_view_annotation_service.annotation_pixmap_provider.id = i
             # w.widget().set_file_path(slide_path)
             # w.widget().annotation_service.add(
-            #     AnnotationModel(geometry=AnnotationGeometry(annotation_type=AnnotationType.RECT, origin_point=(0, 0), points=[(0, 0), (300, 300)]),
+            #     AnnotationModel(geometry=AnnotationGeometry(annotation_type=AnnotationType.ELLIPSE, origin_point=(0, 0), points=[(0, 0), (300, 300)]),
+            #                     id="", label="", filter_id="1"))
+            # w.widget().annotation_service.add(
+            #     AnnotationModel(geometry=AnnotationGeometry(annotation_type=AnnotationType.POLYGON, origin_point=(500, 500),
+            #                                                 points=[(0, 0), (300, 300), (0, 300), (0, 0)]),
             #                     id="", label="", filter_id="2"))
+            # w.widget().annotation_service.add(
+            #     AnnotationModel(geometry=AnnotationGeometry(annotation_type=AnnotationType.RECT, origin_point=(41472, 63232),
+            #                                                 points=[(0, 0), (255, 255)]),
+            #                     id="", label="", filter_id="1",filter_level=0))
             w.show()
             # load_annotations(w1.widget(), slide_annotations_path)
             widgets.append(w)

@@ -1,13 +1,14 @@
 from typing import Optional, cast
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QModelIndex, QObject, QSize, pyqtBoundSignal
+from PyQt5.QtCore import QModelIndex, QObject, QSize, pyqtBoundSignal, Qt
 from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
     QStyleOptionViewItem
 from dataclasses import dataclass, InitVar, replace
 
 from img.color_mode import ColorMode
 from img.filter.base_filter import FilterData, FilterData_, FilterType
+from img.filter.keras_model import KerasModelFilterData
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.manual_threshold import ManualThresholdFilterData, ManualThresholdFilterData_, \
     GrayManualThresholdFilterData, GrayManualThresholdFilterData_, HSVManualThresholdFilterData, \
@@ -18,10 +19,12 @@ from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresh
     SkimageAutoThresholdFilterData_, SkimageMeanThresholdFilterData, SkimageMinimumThresholdFilterData
 from img.filter.threshold_filter import ThresholdFilterData, ThresholdFilterData_, \
     ThresholdType
+from img.proc.keras_model import KerasModelParams, KerasModelParams_
 from img.proc.kmeans import KMeansInitType, KMeansParams_
 from img.proc.positive_pixel_count import PositivePixelCountParams
 from slide_viewer.common.dict_utils import dict_to_data_ignore_extra, asodict2
 from slide_viewer.ui.common.editor.dropdown import Dropdown
+from slide_viewer.ui.common.editor.file_path_editor import FilePathEditor
 from slide_viewer.ui.common.editor.list_editor import SelectListEditor
 from slide_viewer.ui.common.editor.range.gray_range_editor import GrayRangeEditor
 from slide_viewer.ui.common.editor.range.hsv_range_editor import HSVRangeEditor
@@ -37,7 +40,6 @@ def commit_close_after_dropdown_select(delegate: QStyledItemDelegate, dropdown: 
     dropdown.selectedItemChanged.connect(on_selected_item_changed)
     cast(pyqtBoundSignal, dropdown.activated).connect(on_selected_item_changed)
     return dropdown
-
 
 @dataclass
 # delegate is coupled to concrete model
@@ -123,6 +125,15 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
                 return super().createEditor(parent, option, index)
             else:
                 raise ValueError(f"Unknown key {key} for filter {filter_data}")
+        elif isinstance(filter_data, KerasModelFilterData):
+            keys = deep_keys(KerasModelParams)
+            if key == KerasModelParams_.model_path:
+                file_path_editor = FilePathEditor(parent, value)
+                return file_path_editor
+            elif key in keys:
+                return super().createEditor(parent, option, index)
+            else:
+                raise ValueError(f"Unknown key {key} for filter {filter_data}")
         else:
             raise ValueError(f"Unknown filter type {filter_data}")
 
@@ -172,6 +183,8 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
             filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, NucleiFilterData)
         elif filter_type == FilterType.POSITIVE_PIXEL_COUNT:
             filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, PositivePixelCountFilterData)
+        elif filter_type == FilterType.KERAS_MODEL:
+            filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, KerasModelFilterData)
         else:
             filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, GrayManualThresholdFilterData)
             # raise ValueError(f"Unknown filter_type: {filter_type}")
@@ -179,7 +192,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
         # super().setModelData(editor, model, index)
 
     def updateEditorGeometry(self, editor: QWidget, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
-        if isinstance(editor, (SelectListEditor, HSVRangeEditor)):
+        if isinstance(editor, (SelectListEditor,)):
             # editor.setMinimumHeight(400)
             super().updateEditorGeometry(editor, option, index)
             # editor.setGeometry(option.rect)
@@ -192,8 +205,15 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
             super().updateEditorGeometry(editor, option, index)
             editor.showPopup()
         elif isinstance(editor, HSVRangeEditor):
-            editor.update()
+            # editor.adjustSize()
+            # editor.setMinimumHeight(400)
+            # editor.update()
             super().updateEditorGeometry(editor, option, index)
+            # editor.setGeometry(option.rect)
+            # print(editor.size())
+        elif isinstance(editor, FilePathEditor):
+            # super().updateEditorGeometry(editor, option, index)
+            editor.show_dialog()
         else:
             super().updateEditorGeometry(editor, option, index)
 
@@ -212,7 +232,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
         if isinstance(filter_data, ManualThresholdFilterData):
             if last_key in (HSVManualThresholdFilterData_.hsv_range, GrayManualThresholdFilterData_.gray_range):
                 color_mode_to_size = {
-                    ColorMode.HSV: QSize(0, 300),
+                    ColorMode.HSV: QSize(100, 300),
                     ColorMode.L: QSize(0, 100),
                 }
                 return color_mode_to_size[filter_data.color_mode]

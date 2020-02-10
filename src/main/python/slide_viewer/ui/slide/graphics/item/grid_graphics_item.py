@@ -13,7 +13,7 @@ class GridGraphicsItem(QGraphicsItem):
     bounding_rect: QRectF
     min_scale: float
     max_scale: float
-    grid_size: typing.Tuple[int, int] = (512, 512)
+    grid_size: typing.Tuple[int, int] = (256, 256)
     vertical_lines: typing.List[QLineF] = field(init=False, default_factory=list)
     horizontal_lines: typing.List[QLineF] = field(init=False, default_factory=list)
     paint_called_count: int = field(init=False, default=0)

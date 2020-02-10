@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QSize, QRectF, Qt, QSizeF, QPointF, QRect, QPoint
+from PyQt5.QtCore import QRectF
 from PyQt5.QtGui import QImage, QPainter
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItemGroup, QGraphicsView
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView
 
 
 def build_screenshot_image_from_view(view: QGraphicsView) -> QImage:
@@ -18,9 +18,3 @@ def build_screenshot_image_from_scene(scene: QGraphicsScene, rect: QRectF) -> QI
     scene.render(painter, QRectF(image.rect()), rect)
     painter.end()
     return image
-
-
-def render_scene_rect(image: QImage, scene: QGraphicsScene, rect: QRectF) -> QImage:
-    painter = QPainter(image)
-    scene.render(painter, QRectF(image.rect()), rect)
-    painter.end()

@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QMdiSubWindow
 
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
+from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 from slide_viewer.ui.slide.widget.mdi_sub_window import MdiSubWindow
 
 

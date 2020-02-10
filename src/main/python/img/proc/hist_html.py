@@ -20,5 +20,5 @@ def build_histogram_html(sorted_most_freq_colors: np.ndarray, sorted_most_freq_c
         fraction_percent = int(fraction * 100)
         bar_html = f'<div style="background-color: rgba{color_rgba}; color: rgba{inverse_color_rgba}">{fraction_percent}%{npoints}</div>'
         bars.append(bar_html)
-    histogram_html = '<div>' + '\n'.join(bars) + '</div>'
+    histogram_html = '<div>' + ''.join(bars) + '</div>'
     return histogram_html

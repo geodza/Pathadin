@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QAction
 from dataclasses import dataclass, InitVar
 
 from slide_viewer.common_qt.abcq_meta import ABCQMeta
-from slide_viewer.ui.common.disability.disableable import Disableable
+from slide_viewer.common_qt.disableable import Disableable
 
 
 def subscribe_disableable(disability_signals: Iterable[pyqtSignal], enability_resolver: Callable[[], bool],
@@ -19,15 +19,6 @@ def subscribe_disableable(disability_signals: Iterable[pyqtSignal], enability_re
         signal.connect(on_disability_update)
 
     on_disability_update()
-
-
-# @dataclass()
-# class DisabilitySignalsSubscriber(Disableable, ABC):
-#     disability_signals: InitVar[Iterable[PYQT_SIGNAL]]
-#     disability_resolver: InitVar[Callable[[], bool]]
-#
-#     def __post_init__(self, disability_signals: Iterable[PYQT_SIGNAL], disability_resolver: Callable[[], bool]):
-#         pass
 
 
 @dataclass()

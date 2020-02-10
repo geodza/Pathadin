@@ -1,8 +1,8 @@
 import json
 from collections import OrderedDict
 
-from slide_viewer.ui.common.dialog.text_dialog import TextDialog
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
+from slide_viewer.common_qt.text_dialog import TextDialog
+from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 
 def on_show_image_properties(view: GraphicsView) -> None:

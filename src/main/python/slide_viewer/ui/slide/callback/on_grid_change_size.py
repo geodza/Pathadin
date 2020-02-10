@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QSpinBox, QHBoxLayout, QFormLayout, QVBoxLayout, QDialogButtonBox
 
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
+from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 
 def on_grid_change_size(view: GraphicsView) -> None:

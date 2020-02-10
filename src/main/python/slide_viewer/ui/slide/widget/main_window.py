@@ -4,17 +4,20 @@ from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
-from PyQt5.QtCore import QSize, QSettings, Qt, pyqtBoundSignal, QFileInfo, QFile, QPoint, QModelIndex, QRectF
+from PyQt5.QtCore import QSize, Qt, pyqtBoundSignal, QFileInfo, QFile, QPoint, QModelIndex, QRectF, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QColor, QBrush
 from PyQt5.QtWidgets import QMainWindow, QApplication, QItemEditorFactory, \
     QDockWidget, QMdiArea, QMdiSubWindow, QMenu
 
+from img.filter.keras_model import KerasModelFilterData
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.manual_threshold import GrayManualThresholdFilterData
 from img.filter.nuclei import NucleiFilterData
 from img.filter.positive_pixel_count import PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
+from img.proc.keras_model import KerasModelParams
 from slide_viewer.common_qt.abcq_meta import ABCQMeta
+from slide_viewer.common_qt.persistent_settings.settings_utils import write_settings, read_settings
 from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.config import initial_main_window_size
 from slide_viewer.ui.common.action.my_action import MyAction
@@ -24,7 +27,8 @@ from slide_viewer.ui.odict.deep.context_menu_factory2 import context_menu_factor
 from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
 from slide_viewer.ui.odict.deep.deepable_tree_view import DeepableTreeView
 from slide_viewer.ui.odict.filter_tree_view_delegate import FilterTreeViewDelegate
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
+from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
+from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService
 from slide_viewer.ui.slide.widget.annotation_filter_processor import AnnotationFilterProcessor
 from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
 from slide_viewer.ui.slide.widget.deepable_annotation_service import DeepableAnnotationService
@@ -37,6 +41,7 @@ from slide_viewer.ui.slide.widget.mdi_sub_window import MdiSubWindow
 
 class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvider, SubWindowService,
                  metaclass=ABCQMeta):
+    __sub_window_slide_path_changed = pyqtSignal(str)
 
     def get_sync_state(self, option: SyncOption) -> bool:
         return bool(self.sync_states.get(option))
@@ -61,6 +66,10 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
     def sub_window_activated(self) -> pyqtBoundSignal:
         return self.view_mdi.subWindowActivated
 
+    @property
+    def sub_window_slide_path_changed(self) -> pyqtBoundSignal(str):
+        return self.__sub_window_slide_path_changed
+
     def tile_sub_windows(self) -> None:
         self.view_mdi.tileSubWindows()
 
@@ -82,12 +91,17 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         # fd = QuantizationFilterData('1')
         # fd = KMeansFilterData('1')
         # fd = NucleiFilterData('1')
+        model_path1 = r"C:\Users\User\GoogleDisk\datasets\weights.h5"
+        model_path2 = r"C:\Users\User\GoogleDisk\datasets\weights3.h5"
+        model_path = None
         filters = OrderedDict({
             '1': GrayManualThresholdFilterData('1', (50, 100)),
             '2': KMeansFilterData('2'),
             '3': NucleiFilterData('3'),
             '4': SkimageMeanThresholdFilterData('4'),
             '5': PositivePixelCountFilterData('5'),
+            '6': KerasModelFilterData('6', KerasModelParams(model_path)),
+            # '7': KerasModelFilterData('7', KerasModelParams(model_path2)),
         })
 
         self.view_mdi = QMdiArea(self)
@@ -108,8 +122,14 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
                 new_filter_id = str(last_filted_id + 1)
                 self.filters_tree_view.model()[new_filter_id] = GrayManualThresholdFilterData(new_filter_id)
 
+            def on_reset():
+                self.filters_tree_view.model().beginResetModel()
+                self.filters_tree_view.model().endResetModel()
+
+
             menu = QMenu()
             MyAction("Add filter", menu, on_add)
+            MyAction(f"Reset model", menu, on_reset)
 
             menu.exec_(self.filters_tree_view.viewport().mapToGlobal(position))
 
@@ -200,10 +220,12 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
                 if sync_states.get(SyncOption.grid_size):
                     view.gridSizeChanged.connect(sub_view.set_grid_size)
                 if sync_states.get(SyncOption.file_path):
+                    # view.filePathChanged.connect(sub_view.set_file_path)
                     view.filePathChanged.connect(sub_view.set_file_path)
                 if sync_states.get(SyncOption.background_brush):
                     view.backgroundBrushChanged.connect(sub_view.set_background_brush)
                 if sync_states.get(SyncOption.annotations):
+                    # view.annotation_service.added_signal().connect(sub_view.annotation_service.add_copy, type=Qt.QueuedConnection)
                     view.annotation_service.added_signal().connect(sub_view.annotation_service.add_copy)
                     view.annotation_service.deleted_signal().connect(sub_view.annotation_service.delete_if_exist)
                     view.scene().annotationModelsSelected.connect(sub_view.scene().select_annotations)
@@ -217,15 +239,9 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
             view.setDisabled(False)
             self.cleanup = cleanup
 
-    def add_sub_window(self) -> GraphicsViewMdiSubWindow:
-        # It is important to update tree annotations_tree_model from main gui thread and not from thread-pool task thread
-        # It is important to update data of annotations_tree_model only through annotations_tree_model interface
-        # We copy annotation, edit it and finally change annotations_tree_model through annotations_tree_model interface
-        # def on_filter_results_change(annotation_id: str, filter_results: FilterResults2):
-        # pass
-        # annotation_service.edit_filter_results(annotation_id, filter_results)
-        # view.filter_graphics_item.update()
+        self.read_settings()
 
+    def add_sub_window(self) -> GraphicsViewMdiSubWindow:
         annotations_tree_model = DeepableTreeModel(_root=OrderedDict())
         annotations_tree_view = DeepableTreeView(self, model_=annotations_tree_model)
         annotations_tree_view.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -237,28 +253,23 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
         annotation_service = DeepableAnnotationService(root=annotations_tree_model)
         slide_path_provider = lambda: view.slide_helper.slide_path
-        # annotation_model_provider = lambda annotation_id: annotations_tree_view.model()[annotation_id]
         filter_model_provider = lambda filter_id: self.filters_tree_view.model()[filter_id]
-
-        # TODO hack, find how to avoid
-        def update_all_views():
-            for sub_view in self.sub_views:
-                # print(f'update {id(sub_view)}')
-                sub_view.update()
-                sub_view.invalidateScene()
-                sub_view.scene().invalidate()
-                sub_view.filter_graphics_item.update()
-
+        scene_provider = lambda: view.scene()
         annotation_filter_processor = AnnotationFilterProcessor(pool=self.pool,
                                                                 slide_path_provider=slide_path_provider,
                                                                 annotation_service=annotation_service,
-                                                                filter_model_provider=filter_model_provider,
-                                                                updateAllViewsFunc=update_all_views)
-        # annotation_filter_processor.filterResultsChange.connect(on_filter_results_change)
+                                                                filter_model_provider=filter_model_provider)
         annotation_stats_processor = AnnotationStatsProcessor(slide_stats_provider=None)
-        view = GraphicsView(pixmap_provider=annotation_filter_processor, parent_=self,
-                            annotation_service=annotation_service, annotation_stats_processor=annotation_stats_processor)
+        graphics_view_annotation_service = GraphicsViewAnnotationService(scene_provider=scene_provider,
+                                                                         annotation_service=annotation_service,
+                                                                         annotation_pixmap_provider=annotation_filter_processor,
+                                                                         annotation_stats_processor=annotation_stats_processor,
+                                                                         scale_provider=None,
+                                                                         slide_stats_provider=None)
+        view = GraphicsView(parent_=self, graphics_view_annotation_service=graphics_view_annotation_service)
         annotation_stats_processor.slide_stats_provider = view
+        graphics_view_annotation_service.slide_stats_provider = view
+        graphics_view_annotation_service.scale_provider = view
         view.set_background_brush(QBrush(QColor("#A088BDBC")))
         view_sub_window = GraphicsViewMdiSubWindow(self)
         view_sub_window.setWidget(view)
@@ -270,34 +281,25 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         def on_annotations_tree_view_activated():
             view_sub_window.setFocus()
 
-        view_sub_window.aboutToActivate.connect(on_view_activated)
-        annotations_tree_sub_window.aboutToActivate.connect(on_annotations_tree_view_activated)
-
         def on_close_view_sub_window():
             annotation_tree_view_sub_window.close()
 
         def on_close_annotations_tree_view():
             view_sub_window.close()
 
-        view_sub_window.aboutToClose.connect(on_close_view_sub_window)
-        annotations_tree_sub_window.aboutToClose.connect(on_close_annotations_tree_view)
-
         def on_file_path_changed(file_path: str):
             file_name = QFileInfo(QFile(file_path)).baseName()
             annotations_tree_sub_window.setToolTip(file_path)
             annotations_tree_sub_window.setWindowTitle(file_name)
-            # self.sub_window_activated.emit(self.view_mdi.activateWindow())
-            # annotations_tree_sub_window.setFocus()
-            # view_sub_window.setFocus()
+            # self.sub_window_slide_path_changed.emit(file_path)
+            # annotations_tree_sub_window.activateWindow()
+            # view_sub_window.activateWindow()
+            # self.sub_window_activated.emit(view_sub_window)
+            # if view_sub_window.isActiveWindow():
+            #     self.sub_window_activated.emit(view_sub_window)
 
-        def on_dropped():
-            annotations_tree_sub_window.setFocus()
-            # view_sub_window.setFocus()
-            view_sub_window.activateWindow()
+        def on_file_path_dropped(file_path: str):
             self.sub_window_activated.emit(view_sub_window)
-
-        view.dropped.connect(on_dropped)
-        view_sub_window.widget().filePathChanged.connect(on_file_path_changed)
 
         def on_scene_annotations_selected(ids: typing.List[str]):
             with slot_disconnected(annotations_tree_view.objectsSelected, on_tree_objects_selected):
@@ -317,13 +319,18 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
                 if annotations_bounding_rect:
                     view.fit_rect(annotations_bounding_rect)
 
-        view.scene().annotationModelsSelected.connect(on_scene_annotations_selected)
-        annotations_tree_view.objectsSelected.connect(on_tree_objects_selected)
-
         def tree_filter_models_changed(keys: List[str]):
             if view and view.filter_graphics_item:
                 view.filter_graphics_item.update()
 
+        view_sub_window.aboutToActivate.connect(on_view_activated)
+        annotations_tree_sub_window.aboutToActivate.connect(on_annotations_tree_view_activated)
+        view_sub_window.aboutToClose.connect(on_close_view_sub_window)
+        annotations_tree_sub_window.aboutToClose.connect(on_close_annotations_tree_view)
+        view_sub_window.widget().filePathChanged.connect(on_file_path_changed)
+        view_sub_window.widget().filePathDropped.connect(on_file_path_dropped)
+        view.scene().annotationModelsSelected.connect(on_scene_annotations_selected)
+        annotations_tree_view.objectsSelected.connect(on_tree_objects_selected)
         self.filters_tree_view.model().objectsChanged.connect(tree_filter_models_changed)
 
         return view_sub_window
@@ -337,21 +344,19 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         QItemEditorFactory.setDefaultFactory(editor_factory)
 
     def write_settings(self):
-        settings = QSettings("dieyepy", "dieyepy")
-        settings.beginGroup("MainWindow")
-        settings.setValue("size", self.size())
-        settings.setValue("pos", self.pos())
+        settings = {
+            "size": self.size(),
+            "pos": self.pos()
+        }
+        write_settings("dieyepy", "MainWindow", settings)
         # settings.setValue("background_color", self.view.backgroundBrush().color())
-        settings.endGroup()
 
     def read_settings(self):
-        settings = QSettings("dieyepy", "dieyepy")
-        settings.beginGroup("MainWindow")
-        self.resize(settings.value("size", QSize(*initial_main_window_size)))
-        self.move(settings.value("pos", QApplication.desktop().screen().rect().center() - self.rect().center()))
+        settings = read_settings("dieyepy", "MainWindow")
+        self.resize(settings.get("size", QSize(*initial_main_window_size)))
+        self.move(settings.get("pos", QApplication.desktop().screen().rect().center() - self.rect().center()))
         # self.view.setBackgroundBrush(
         #     settings.value("background_color", QColor(initial_scene_background_color)))
-        settings.endGroup()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.write_settings()

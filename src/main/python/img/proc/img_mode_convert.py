@@ -24,7 +24,7 @@ from PIL import Image
 # def opencvcolorconvertion_to_pillowmode(colorconvertion: int):
 #     return opencvcolor_to_pillowmode_dict[colorconvertion]
 from img.filter.base_filter import FilterResults
-from img.model import NdImageData
+from img.ndimagedata import NdImageData
 from img.proc.img_object_convert import expose_pilimage_buffer_to_ndarray, \
     expose_ndarray_buffer_to_pillowimage
 
@@ -77,7 +77,7 @@ def convert_pilimage(pilimg: Image, required_mode: str) -> Image.Image:
 
 
 def convert_ndimg2(img: NdImageData, mode: str) -> NdImageData:
-    return NdImageData(convert_ndimg(img.ndimg, img.color_mode, mode), mode)
+    return NdImageData(convert_ndimg(img.ndimg, img.color_mode, mode), mode, img.bool_mask_ndimg)
 
 
 def convert_ndimg(ndimg: np.ndarray, current_mode: str, required_mode: str) -> np.ndarray:
@@ -92,6 +92,7 @@ def convert_ndimg(ndimg: np.ndarray, current_mode: str, required_mode: str) -> n
     for cvtcolor_value in cvtcolor_values:
         if cvtcolor_value is not None:
             ndimg = cv2.cvtColor(ndimg, cvtcolor_value)
+            ndimg = np.atleast_3d(ndimg)
     return ndimg
 
 

@@ -5,7 +5,7 @@ from PyQt5.QtCore import QObject
 from dataclasses import dataclass, InitVar
 
 from slide_viewer.ui.common.action.my_action import MyAction
-from slide_viewer.ui.common.disability.decorator import subscribe_disableable
+from slide_viewer.common_qt.disableable_action import subscribe_disableable
 from slide_viewer.ui.slide.callback.on_copy_screenshot import on_copy_screenshot
 from slide_viewer.ui.slide.callback.on_export_annotations import on_export_annotations
 from slide_viewer.ui.slide.callback.on_fit import on_fit
@@ -104,7 +104,7 @@ class SimpleActions:
         def annotation_service_closure(func):
             def f(checked: bool):
                 view = active_view_provider.active_view
-                annotation_service = view.annotation_service
+                annotation_service = view.graphics_view_annotation_service.annotation_service
                 func(annotation_service, view.slide_helper.slide_path)
 
             return f

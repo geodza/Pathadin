@@ -2,7 +2,7 @@ from typing import Iterable, List
 
 from PyQt5.QtCore import QPointF, QPoint, QSizeF, QSize
 
-from img.model import ftuple, ituple
+from img.pos import ituple, ftuple
 
 
 def qpointf_to_ftuple(p: QPointF) -> ftuple:
@@ -27,6 +27,14 @@ def ftuple_to_qpointf(p: ftuple) -> QPointF:
 
 def ituple_to_qpoint(p: ituple) -> QPoint:
     return QPoint(*p)
+
+
+def ftuple_to_ituple(p: ftuple) -> ituple:
+    return (int(p[0]), int(p[1]))
+
+
+def ftuples_to_ituples(points: Iterable[ftuple]) -> List[ituple]:
+    return list(map(ftuple_to_ituple, points))
 
 
 def ituples_to_qpoints(points: Iterable[ituple]) -> List[QPoint]:

@@ -4,10 +4,11 @@ from typing import List, Dict
 from PyQt5.QtCore import QObject, pyqtBoundSignal, pyqtSignal
 
 from img.filter.base_filter import FilterResults2, ThresholdFilterResults
+from img.filter.keras_model import KerasModelFilterResults
 from img.filter.kmeans_filter import KMeansFilterResults
 from img.filter.nuclei import NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults
-from img.model import ituple
+from img.pos import ituple
 from slide_viewer.common_qt.abcq_meta import ABCQMeta
 from slide_viewer.ui.odict.deep.base.deepable import toplevel_keys
 from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
@@ -16,22 +17,29 @@ from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationStats
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 
 
+# It is important to update tree annotations_tree_model from main gui thread and not from thread-pool task thread
+# It is important to update data of annotations_tree_model only through annotations_tree_model interface
+# We copy annotation, edit it and finally change annotations_tree_model through annotations_tree_model interface
+
+
 def build_text_filter_results(filter_results: FilterResults2) -> OrderedDict:
     if isinstance(filter_results, (KMeansFilterResults, ThresholdFilterResults)):
-        filter_results = OrderedDict({'histogram_html_text': filter_results.histogram_html})
+        filter_results_dict = OrderedDict({'histogram_html_text': filter_results.histogram_html})
     elif isinstance(filter_results, NucleiFilterResults):
         nuclei_count_text = f"nuclei count: {filter_results.nuclei_count}"
-        filter_results = OrderedDict({'nuclei_count_text': nuclei_count_text})
+        filter_results_dict = OrderedDict({'nuclei_count_text': nuclei_count_text})
     elif isinstance(filter_results, PositivePixelCountFilterResults):
         try:
             stats_dict = filter_results.stats._asdict()
             stats_html_text = '<br/>'.join([f'{k}: {round(v, 3)}' for k, v in stats_dict.items()])
-            filter_results = OrderedDict({'stats_html_text': stats_html_text})
+            filter_results_dict = OrderedDict({'stats_html_text': stats_html_text})
         except:
-            filter_results = OrderedDict({'stats_html_text': "error, try to move annotation or to change filter params"})
+            filter_results_dict = OrderedDict({'stats_html_text': "error, try to move annotation or to change filter params"})
+    elif isinstance(filter_results, KerasModelFilterResults):
+        filter_results_dict = OrderedDict()
     else:
         raise ValueError()
-    return filter_results
+    return filter_results_dict
 
 
 class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):

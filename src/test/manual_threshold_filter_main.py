@@ -7,10 +7,10 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication, QMainWindow, QLa
     QFileDialog
 
 from slide_viewer.common.debounce import debounce
-from slide_viewer.ui.common.editor.dropdown import Dropdown
-from slide_viewer.ui.common.editor.range.gray_range_editor import GrayRangeEditor
-from slide_viewer.ui.common.editor.range.hsv_range_editor import HSVRangeEditor
-from slide_viewer.common_qt.img_formats import whole_slide_formats, pillow_formats
+from slide_viewer.ui.common.editor import Dropdown
+from slide_viewer.ui.common.editor.range import GrayRangeEditor
+from slide_viewer.ui.common.editor.range import HSVRangeEditor
+from slide_viewer.common.img_formats import whole_slide_formats, pillow_formats
 from slide_viewer.common_qt.message_handler import qt_message_handler
 from slide_viewer.filter.filter_processing import build_source_, \
     mask_result_

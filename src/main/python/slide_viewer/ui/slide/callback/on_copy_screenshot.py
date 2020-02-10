@@ -2,7 +2,7 @@ from PyQt5.QtGui import QGuiApplication, QCursor
 from PyQt5.QtWidgets import QToolTip
 
 from slide_viewer.common_qt.screenshot_builders import build_screenshot_image_from_view
-from slide_viewer.ui.slide.graphics.graphics_view import GraphicsView
+from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 
 def on_copy_screenshot(view: GraphicsView) -> None:

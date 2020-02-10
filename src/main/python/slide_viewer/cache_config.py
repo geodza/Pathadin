@@ -1,4 +1,5 @@
 from collections import Iterable
+from concurrent.futures._base import Future
 from contextlib import contextmanager
 from functools import partial
 from sys import getsizeof
@@ -104,3 +105,35 @@ if __name__ == '__main__':
     a3 = f(2)
     a4 = f(2)
     pass
+
+
+def build_global_pending_key(key: str):
+    return 'pending__{}'.format(key)
+
+
+def add_to_global_pending(key: str, future: Future):
+    cache_[build_global_pending_key(key)] = future
+
+
+def get_from_global_pending(key: str) -> Future:
+    return cache_[build_global_pending_key(key)]
+
+
+def is_in_global_pending(key: str):
+    return build_global_pending_key(key) in cache_
+
+
+def remove_from_global_pending(key: str):
+    cache_.pop(build_global_pending_key(key), None)
+
+
+def closure_nonhashable(hash_prefix: str, i, func):
+    # def decor(method):
+    #     return cachetools.cached(cache_, key=partial(hashkey, method.__name__, hash_prefix), lock=cache_lock)(method)
+
+    def w(*args, **kwargs):
+        return func(i, *args, **kwargs)
+
+    cached_w = cachetools.cached(cache_, key=partial(hashkey, func.__name__, hash_prefix), lock=cache_lock)(w)
+
+    return cached_w

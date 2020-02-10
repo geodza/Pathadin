@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication, QMainWindow, QLabel, QVBoxLayout, QPushButton, QFileDialog
 
-from slide_viewer.common_qt.img_formats import whole_slide_formats, pillow_formats
+from slide_viewer.common.img_formats import whole_slide_formats, pillow_formats
 from slide_viewer.common_qt.message_handler import qt_message_handler
 from slide_viewer.filter.filter_processing import build_source_, \
     mask_source_

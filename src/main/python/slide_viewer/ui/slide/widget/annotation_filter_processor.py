@@ -208,6 +208,7 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
         tile_batch = np.array([tile])
         tile_mask_batch = keras_model.predict(tile_batch)
         tile_mask = tile_mask_batch[0]
+        tile_mask = tile_mask/2
         # io.imshow(np.squeeze(tile_mask))
         tile_mask = skimage.util.img_as_ubyte(tile_mask)
         region_mask[y:y + grid_length, x:x + grid_length] = tile_mask

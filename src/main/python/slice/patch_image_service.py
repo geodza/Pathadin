@@ -12,7 +12,7 @@ from shapely_utils import annotation_to_geom
 from slice.group_utils import groupbyformat, map_inside_group
 from slice.patch_geometry_generator import PatchGeometryGenerator, create_patch_geometry_hooks_generator_factory, PatchPos
 from slice.patch_image_generator import create_slide_annotations_patch_image_generator, PatchImageGenerator
-from slice.ndarray_persist_utils import save_named_ndarrays_to_hdf5, NamedNdarray, load_named_arrays_from_hdf5
+from slice.ndarray_persist_utils import save_named_ndarrays_to_hdf5, NamedNdarray, load_named_ndarrays_from_hdf5
 from slice.slide_slice_config import PatchImageConfig, PatchImageSourceConfig, posix_path, fix_cfg
 from slide_viewer.ui.odict.deep.model import AnnotationTreeItems
 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     zip_file_path = r"D:\slide_cbir_47\temp\data_zip.npz"
     folder_path = r"D:\slide_cbir_47\temp"
 
-    named_ndarrays = load_named_arrays_from_hdf5(h5py_file_path)
+    named_ndarrays = load_named_ndarrays_from_hdf5(h5py_file_path)
     named_ndarrays = list(named_ndarrays)
 
     level = 2
@@ -122,9 +122,9 @@ if __name__ == '__main__':
             PatchImageConfig(slide_path, 2, metadata={"name": "image"}),
         ])
     pig = process_pisc(cfg)
-    pig = islice(pig, 10)
+    # pig = islice(pig, 10)
     pig = list(pig)
-    format_str = r"{cfg.slide_path}/{cfg.level}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[0]},{pos[1]})_{cfg.level}"
+    format_str = r"{cfg.slide_path}/{cfg.level}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[0]},{pos[1]})_{cfg.level}_{cfg.metadata[name]}"
     named_ndarrays = collect_responses_to_image_groups(pig, format_str)
     # format_str = r"{cfg.slide_path}/{cfg.level}/{cfg.grid_length}/{cfg.metadata[name]}/{cfg.level}"
     save_named_ndarrays_to_hdf5(named_ndarrays, h5py_file_path, "w")

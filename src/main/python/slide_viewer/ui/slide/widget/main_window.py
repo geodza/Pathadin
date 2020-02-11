@@ -92,7 +92,7 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         # fd = KMeansFilterData('1')
         # fd = NucleiFilterData('1')
         model_path1 = r"C:\Users\User\GoogleDisk\datasets\weights.h5"
-        model_path2 = r"C:\Users\User\GoogleDisk\datasets\weights3.h5"
+        model_path2 = r"C:\Users\User\GoogleDisk\datasets\weights4.h5"
         model_path = None
         filters = OrderedDict({
             '1': GrayManualThresholdFilterData('1', (50, 100)),
@@ -101,7 +101,7 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
             '4': SkimageMeanThresholdFilterData('4'),
             '5': PositivePixelCountFilterData('5'),
             '6': KerasModelFilterData('6', KerasModelParams(model_path)),
-            # '7': KerasModelFilterData('7', KerasModelParams(model_path2)),
+            '7': KerasModelFilterData('7', KerasModelParams(model_path2)),
         })
 
         self.view_mdi = QMdiArea(self)

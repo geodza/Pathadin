@@ -12,7 +12,7 @@ from shapely_utils import annotation_to_geom
 from slice.group_utils import groupbyformat, map_inside_group
 from slice.patch_geometry_generator import PatchGeometryGenerator, create_patch_geometry_hooks_generator_factory, PatchPos
 from slice.patch_image_generator import create_slide_annotations_patch_image_generator, PatchImageGenerator
-from slice.save_utils import save_named_ndarrays_to_hdf5, NamedNdarray
+from slice.ndarray_persist_utils import save_named_ndarrays_to_hdf5, NamedNdarray, load_named_arrays_from_hdf5
 from slice.slide_slice_config import PatchImageConfig, PatchImageSourceConfig, posix_path, fix_cfg
 from slide_viewer.ui.odict.deep.model import AnnotationTreeItems
 
@@ -90,6 +90,7 @@ def collect_responses_to_image_groups(patch_responses: PatchResponseGenerator, g
 
 
 if __name__ == '__main__':
+
     # arrs1 = np.load(r"D:\slide_cbir_47\temp\npz_test.npz")
     # print(arrs1.files)
     # arrs = {
@@ -107,6 +108,9 @@ if __name__ == '__main__':
     h5py_file_path = r"D:\slide_cbir_47\temp\data.hdf5"
     zip_file_path = r"D:\slide_cbir_47\temp\data_zip.npz"
     folder_path = r"D:\slide_cbir_47\temp"
+
+    named_ndarrays = load_named_arrays_from_hdf5(h5py_file_path)
+    named_ndarrays = list(named_ndarrays)
 
     level = 2
     grid_length = 256 * (level) ** 2

@@ -1,10 +1,12 @@
+import os
 import pathlib
 import shutil
 import warnings
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, Callable
 
 import h5py
 import numpy as np
+from h5py import Dataset
 from skimage import io
 
 from slice.h5py_utils import update_dataset_image_attrs
@@ -54,7 +56,7 @@ def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_f
         ndarray_path = working_folder.joinpath(ndarray_path)
         ndarray_path = ndarray_path if ndarray_path.suffix else ndarray_path.with_suffix('.png')
         ndarray = _squeeze_if_need(ndarray)
-        if ndarray_path.suffix in ('.npz', '.npy'):
+        if ndarray_path.suffix in ('.npz', '.npy', '.zip'):
             save_ndarray_to_filesystem(ndarray, ndarray_path)
         else:
             save_ndarray_as_image_to_filesystem(ndarray, ndarray_path)
@@ -66,7 +68,7 @@ def save_ndarray_to_filesystem(ndarray: np.ndarray, path: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.suffix == '.npy':
         np.save(str(path), ndarray)
-    elif path.suffix == '.npz':
+    elif path.suffix in ('.npz', '.zip'):
         np.savez_compressed(str(path), ndarray)
 
 
@@ -83,13 +85,55 @@ def save_ndarray_as_image_to_filesystem(ndarray: np.ndarray, path: str) -> None:
     io.imsave(path, image, check_contrast=False)
 
 
-def _build_valid_path(path: str):
+def load_named_arrays_from_hdf5(file_path: str, name_filter: Callable[[str], bool] = lambda _: True, force_copy_to_memory=True) \
+        -> Iterable[NamedNdarray]:
+    filtered_names = []
+
+    def visit(name, obj):
+        if isinstance(obj, Dataset):
+            if name_filter(name):
+                filtered_names.append(name)
+
+    with h5py.File(file_path, 'r') as f:
+        f.visititems(visit)
+        for name in filtered_names:
+            ndarray = f[name]
+            ndarray = ndarray[:] if force_copy_to_memory else ndarray
+            yield (name, ndarray)
+
+
+def load_named_arrays_from_zip(file_path: str, name_filter: Callable[[str], bool] = lambda _: True, mmap_mode=None) -> Iterable[NamedNdarray]:
+    with np.load(file_path, mmap_mode=mmap_mode) as f:
+        for name in f.keys():
+            if name_filter(name):
+                ndarray = f[name]
+                yield (name, ndarray)
+
+
+def load_named_arrays_from_folder(root_folder: str, name_filter: Callable[[str], bool] = lambda _: True) -> Iterable[NamedNdarray]:
+    for root, dirs, files in os.walk(root_folder, topdown=True):
+        for name in files:
+            name = os.path.join(root, name)
+            if name_filter(name):
+                ndarray = load_ndarray_from_filesystem(name)
+                yield (name, ndarray)
+
+
+def load_ndarray_from_filesystem(path: str) -> np.ndarray:
+    path = pathlib.Path(path)
+    if path.suffix in ('.npy'):
+        return np.load(str(path))
+    else:
+        return io.imread(str(path))
+
+
+def _build_valid_path(path: str) -> str:
     path_ = pathlib.PurePath(path)
     # TODO replace invalid chars
     return path_.relative_to(path_.anchor).as_posix()
 
 
-def _squeeze_if_need(ndarray: np.ndarray):
+def _squeeze_if_need(ndarray: np.ndarray) -> np.ndarray:
     if ndarray.shape[0] == 1:
         ndarray = ndarray.reshape(ndarray.shape[1:])
     return ndarray

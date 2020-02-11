@@ -1,24 +1,18 @@
-import json
-import pathlib
-import shutil
-import warnings
 from itertools import islice
 from typing import Iterable, Tuple, List, NamedTuple
 
-import h5py
 import numpy as np
 import openslide
 from dataclasses import replace, asdict
 from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
-from skimage import io
 
 from img.ndimagedata import NdImageData
 from shapely_utils import annotation_to_geom
 from slice.group_utils import groupbyformat, map_inside_group
-from slice.h5py_utils import update_dataset_image_attrs
 from slice.patch_geometry_generator import PatchGeometryGenerator, create_patch_geometry_hooks_generator_factory, PatchPos
 from slice.patch_image_generator import create_slide_annotations_patch_image_generator, PatchImageGenerator
+from slice.save_utils import save_named_ndarrays_to_hdf5, NamedNdarray
 from slice.slide_slice_config import PatchImageConfig, PatchImageSourceConfig, posix_path, fix_cfg
 from slide_viewer.ui.odict.deep.model import AnnotationTreeItems
 
@@ -79,112 +73,20 @@ def process_pic(pgg: PatchGeometryGenerator, cfg: PatchImageConfig) -> PatchImag
     return pig
 
 
-def collect_responses_images_to_ndarray(prg: PatchResponseGenerator) -> np.ndarray:
-    imgs = [pr.img.ndimg for pr in prg]
+def collect_responses_images_to_ndarray(patch_responses: PatchResponseGenerator) -> np.ndarray:
+    imgs = [pr.img.ndimg for pr in patch_responses]
     ndarray = np.stack(imgs)
     return ndarray
 
-
 def collect_images_inside_groups(groups: Iterable[Tuple[str, PatchResponseGenerator]]) -> Iterable[Tuple[str, np.ndarray]]:
     return map_inside_group(groups, collect_responses_images_to_ndarray)
-    # for key, prg in groups:
-    #     ndarray = collect_responses_images_to_ndarray(prg)
-    #     yield (key, ndarray)
-    # return itertools.starmap(lambda key, prg: (key, collect_responses_images_to_ndarray(prg)), groups)
-
-
-NamedNdarray = Tuple[str, np.ndarray]
 
 
 def collect_responses_to_image_groups(patch_responses: PatchResponseGenerator, group_key_format: str) -> Iterable[NamedNdarray]:
-    dataset_path_format = posix_path(group_key_format)
-    response_groups = groupbyformat(patch_responses, dataset_path_format)
+    response_groups = groupbyformat(patch_responses, group_key_format)
     image_groups = collect_images_inside_groups(response_groups)
     # image_groups = list(image_groups)
     return image_groups
-
-
-def build_valid_path(path: str):
-    path_ = pathlib.Path(path)
-    # TODO replace invalid chars
-    return path_.relative_to(path_.anchor).as_posix()
-
-
-def squeeze_if_need(ndarray: np.ndarray):
-    if ndarray.shape[0] == 1:
-        ndarray = ndarray.reshape(ndarray.shape[1:])
-    return ndarray
-
-
-def save_named_ndarrays_to_hdf5(named_ndarrays: Iterable[NamedNdarray],
-                                file_path: str, file_mode: str = "a", compression="gzip", **dataset_kwargs):
-    file_path_path = pathlib.Path(file_path)
-    file_path_path.parent.mkdir(parents=True, exist_ok=True)
-    with h5py.File(file_path_path, file_mode) as f:
-        for name, ndarray in named_ndarrays:
-            ndarray_path = build_valid_path(name)
-            if ndarray_path in f:
-                # TODO delete only if we cant update (different shape and dtype)
-                del f[ndarray_path]
-            ndarray = squeeze_if_need(ndarray)
-            if len(ndarray.shape) == 3:
-                dataset = f.create_dataset(ndarray_path, data=ndarray, compression=compression, **dataset_kwargs)
-                update_dataset_image_attrs(dataset)
-            else:
-                dataset = f.create_dataset(ndarray_path, data=ndarray, compression=compression, **dataset_kwargs)
-            dataset.attrs['cfg'] = json.dumps(asdict(cfg))
-            # dataset.attrs['dataset_path_format'] = dataset_path_format
-
-
-def save_named_ndarrays_to_zip(named_ndarrays: Iterable[NamedNdarray], file_path: str):
-    file_path = pathlib.Path(file_path)
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-    ndarrays = {}
-    for name, ndarray in named_ndarrays:
-        ndarray_path = build_valid_path(name)
-        ndarray = squeeze_if_need(ndarray)
-        ndarrays[ndarray_path] = ndarray
-    np.savez_compressed(str(file_path), **ndarrays)
-
-
-def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_folder: str, delete_working_folder=False):
-    predefined_working_folder = 'patches'
-    working_folder = pathlib.Path(root_folder, predefined_working_folder)
-    if delete_working_folder:
-        shutil.rmtree(working_folder, True)
-    working_folder.mkdir(parents=True, exist_ok=True)
-    for name, ndarray in named_ndarrays:
-        ndarray_path = build_valid_path(name)
-        ndarray_path = working_folder.joinpath(ndarray_path)
-        ndarray_path = ndarray_path if ndarray_path.suffix else ndarray_path.with_suffix('.png')
-        ndarray = squeeze_if_need(ndarray)
-        if ndarray_path.suffix in ('.npz', '.npy'):
-            save_ndarray_to_filesystem(ndarray, ndarray_path)
-        else:
-            save_ndarray_as_image_to_filesystem(ndarray, ndarray_path)
-
-
-def save_ndarray_to_filesystem(ndarray: np.ndarray, path: str) -> None:
-    path = pathlib.Path(path)
-    path = path if path.suffix else path.with_suffix('.npz')
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.suffix == '.npy':
-        np.save(str(path), ndarray)
-    elif path.suffix == '.npz':
-        np.savez_compressed(str(path), ndarray)
-
-
-def save_ndarray_as_image_to_filesystem(ndarray: np.ndarray, path: str) -> None:
-    path = pathlib.Path(path)
-    path = path if path.suffix else path.with_suffix('.png')
-    path.parent.mkdir(parents=True, exist_ok=True)
-    image = squeeze_if_need(ndarray)
-    if len(ndarray.shape) > 3 and ndarray.shape[0] != 1:
-        # raise ValueError('Cant save multidim image')
-        image = np.atleast_3d(ndarray.ravel())
-        warnings.warn(f"ndarray with shape {ndarray.shape} reshaped to {image.shape}")
-
-    io.imsave(path, image, check_contrast=False)
 
 
 if __name__ == '__main__':

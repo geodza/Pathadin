@@ -112,6 +112,7 @@ def build_global_pending_key(key: str):
 
 
 def add_to_global_pending(key: str, future: Future):
+    # print("add_to_global_pending", key)
     cache_[build_global_pending_key(key)] = future
 
 
@@ -124,6 +125,7 @@ def is_in_global_pending(key: str):
 
 
 def remove_from_global_pending(key: str):
+    # print("remove_from_global_pending", key)
     cache_.pop(build_global_pending_key(key), None)
 
 

@@ -16,7 +16,7 @@ class RegionData(typing.NamedTuple):
     img_path: str
     level: typing.Optional[int] = None
     origin_point: typing.Optional[typing.Tuple[int, int]] = None
-    points: typing.Optional[typing.Tuple[typing.Tuple[int, int],...]] = None
+    points: typing.Optional[typing.Tuple[typing.Tuple[int, int], ...]] = None
     annotation_type: AnnotationType = AnnotationType.RECT
 
 
@@ -36,7 +36,7 @@ def read_region(data: RegionData) -> Image.Image:
 def load_region(img_path: str, pos: Tuple[int, int] = (0, 0), level: Optional[int] = None,
                 size: Tuple[int, int] = None) -> Image.Image:
     sh = SlideHelper(img_path)
-    if level is None:
+    if level is None or level == "":
         level = sh.get_levels()[min(2, len(sh.get_levels()) - 1)]
     level = int(level)
     if level < 0:

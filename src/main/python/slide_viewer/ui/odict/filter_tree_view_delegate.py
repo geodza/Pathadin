@@ -232,7 +232,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
         if isinstance(filter_data, ManualThresholdFilterData):
             if last_key in (HSVManualThresholdFilterData_.hsv_range, GrayManualThresholdFilterData_.gray_range):
                 color_mode_to_size = {
-                    ColorMode.HSV: QSize(100, 300),
+                    ColorMode.HSV: QSize(100, 400),
                     ColorMode.L: QSize(0, 100),
                 }
                 return color_mode_to_size[filter_data.color_mode]

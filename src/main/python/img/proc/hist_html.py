@@ -12,7 +12,12 @@ def build_histogram_html(sorted_most_freq_colors: np.ndarray, sorted_most_freq_c
     bars = []
     for color, fraction in zip(sorted_most_freq_colors, sorted_most_freq_colors_counts_normed):
         npoints = '.' * int(fraction * max_points)
-        if isinstance(color, np.ndarray):
+        if isinstance(color, np.ndarray) and np.squeeze(color).size == 1:
+            color = np.squeeze(color)
+            color_rgba = (color, color, color, 255)
+        elif isinstance(color, np.ndarray) and len(color.shape) == 3:
+            color_rgba = (*tuple(color), 255)
+        elif isinstance(color, np.ndarray):
             color_rgba = tuple(color)
         else:
             color_rgba = (color, color, color, 255)

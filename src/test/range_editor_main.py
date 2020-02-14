@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout
 
 from slide_viewer.ui.common.editor.range.range_editor import RangeEditor
@@ -16,7 +16,7 @@ if __name__ == "__main__":
         label.setText(f"range: [{range_[0]}, {range_[1]}]")
 
 
-    sre = RangeEditor((0, 255), window)
+    sre = RangeEditor((0, 255), window, orientation=Qt.Horizontal)
     sre.set_range((0, 100))
     sre.rangeChanged.connect(update_label_by_range)
 

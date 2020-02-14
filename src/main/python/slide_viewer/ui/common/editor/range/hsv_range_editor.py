@@ -6,8 +6,9 @@ from PyQt5.QtCore import Qt, QMargins, pyqtSignal, pyqtProperty, QVariant, QSign
 from PyQt5.QtGui import QPainter, QPen, QImage
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QSizePolicy
 
-from img.proc.img_mode_convert import convert_pilimage
-from img.proc.img_object_convert import expose_ndarray_buffer_to_pillowimage, pilimage_to_qimage
+from img.ndimagedata import NdImageData
+from img.proc.convert import ndimg_to_qimg
+from img.proc.img_mode_convert import convert_ndimg
 from slide_viewer.ui.common.editor.range.range_editor import RangeEditor
 
 
@@ -34,7 +35,7 @@ class HSVRangeEditor(QWidget):
         super().__init__(parent)
         # TODO is min_max always (0,255)? for any colorspace and any 8,16,24,32-bit images?
         min_max = (0, 255)
-        self.h_editor = RangeEditor(min_max, self, "H: ")
+        self.h_editor = RangeEditor((0, 179), self, "H: ")
         self.s_editor = RangeEditor(min_max, self, "S: ", orientation=Qt.Vertical, invertedAppearance=True)
         self.v_editor = RangeEditor(min_max, self, "V: ", orientation=Qt.Vertical, invertedAppearance=True)
         self.h_editor.rangeChanged.connect(self.onValueChanged)
@@ -67,28 +68,32 @@ class HSVRangeEditor(QWidget):
         self.update()
 
     def init_hue_sat_matrix(self):
-        arr = np.full((256, 256, 3), 255, dtype=np.uint8)
-        for i, r in enumerate(arr):
-            for j, c in enumerate(r):
-                c[0] = j
-                c[1] = 255 - i
+        arr = np.full((256, 180, 3), 255, dtype=np.uint8)
+        arr[..., 0] = np.arange(0, 180)
+        np.transpose(arr, (1, 0, 2))[..., 1] = np.arange(0, 256)
         self.hue_sat_matrix_arrimg = arr
-        hue_sat_matrix_img = convert_pilimage(expose_ndarray_buffer_to_pillowimage(arr, "HSV"), "RGB")
-        self.hue_sat_matrix_qimg = pilimage_to_qimage(hue_sat_matrix_img)
+        hue_sat_matrix_img = convert_ndimg(arr, 'HSV', 'RGB')
+        self.hue_sat_matrix_qimg = ndimg_to_qimg(NdImageData(hue_sat_matrix_img, 'RGB'))
 
     def init_hue_sat_range_matrix(self):
         h, s = self.h_editor.get_range(), self.s_editor.get_range()
-        sparse_factor = 16
-        sparse_matrix_rect = self.hue_sat_matrix_arrimg[s[0]:s[1] + 1:sparse_factor, h[0]:h[1] + 1:sparse_factor, :]
-        sparse_matrix_rect_T = np.transpose(sparse_matrix_rect, (1, 0, 2))
-        # sparse_matrix_rect_T = sparse_matrix_rect
-        sparse_matrix_rect_T_flat = sparse_matrix_rect_T.reshape(-1, 3)
-        arr = np.tile(sparse_matrix_rect_T_flat, (255, 1, 1))
-        for i, r in enumerate(arr):
-            r[:, 2] = i
-        # arr = np.transpose(arr, (1, 0, 2)).copy(order='C')
-        rgb_img = convert_pilimage(expose_ndarray_buffer_to_pillowimage(arr, "HSV"), "RGB")
-        self.hue_sat_range_matrix_qimg = pilimage_to_qimage(rgb_img)
+        sparse_factor = 8
+        if h[0] <= h[1]:
+            hi = np.arange(h[0], h[1] + 1, sparse_factor)
+        else:
+            hi = np.hstack([np.arange(0, h[1] + 1, sparse_factor), np.arange(h[0], 180, sparse_factor)])
+        hi = hi.reshape((-1, 1))
+        if s[0] <= s[1]:
+            si = np.arange(s[0], s[1] + 1, sparse_factor)
+        else:
+            si = np.hstack([np.arange(0, s[1] + 1, sparse_factor), np.arange(s[0], 256, sparse_factor)])
+        v_h_s = np.empty((256, len(hi), len(si), 3), dtype=np.uint8)
+        np.transpose(v_h_s, axes=(0, 2, 3, 1))[..., 0, :] = hi.ravel()
+        np.transpose(v_h_s, axes=(0, 1, 3, 2))[..., 1, :] = si.ravel()
+        np.transpose(v_h_s, axes=(1, 2, 3, 0))[..., 2, :] = np.arange(0, 256)
+        arr = v_h_s.reshape((256, -1, 3))
+        rgb_arr = convert_ndimg(arr, 'HSV', 'RGB')
+        self.hue_sat_range_matrix_qimg = ndimg_to_qimg(NdImageData(rgb_arr, 'RGB'))
 
     def get_hsv_range(self):
         h, s, v = self.h_editor.get_range(), self.s_editor.get_range(), self.v_editor.get_range()
@@ -129,7 +134,19 @@ class HSVRangeEditor(QWidget):
         pen.setCosmetic(True)
         painter.setPen(pen)
         h_range, s_range = self.h_editor.get_range(), self.s_editor.get_range()
-        painter.drawRect(h_range[0], s_range[0], h_range[1] - h_range[0], s_range[1] - s_range[0])
+        if h_range[0] <= h_range[1] and s_range[0] <= s_range[1]:
+            painter.drawRect(h_range[0], s_range[0], h_range[1] - h_range[0], s_range[1] - s_range[0])
+        elif h_range[0] > h_range[1] and s_range[0] <= s_range[1]:
+            painter.drawRect(0, s_range[0], h_range[1], s_range[1] - s_range[0])
+            painter.drawRect(h_range[0], s_range[0], 180 - h_range[0], s_range[1] - s_range[0])
+        elif h_range[0] <= h_range[1] and s_range[0] > s_range[1]:
+            painter.drawRect(h_range[0], 0, h_range[1] - h_range[0], s_range[1])
+            painter.drawRect(h_range[0], s_range[0], h_range[1] - h_range[0], 255 - s_range[0])
+        else:
+            painter.drawRect(0, 0, h_range[1], s_range[1])
+            painter.drawRect(h_range[0], s_range[0], 180 - h_range[0], 255 - s_range[0])
+            painter.drawRect(0, s_range[0], h_range[1], 255 - s_range[0])
+            painter.drawRect(h_range[0], 0, 180 - h_range[0], s_range[1])
         painter.restore()
 
     def paint_hue_sat_range_matrix(self, painter: QPainter):

@@ -1,12 +1,7 @@
-import sys
-import typing
-
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import Qt, QSize, QMargins, pyqtSignal, QRect, QSignalBlocker
-from PyQt5.QtGui import QColor, QPainter, QBrush, QGradient, QLinearGradient, \
-    QFont, QFontMetrics
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication, QSlider, QMainWindow, QSplitter, \
-    QLabel, QSplitterHandle, QVBoxLayout, QBoxLayout
+from PyQt5 import QtGui
+from PyQt5.QtCore import Qt, pyqtSignal, QSignalBlocker, QPoint, QRect
+from PyQt5.QtGui import QPainter, QBrush, QColor, QPen
+from PyQt5.QtWidgets import QWidget, QSlider, QBoxLayout
 
 
 class RangeEditor(QWidget):
@@ -44,11 +39,11 @@ class RangeEditor(QWidget):
 
     def onValueChanged(self, not_used_value_of_one_slider):
         range_ = (self.from_slider.value(), self.to_slider.value())
-        if range_[0] > range_[1]:
-            self.from_slider.setValue(range_[1])  # will result in another onValueChanged
-        else:
-            self.rangeChanged.emit(range_)
-            self.update()
+        # if range_[0] > range_[1]:
+        #     self.from_slider.setValue(range_[1])  # will result in another onValueChanged
+        # else:
+        self.rangeChanged.emit(range_)
+        self.update()
 
     def paintEvent(self, a0: QtGui.QPaintEvent) -> None:
         # return
@@ -61,10 +56,43 @@ class RangeEditor(QWidget):
             painter.rotate(90)
         else:
             text_rect = self.rect()
+
+        # p1 = QPoint(int(self.from_slider.value() * self.from_slider.width() / self.from_slider.maximum()), 0)
+        # p1 = self.from_slider.mapToParent(p1)
+        # if self.from_slider.value() <= self.to_slider.value():
+        #     p2 = QPoint(int(self.to_slider.value() * self.to_slider.width() / self.to_slider.maximum()), self.from_slider.height())
+        #     p2 = self.from_slider.mapToParent(p2)
+        # else:
+        #     p2 = self.from_slider.mapToParent(self.from_slider.rect().bottomRight())
+        # r = QRect(p1, p2)
+        # painter.save()
+        # painter.setBrush(QBrush(QColor(100,100,100,75)))
+        # painter.setPen(QPen(0))
+        # painter.drawRect(r)
+        # painter.restore()
+        #
+        # p1 = QPoint(int(self.to_slider.value() * self.to_slider.width() / self.to_slider.maximum()), self.to_slider.height())
+        # p1 = self.to_slider.mapToParent(p1)
+        # if self.to_slider.value() >= self.from_slider.value():
+        #     p2 = QPoint(int(self.from_slider.value() * self.from_slider.width() / self.from_slider.maximum()), 0)
+        #     p2 = self.to_slider.mapToParent(p2)
+        # else:
+        #     p2 = self.to_slider.mapToParent(self.to_slider.rect().topLeft())
+        # r = QRect(p2, p1)
+        # painter.save()
+        # painter.setBrush(QBrush(QColor(100, 100, 100, 75)))
+        # painter.setPen(QPen(0))
+        # painter.drawRect(r)
+        # painter.restore()
+
+
         range_ = list(self.get_range())
-        r = painter.drawText(text_rect, Qt.AlignCenter, f"{self.range_prefix}{range_}")
+        text=f"{self.range_prefix}{range_}" if range_[0]<=range_[1] else \
+            f"{self.range_prefix}{[range_[0],self.from_slider.maximum()]},{[self.to_slider.minimum(),range_[1]]}"
+        r = painter.drawText(text_rect, Qt.AlignCenter,text)
         painter.fillRect(r, Qt.white)
-        painter.drawText(r, Qt.AlignCenter, f"{self.range_prefix}{range_}")
+        painter.drawText(r, Qt.AlignCenter, text)
         # painter.setPen(Qt.red)
         # painter.drawRect(text_rect.adjusted(0, 0, -1, -1))
+        # painter.drawRect(self.rect())
         painter.end()

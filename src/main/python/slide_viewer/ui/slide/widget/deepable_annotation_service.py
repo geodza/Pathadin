@@ -10,8 +10,8 @@ from img.filter.nuclei import NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults
 from img.pos import ituple
 from common_qt.abcq_meta import ABCQMeta
-from slide_viewer.ui.odict.deep.base.deepable import toplevel_keys
-from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
+from deepable.core import toplevel_keys
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationStats
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService

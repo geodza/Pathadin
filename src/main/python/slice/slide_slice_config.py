@@ -1,7 +1,7 @@
 from pathlib import PurePath
-from typing import Optional, List, NamedTuple, TypeVar
+from typing import TypeVar
 
-from dataclasses import dataclass, field, fields, replace
+from dataclasses import replace
 
 #
 # @dataclass
@@ -13,27 +13,9 @@ from dataclasses import dataclass, field, fields, replace
 #     offset_x: int = 0
 #     offset_y: int = 0
 #     stride: Optional[int] = None
-from shapely.geometry import Polygon
 
-from img.ndimagedata import NdImageData
-from slice.patch_geometry_generator import PatchPos
-
-
-@dataclass
-class PatchImageConfig:
-    slide_path: str
-    level: int
-    annotations_path: Optional[str] = None
-    offset_x: int = 0
-    offset_y: int = 0
-    metadata: dict = field(default_factory=dict)
-
-
-@dataclass
-class PatchImageSourceConfig(PatchImageConfig):
-    grid_length: int = 256
-    stride: Optional[int] = None
-    dependents: List[PatchImageConfig] = field(default_factory=list)
+from slice.patch_image_config import PatchImageConfig
+from slice.patch_image_source_config import PatchImageSourceConfig
 
 
 # @dataclass

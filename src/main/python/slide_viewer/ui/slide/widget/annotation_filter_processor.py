@@ -38,7 +38,7 @@ from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_rang
 from img.proc.threshold.threshold import ndimg_to_thresholded_ndimg
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
-from slide_viewer.common.debounce import debounce
+from common.debounce import debounce
 from slide_viewer.common.slide_helper import SlideHelper
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple

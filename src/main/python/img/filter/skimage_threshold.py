@@ -4,7 +4,7 @@ from typing import Any
 from dataclasses import dataclass, field
 
 from img.filter.threshold_filter import ThresholdFilterData, ThresholdType
-from slide_viewer.common.dataclass_utils import dataclass_fields
+from common.dataclass_utils import dataclass_fields
 
 
 @unique

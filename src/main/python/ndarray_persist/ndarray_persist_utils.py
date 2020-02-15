@@ -11,7 +11,7 @@ import numpy as np
 from h5py import Dataset
 from skimage import io
 
-from slice.h5py_utils import update_dataset_image_attrs
+from ndarray_persist.h5py_utils import update_dataset_image_attrs
 
 NamedNdarray = Tuple[str, np.ndarray]
 

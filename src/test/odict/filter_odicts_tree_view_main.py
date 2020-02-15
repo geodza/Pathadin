@@ -8,7 +8,7 @@ from common_qt.message_handler import install_qt_message_handler
 from slide_viewer.ui.dict_tree_view_model.action.context_menu_factory import context_menu_factory2
 from slide_viewer.ui.odict.odict import ODictModel, ManualThresholdFilterODictModel
 from slide_viewer.ui.odict.odicts_tree_model import ODictsTreeModelSelectMode
-from slide_viewer.ui.odict.deep.deepable_tree_view import DeepableTreeView
+from deepable_qt.deepable_tree_view import DeepableTreeView
 from img.filter.threshold_filter import ThresholdType
 from img.filter.manual_threshold import ManualThresholdFilterData
 from img.filter.base_filter import FilterType

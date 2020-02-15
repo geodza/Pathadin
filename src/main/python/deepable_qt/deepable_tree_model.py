@@ -4,8 +4,8 @@ from PyQt5.QtCore import Qt, QObject, QModelIndex, QVariant
 from PyQt5.QtGui import QColor
 from dataclasses import dataclass
 
-from slide_viewer.ui.odict.deep.base.deepable import deep_keys, deep_get, Deepable, is_deepable
-from slide_viewer.ui.odict.deep.base.pyqabstract_item_model import PyQAbstractItemModel
+from deepable.core import deep_keys, deep_get, Deepable, is_deepable
+from deepable_qt.pyqabstract_item_model import PyQAbstractItemModel
 from slide_viewer.ui.odict.deep.model import TreeViewConfig
 
 

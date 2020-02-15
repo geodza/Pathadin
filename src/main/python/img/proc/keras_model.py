@@ -1,7 +1,6 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from img.ndimagedata import NdImageData
-from slide_viewer.cache_config import gcached
-from slide_viewer.common.dataclass_utils import dataclass_fields
+from common.dataclass_utils import dataclass_fields
 
 
 @dataclass

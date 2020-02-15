@@ -6,8 +6,8 @@ from dataclasses import dataclass, field, asdict
 from sklearn.cluster import KMeans
 
 from img.ndimagedata import NdImageData
-from slide_viewer.common.dataclass_utils import dataclass_fields
-from slide_viewer.common.dict_utils import remove_none_values
+from common.dataclass_utils import dataclass_fields
+from common.dict_utils import remove_none_values
 
 
 @unique

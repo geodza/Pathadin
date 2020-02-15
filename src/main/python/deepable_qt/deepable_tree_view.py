@@ -5,7 +5,7 @@ from PyQt5.QtCore import QItemSelection, QModelIndex, pyqtSignal, QItemSelection
 from PyQt5.QtWidgets import QTreeView, QWidget, QAbstractItemView, QHeaderView
 from dataclasses import dataclass, InitVar
 
-from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 
 
 @dataclass

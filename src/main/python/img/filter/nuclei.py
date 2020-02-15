@@ -1,7 +1,7 @@
 from dataclasses import field, dataclass
 
 from img.proc.nuclei import NucleiParams
-from slide_viewer.common.dataclass_utils import dataclass_fields
+from common.dataclass_utils import dataclass_fields
 from img.filter.base_filter import FilterData, FilterType, FilterResults2
 
 

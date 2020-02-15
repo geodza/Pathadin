@@ -3,7 +3,7 @@ from typing import Collection, TypeVar, Type, Dict
 
 from dataclasses import fields, is_dataclass
 
-from slide_viewer.ui.odict.deep.base.deepable import deep_keys, is_deepable
+from deepable.core import deep_keys, is_deepable
 
 K = TypeVar('K')
 V = TypeVar('V')

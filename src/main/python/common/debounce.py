@@ -1,8 +1,8 @@
 from threading import Timer
 from typing import Callable
 
-# https://tsilva.me/how-to-write-a-debouncer-function-in-python/
 def debounce_time(wait_sec: float, func: Callable) -> Callable:
+    # https://tsilva.me/how-to-write-a-debouncer-function-in-python/
     """Returns a debounced version of a function.
 
     The debounced function delays invoking `func` until after `wait`

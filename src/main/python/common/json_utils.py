@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-from slide_viewer.common.file_utils import make_if_not_exists
+from common.file_utils import make_if_not_exists
 
 
 def read(json_path: str) -> str:

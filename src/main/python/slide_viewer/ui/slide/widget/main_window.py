@@ -22,10 +22,10 @@ from common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.config import initial_main_window_size
 from common_qt.my_action import MyAction
 from common_qt.editor.custom_item_editor_factory import CustomItemEditorFactory
-from slide_viewer.ui.odict.deep.base.deepable import toplevel_keys
-from slide_viewer.ui.odict.deep.context_menu_factory2 import context_menu_factory2
-from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
-from slide_viewer.ui.odict.deep.deepable_tree_view import DeepableTreeView
+from deepable.core import toplevel_keys
+from deepable_qt.context_menu_factory2 import context_menu_factory2
+from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.deepable_tree_view import DeepableTreeView
 from slide_viewer.ui.odict.filter_tree_view_delegate import FilterTreeViewDelegate
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService

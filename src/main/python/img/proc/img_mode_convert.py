@@ -1,28 +1,6 @@
 import cv2
 import numpy as np
 from PIL import Image
-
-# def build_opencvcolor_to_pillowmode_dict():
-#     opencvcolor_to_pillowmode_dict = {}
-#     color_convertion_names = [c for c in dir(cv2) if c.startswith("COLOR")]
-#     for ccn in color_convertion_names:
-#         if ccn.endswith("2GRAY"):
-#             mode = "L"
-#         elif ccn.endswith("2RGB"):
-#             mode = "RGB"
-#         elif ccn.endswith("2RGBA"):
-#             mode = "RGBA"
-#         else:
-#             continue
-#         color_convertion_value = getattr(cv2, ccn)
-#         opencvcolor_to_pillowmode_dict[color_convertion_value] = mode
-#     return opencvcolor_to_pillowmode_dict
-#
-#
-# opencvcolor_to_pillowmode_dict = build_opencvcolor_to_pillowmode_dict()
-#
-# def opencvcolorconvertion_to_pillowmode(colorconvertion: int):
-#     return opencvcolor_to_pillowmode_dict[colorconvertion]
 from img.filter.base_filter import FilterResults
 from img.ndimagedata import NdImageData
 from img.proc.img_object_convert import expose_pilimage_buffer_to_ndarray, \
@@ -31,7 +9,10 @@ from img.proc.img_object_convert import expose_pilimage_buffer_to_ndarray, \
 
 # NOTE on colorspace in common
 # https://imagemagick.org/script/formats.php#colorspace
-# A majority of the image formats assume an sRGB colorspace (e.g. JPEG, PNG, etc.). A few support only linear RGB (e.g. EXR, DPX, CIN, HDR) or only linear GRAY (e.g. PGM). A few formats support CMYK. Then there is the occasional format that also supports LAB (that is CieLAB) (e.g. TIFF, PSD, JPG, JP2).
+# A majority of the image formats assume an sRGB colorspace (e.g. JPEG, PNG, etc.).
+# A few support only linear RGB (e.g. EXR, DPX, CIN, HDR) or only linear GRAY (e.g. PGM). A few formats support CMYK.
+# Then there is the occasional format that also supports LAB (that is CieLAB) (e.g. TIFF, PSD, JPG, JP2).
+#
 # NOTE on openslide`s bit-depth and colorspace of output image
 # from openslide sources:
 #

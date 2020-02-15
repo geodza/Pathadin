@@ -4,7 +4,7 @@ from dataclasses import asdict
 from img.filter.skimage_threshold import SkimageAutoThresholdFilterData, SkimageMeanThresholdFilterData, \
     SkimageMinimumThresholdFilterData, SkimageMinimumThresholdFilterData_, SkimageThresholdParams, SkimageThresholdType
 from img.ndimagedata import NdImageData
-from slide_viewer.common.dict_utils import remove_none_values, narrow_dict
+from common.dict_utils import remove_none_values, narrow_dict
 
 
 # @gcached("skimage_threshold")

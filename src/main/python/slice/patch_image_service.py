@@ -1,30 +1,22 @@
-from itertools import islice
-from typing import Iterable, Tuple, List, NamedTuple
+from typing import Iterable, Tuple, List
 
 import numpy as np
 import openslide
 from dataclasses import replace, asdict
-from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 
-from img.ndimagedata import NdImageData
 from shapely_utils import annotation_to_geom
-from slice.group_utils import groupbyformat, map_inside_group
-from slice.patch_geometry_generator import PatchGeometryGenerator, create_patch_geometry_hooks_generator_factory, PatchPos
-from slice.patch_image_generator import create_slide_annotations_patch_image_generator, PatchImageGenerator
-from slice.ndarray_persist_utils import save_named_ndarrays_to_hdf5, NamedNdarray, load_named_ndarrays_from_hdf5
-from slice.slide_slice_config import PatchImageConfig, PatchImageSourceConfig, posix_path, fix_cfg
+from common.itertools_utils import groupbyformat, map_inside_group
+from slice.patch_geometry_generator import create_patch_geometry_hooks_generator_factory
+from slice.patch_geometry import PatchGeometryIterable
+from slice.patch_image_generator import create_slide_annotations_patch_image_generator
+from slice.patch_image import PatchImageIterable
+from ndarray_persist.ndarray_persist_utils import save_named_ndarrays_to_hdf5, NamedNdarray, load_named_ndarrays_from_hdf5
+from slice.patch_response import PatchResponse, PatchResponseIterable
+from slice.slide_slice_config import fix_cfg
+from slice.patch_image_source_config import PatchImageSourceConfig
+from slice.patch_image_config import PatchImageConfig
 from slide_viewer.ui.odict.deep.model import AnnotationTreeItems
-
-
-class PatchResponse(NamedTuple):
-    pos: PatchPos
-    polygon: Polygon
-    img: NdImageData
-    cfg: PatchImageConfig
-
-
-PatchResponseGenerator = Iterable[PatchResponse]
 
 
 def load_annotation_geoms(annotations_path: str) -> List[BaseGeometry]:
@@ -37,7 +29,7 @@ def load_annotation_geoms(annotations_path: str) -> List[BaseGeometry]:
     return annotation_geoms
 
 
-def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseGenerator:
+def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseIterable:
     cfg = fix_cfg(cfg)
     annotations_path = cfg.annotations_path
     annotation_geoms = load_annotation_geoms(annotations_path) if annotations_path else []
@@ -63,7 +55,7 @@ def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseGenerator:
                 yield PatchResponse((x, y), polygon, img, dep_)
 
 
-def process_pic(pgg: PatchGeometryGenerator, cfg: PatchImageConfig) -> PatchImageGenerator:
+def process_pic(pgg: PatchGeometryIterable, cfg: PatchImageConfig) -> PatchImageIterable:
     cfg = fix_cfg(cfg)
     annotations_path = cfg.annotations_path
     annotation_geoms = load_annotation_geoms(annotations_path) if annotations_path else []
@@ -73,16 +65,16 @@ def process_pic(pgg: PatchGeometryGenerator, cfg: PatchImageConfig) -> PatchImag
     return pig
 
 
-def collect_responses_images_to_ndarray(patch_responses: PatchResponseGenerator) -> np.ndarray:
+def collect_responses_images_to_ndarray(patch_responses: PatchResponseIterable) -> np.ndarray:
     imgs = [pr.img.ndimg for pr in patch_responses]
     ndarray = np.stack(imgs)
     return ndarray
 
-def collect_images_inside_groups(groups: Iterable[Tuple[str, PatchResponseGenerator]]) -> Iterable[Tuple[str, np.ndarray]]:
+def collect_images_inside_groups(groups: Iterable[Tuple[str, PatchResponseIterable]]) -> Iterable[Tuple[str, np.ndarray]]:
     return map_inside_group(groups, collect_responses_images_to_ndarray)
 
 
-def collect_responses_to_image_groups(patch_responses: PatchResponseGenerator, group_key_format: str) -> Iterable[NamedNdarray]:
+def collect_responses_to_image_groups(patch_responses: PatchResponseIterable, group_key_format: str) -> Iterable[NamedNdarray]:
     response_groups = groupbyformat(patch_responses, group_key_format)
     image_groups = collect_images_inside_groups(response_groups)
     # image_groups = list(image_groups)

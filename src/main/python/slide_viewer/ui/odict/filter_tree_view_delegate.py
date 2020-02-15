@@ -22,14 +22,14 @@ from img.filter.threshold_filter import ThresholdFilterData, ThresholdFilterData
 from img.proc.keras_model import KerasModelParams, KerasModelParams_
 from img.proc.kmeans import KMeansInitType, KMeansParams_
 from img.proc.positive_pixel_count import PositivePixelCountParams
-from slide_viewer.common.dict_utils import dict_to_data_ignore_extra, asodict2
+from common.dict_utils import dict_to_data_ignore_extra, asodict2
 from common_qt.editor.dropdown import Dropdown
 from common_qt.editor.file_path_editor import FilePathEditor
 from common_qt.editor.list_editor import SelectListEditor
 from common_qt.editor.range.gray_range_editor import GrayRangeEditor
 from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
-from slide_viewer.ui.odict.deep.base.deepable import toplevel_key, deep_set, deep_keys
-from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
+from deepable.core import toplevel_key, deep_set, deep_keys
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 
 
 def commit_close_after_dropdown_select(delegate: QStyledItemDelegate, dropdown: Dropdown) -> Dropdown:

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QToolBar
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
 from package1.a import slide_path_from_another_project
-from slide_viewer.common.debug_only_decorator import debug_only
+from common.debug_only_decorator import debug_only
 from common_qt.abcq_meta import ABCQMeta
 from slide_viewer.ui.slide.action.annotation_action_group import AnnotationActionGroup
 from slide_viewer.ui.slide.action.simple_actions import SimpleActions

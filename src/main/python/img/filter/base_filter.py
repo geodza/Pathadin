@@ -6,7 +6,7 @@ from PIL import Image
 from PyQt5.QtGui import QImage
 from dataclasses import dataclass, field
 
-from slide_viewer.common.dataclass_utils import dataclass_fields
+from common.dataclass_utils import dataclass_fields
 
 
 @unique

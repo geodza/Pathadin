@@ -6,7 +6,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QApplication, QMainWindow, QLabel, QVBoxLayout, QPushButton, \
     QFileDialog
 
-from slide_viewer.common.debounce import debounce
+from common.debounce import debounce
 from slide_viewer.ui.common.editor import Dropdown
 from slide_viewer.ui.common.editor.range import GrayRangeEditor
 from slide_viewer.ui.common.editor.range import HSVRangeEditor

@@ -6,11 +6,11 @@ from PyQt5.QtGui import QMouseEvent, QBrush
 from PyQt5.QtWidgets import QGraphicsView, QWidget, QGraphicsSceneDragDropEvent
 from dataclasses import dataclass
 
-from slide_viewer.common.debug_only_decorator import debug_only
+from common.debug_only_decorator import debug_only
 from slide_viewer.common.slide_helper import SlideHelper
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.key_press_util import KeyPressEventUtil
-from slide_viewer.ui.common.common import mime_data_is_url
+from common_qt.mime_utils import mime_data_is_url
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text
 from slide_viewer.ui.slide.graphics.item.debug.slide_graphics_debug_item_rect import SlideGraphicsDebugItemRect

@@ -10,7 +10,7 @@ from common_qt.persistent_settings.user_custom_color import get_user_custom_colo
 from slide_viewer.ui.dict_tree_view_model.action.context_menu_factory import context_menu_factory2
 from slide_viewer.ui.odict.odict import ODict3, ODictModel
 from slide_viewer.ui.odict.odicts_tree_model import ODictsTreeModel, ODictsTreeModelSelectMode
-from slide_viewer.ui.odict.deep.deepable_tree_view import DeepableTreeView
+from deepable_qt.deepable_tree_view import DeepableTreeView
 
 odicts = [
     ODictModel({

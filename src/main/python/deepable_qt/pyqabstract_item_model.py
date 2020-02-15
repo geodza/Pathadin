@@ -4,7 +4,7 @@ from typing import Iterator
 from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal
 from dataclasses import dataclass, InitVar, FrozenInstanceError
 
-from slide_viewer.ui.odict.deep.base.deepable import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable
+from deepable.core import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable
 
 
 @dataclass

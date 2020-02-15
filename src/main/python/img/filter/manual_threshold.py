@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from img.color_mode import ColorMode
 from img.filter.threshold_filter import ThresholdFilterData, ThresholdType, HSV
-from slide_viewer.common.dataclass_utils import dataclass_fields
+from common.dataclass_utils import dataclass_fields
 
 
 @dataclass(frozen=True)

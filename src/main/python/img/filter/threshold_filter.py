@@ -3,7 +3,7 @@ from enum import unique, Enum, auto
 
 from dataclasses import dataclass, field
 
-from slide_viewer.common.dataclass_utils import dataclass_fields
+from common.dataclass_utils import dataclass_fields
 from img.filter.base_filter import FilterData, FilterType
 
 HSV = typing.Tuple[int, int, int]

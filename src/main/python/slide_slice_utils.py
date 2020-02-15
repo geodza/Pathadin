@@ -18,7 +18,7 @@ from shapely.strtree import STRtree
 from skimage import io
 from skimage.io import imshow
 
-from grid_utils import pos_range
+from common.grid_utils import pos_range
 from img.filter.base_filter import FilterData, FilterType
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.skimage_threshold import SkimageThresholdParams, SkimageThresholdType
@@ -28,7 +28,7 @@ from img.proc.img_mode_convert import convert_ndimg2
 from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
 from img.proc.threshold.threshold import ndimg_to_thresholded_ndimg
 from shapely_utils import annotation_to_geom, locate, scale_at_origin, get_polygon_bbox_size, get_polygon_bbox_pos, create_probably_contains_func
-from slide_viewer.common.file_utils import remove_if_exists
+from common.file_utils import remove_if_exists
 from slide_viewer.ui.odict.deep.model import AnnotationTreeItems, AnnotationModel
 
 slide_path = r"D:\slide_cbir_47\temp\slides\slide-2019-09-19T18-08-52-R28-S3.mrxs"
@@ -36,7 +36,6 @@ slide_path = r"D:\slide_cbir_47\temp\slides\slide-2019-09-19T18-08-52-R28-S3.mrx
 annotations_path = r"D:\slide_cbir_47\temp\slides\slide-2019-09-19T18-08-52-R28-S3_annotations7_1.json"
 
 # slide_path = r'C:\Users\User\GoogleDisk\Pictures\mosaic1.jpg'
-# annotations_path = r'C:\Users\User\GoogleDisk\Pictures\mosaic1_annotations.json'
 
 nchannels_to_empty_color = {1: (0,), 3: (0, 255, 0), 4: (0, 0, 0, 255)}
 color_mode_to_empty_color = {'L': (0,), 'RGB': (0, 255, 0), 'RGBA': (0, 0, 0, 255)}

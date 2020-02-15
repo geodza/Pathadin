@@ -10,7 +10,7 @@ from shapely.ops import unary_union
 from shapely.prepared import prep
 from shapely.strtree import STRtree
 
-from grid_utils import pos_range, pos_to_rect_coords
+from common.grid_utils import pos_range, pos_to_rect_coords
 from slide_viewer.ui.model.annotation_type import AnnotationType
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry

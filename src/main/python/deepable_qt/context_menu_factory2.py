@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import QAbstractItemView, QMenu
 
 from common_qt.my_action import MyAction
 from common_qt.edit_text_dialog import EditTextDialog
-from slide_viewer.ui.odict.deep.base.deepable import CommonJSONEncoder, common_object_pairs_hook, is_deepable, deep_keys, \
+from deepable.core import CommonJSONEncoder, common_object_pairs_hook, is_deepable, deep_keys, \
     deep_get, deep_set
-from slide_viewer.ui.odict.deep.deepable_tree_view import DeepableTreeView
+from deepable_qt.deepable_tree_view import DeepableTreeView
 
 
 def get_update_mode_and_indexes(view: QAbstractItemView):

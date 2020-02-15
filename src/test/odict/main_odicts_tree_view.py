@@ -3,9 +3,9 @@ import sys
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
-from slide_viewer.common_qt.message_handler import install_qt_message_handler
-from slide_viewer.common_qt.persistent_settings.settings_utils import read_settings, write_settings
-from slide_viewer.common_qt.persistent_settings.user_custom_color import get_user_custom_color_names, \
+from common_qt.message_handler import install_qt_message_handler
+from common_qt.persistent_settings.settings_utils import read_settings, write_settings
+from common_qt.persistent_settings.user_custom_color import get_user_custom_color_names, \
     set_user_custom_colors
 from slide_viewer.ui.dict_tree_view_model.action.context_menu_factory import context_menu_factory2
 from slide_viewer.ui.odict.odict import ODict3, ODictModel

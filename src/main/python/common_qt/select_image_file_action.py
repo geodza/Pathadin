@@ -1,14 +1,14 @@
 from PyQt5.QtWidgets import QFileDialog
 
-from slide_viewer.ui.common.action.my_action import MyAction
-from slide_viewer.common.img_formats import saveable_mime_types
+from common_qt.my_action import MyAction
 
 
 class SelectImageFileAction(MyAction):
-    def __init__(self, title, parent, callback, default_file_name="temp"):
+    def __init__(self, title, parent, callback, saveable_mime_types, default_file_name="temp"):
         super().__init__(title, parent, self.on_select_image_file)
         self.callback = callback
         self.default_file_name = default_file_name
+        self.saveable_mime_types = saveable_mime_types
 
     def on_select_image_file(self):
         file_path = self.open_file_name_dialog()
@@ -16,7 +16,7 @@ class SelectImageFileAction(MyAction):
             self.callback(file_path)
 
     def get_mime_types(self):
-        return saveable_mime_types
+        return self.saveable_mime_types
 
     def open_file_name_dialog(self):
         dialog = QFileDialog(self.parent())

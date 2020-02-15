@@ -4,9 +4,9 @@ from PyQt5.QtCore import pyqtSignal, QPoint, QObject
 from PyQt5.QtGui import QVector2D
 from dataclasses import dataclass, field
 
-from slide_viewer.common_qt.debounce_signal import debounce_two_arg_slot_wrap
-from slide_viewer.common_qt.qobjects_convert_util import qpoint_to_ituple, ituple_to_qpoint
-from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
+from common_qt.debounce_signal import debounce_two_arg_slot_wrap
+from common_qt.qobjects_convert_util import qpoint_to_ituple, ituple_to_qpoint
+from common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.ui.model.annotation_type import AnnotationType
 from slide_viewer.ui.odict.deep.model import TreeViewConfig, AnnotationModel
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene

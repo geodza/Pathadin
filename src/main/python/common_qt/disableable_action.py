@@ -5,8 +5,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QAction
 from dataclasses import dataclass, InitVar
 
-from slide_viewer.common_qt.abcq_meta import ABCQMeta
-from slide_viewer.common_qt.disableable import Disableable
+from common_qt.abcq_meta import ABCQMeta
+from common_qt.disableable import Disableable
 
 
 def subscribe_disableable(disability_signals: Iterable[pyqtSignal], enability_resolver: Callable[[], bool],

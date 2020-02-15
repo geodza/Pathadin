@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QActionGroup
 from dataclasses import dataclass, InitVar
 
 from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.ui.common.action.my_action import MyAction
+from common_qt.my_action import MyAction
 from slide_viewer.ui.slide.callback.on_zoom import on_zoom
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider
 from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService

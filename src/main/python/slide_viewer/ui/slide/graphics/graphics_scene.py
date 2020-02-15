@@ -5,7 +5,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsScene
 from dataclasses import dataclass, field
 
-from slide_viewer.common_qt.abcq_meta import ABCQMeta
+from common_qt.abcq_meta import ABCQMeta
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_graphics_item import AnnotationGraphicsItem
 from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProvider
 

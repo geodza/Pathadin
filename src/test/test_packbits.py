@@ -1,7 +1,7 @@
 import numpy as np
 from PyQt5.QtGui import QBitmap, QImage
 
-from slide_viewer.common_qt.qobjects_convert_util import ituple_to_qsize
+from common_qt.qobjects_convert_util import ituple_to_qsize
 
 if __name__ == '__main__':
     # arr1 = np.asarray([0, 0, 0, 0, 0, 0, 1])

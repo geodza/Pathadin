@@ -3,7 +3,7 @@ from typing import Optional, Callable
 from PyQt5.QtWidgets import QMenu, QWidget
 from dataclasses import dataclass, InitVar
 
-from slide_viewer.ui.common.action.separator_action import SeparatorAction
+from common_qt.separator_action import SeparatorAction
 from slide_viewer.ui.slide.action.simple_actions import SimpleActions, ActionType
 from slide_viewer.ui.slide.action.zoom_action_group import ZoomActionGroup
 

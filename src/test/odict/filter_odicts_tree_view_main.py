@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from dataclasses import asdict
 
-from slide_viewer.common_qt.message_handler import install_qt_message_handler
+from common_qt.message_handler import install_qt_message_handler
 from slide_viewer.ui.dict_tree_view_model.action.context_menu_factory import context_menu_factory2
 from slide_viewer.ui.odict.odict import ODictModel, ManualThresholdFilterODictModel
 from slide_viewer.ui.odict.odicts_tree_model import ODictsTreeModelSelectMode

@@ -16,12 +16,12 @@ from img.filter.nuclei import NucleiFilterData
 from img.filter.positive_pixel_count import PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
 from img.proc.keras_model import KerasModelParams
-from slide_viewer.common_qt.abcq_meta import ABCQMeta
-from slide_viewer.common_qt.persistent_settings.settings_utils import write_settings, read_settings
-from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
+from common_qt.abcq_meta import ABCQMeta
+from common_qt.persistent_settings.settings_utils import write_settings, read_settings
+from common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.config import initial_main_window_size
-from slide_viewer.ui.common.action.my_action import MyAction
-from slide_viewer.ui.common.editor.custom_item_editor_factory import CustomItemEditorFactory
+from common_qt.my_action import MyAction
+from common_qt.editor.custom_item_editor_factory import CustomItemEditorFactory
 from slide_viewer.ui.odict.deep.base.deepable import toplevel_keys
 from slide_viewer.ui.odict.deep.context_menu_factory2 import context_menu_factory2
 from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel

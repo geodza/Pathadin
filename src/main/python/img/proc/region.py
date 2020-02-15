@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPolygon
 from img.pos import ituple, ituples
 from slide_viewer.cache_config import gcached
 from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple, ituples_to_qpoints, \
+from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple, ituples_to_qpoints, \
     qpoints_to_ituples
 from slide_viewer.ui.model.annotation_type import AnnotationType
 

@@ -10,7 +10,7 @@ import skimage
 import skimage.color
 import skimage.measure
 from PyQt5.QtCore import QObject, pyqtSignal, QPoint, QSize
-from PyQt5.QtGui import QPixmapCache, QPixmap, QPolygon, QTransform, QPolygonF
+from PyQt5.QtGui import QPixmapCache, QPixmap, QPolygon
 from cachetools.keys import hashkey
 from dataclasses import dataclass
 
@@ -33,15 +33,15 @@ from img.proc.kmeans import img_to_kmeans_quantized_img, KMeansParams
 from img.proc.mask import build_mask
 from img.proc.nuclei import NucleiParams, ndimg_to_nuclei_seg_mask
 from img.proc.positive_pixel_count import PositivePixelCountParams, positive_pixel_count2
-from img.proc.region import RegionData, read_region, deshift_points, rescale_points, load_region
+from img.proc.region import RegionData, read_region, deshift_points, rescale_points
 from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
 from img.proc.threshold.threshold import ndimg_to_thresholded_ndimg
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
 from slide_viewer.common.debounce import debounce
 from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.common_qt.abcq_meta import ABCQMeta
-from slide_viewer.common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
+from common_qt.abcq_meta import ABCQMeta
+from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import AnnotationItemPixmapProvider
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService

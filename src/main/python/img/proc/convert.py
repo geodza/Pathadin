@@ -3,7 +3,7 @@ from PIL import Image
 from PyQt5.QtGui import QImage, QBitmap
 
 from img.ndimagedata import NdImageData
-from slide_viewer.common_qt.qobjects_convert_util import ituple_to_qsize
+from common_qt.qobjects_convert_util import ituple_to_qsize
 
 
 def pilimg_to_ndimg(img: Image.Image) -> NdImageData:

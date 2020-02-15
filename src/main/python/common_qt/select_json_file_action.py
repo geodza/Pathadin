@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QFileDialog
 
-from slide_viewer.ui.common.action.my_action import MyAction
+from common_qt.my_action import MyAction
 
 
 class SelectJsonFileAction(MyAction):

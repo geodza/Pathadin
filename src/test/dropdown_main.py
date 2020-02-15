@@ -4,8 +4,8 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout
 
-from slide_viewer.ui.common.editor.dropdown import Dropdown
-from slide_viewer.common_qt.message_handler import qt_message_handler
+from common_qt.editor.dropdown import Dropdown
+from common_qt.message_handler import qt_message_handler
 from img.filter.base_filter import FilterType
 
 QtCore.qInstallMessageHandler(qt_message_handler)

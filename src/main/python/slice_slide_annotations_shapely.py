@@ -15,7 +15,7 @@ from img.proc.mask import draw_annotation
 from shapely_utils import annotation_geom_to_shapely_geom, build_pos_to_annotation_polygons
 from slide_viewer.common.file_utils import make_if_not_exists
 from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.common_qt.qobjects_convert_util import ftuples_to_ituples
+from common_qt.qobjects_convert_util import ftuples_to_ituples
 from slide_viewer.ui.model.annotation_type import AnnotationType
 from slide_viewer.ui.odict.deep.model import AnnotationModel, AnnotationTreeItems
 

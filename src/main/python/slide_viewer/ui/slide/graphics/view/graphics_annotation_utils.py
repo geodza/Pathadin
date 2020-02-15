@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QColor
 
-from slide_viewer.common_qt.qobjects_convert_util import ituples_to_qpoints, ituple_to_qpoint
+from common_qt.qobjects_convert_util import ituples_to_qpoints, ituple_to_qpoint
 from slide_viewer.ui.odict.deep.base.deepable import deep_get
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_figure_graphics_item import AnnotationFigureGraphicsModel

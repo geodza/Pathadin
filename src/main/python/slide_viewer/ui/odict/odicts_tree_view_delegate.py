@@ -3,7 +3,7 @@ from PyQt5.QtCore import QModelIndex, QObject, QSize
 from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
     QStyleOptionViewItem
 
-from slide_viewer.ui.common.editor.color_editor import ColorEditor
+from common_qt.editor.color_editor import ColorEditor
 from slide_viewer.ui.common.editor import Dropdown
 from slide_viewer.ui.common.editor import SelectListEditor
 from slide_viewer.ui.common.editor.range import GrayRangeEditor

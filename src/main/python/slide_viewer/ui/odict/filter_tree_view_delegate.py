@@ -1,7 +1,7 @@
 from typing import Optional, cast
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QModelIndex, QObject, QSize, pyqtBoundSignal, Qt
+from PyQt5.QtCore import QModelIndex, QObject, QSize, pyqtBoundSignal
 from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
     QStyleOptionViewItem
 from dataclasses import dataclass, InitVar, replace
@@ -23,11 +23,11 @@ from img.proc.keras_model import KerasModelParams, KerasModelParams_
 from img.proc.kmeans import KMeansInitType, KMeansParams_
 from img.proc.positive_pixel_count import PositivePixelCountParams
 from slide_viewer.common.dict_utils import dict_to_data_ignore_extra, asodict2
-from slide_viewer.ui.common.editor.dropdown import Dropdown
-from slide_viewer.ui.common.editor.file_path_editor import FilePathEditor
-from slide_viewer.ui.common.editor.list_editor import SelectListEditor
-from slide_viewer.ui.common.editor.range.gray_range_editor import GrayRangeEditor
-from slide_viewer.ui.common.editor.range.hsv_range_editor import HSVRangeEditor
+from common_qt.editor.dropdown import Dropdown
+from common_qt.editor.file_path_editor import FilePathEditor
+from common_qt.editor.list_editor import SelectListEditor
+from common_qt.editor.range.gray_range_editor import GrayRangeEditor
+from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
 from slide_viewer.ui.odict.deep.base.deepable import toplevel_key, deep_set, deep_keys
 from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
 

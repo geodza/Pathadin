@@ -11,7 +11,7 @@ from slide_viewer.ui.common.editor import Dropdown
 from slide_viewer.ui.common.editor.range import GrayRangeEditor
 from slide_viewer.ui.common.editor.range import HSVRangeEditor
 from slide_viewer.common.img_formats import whole_slide_formats, pillow_formats
-from slide_viewer.common_qt.message_handler import qt_message_handler
+from common_qt.message_handler import qt_message_handler
 from slide_viewer.filter.filter_processing import build_source_, \
     mask_result_
 from img.proc.region import RegionData

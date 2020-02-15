@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout
 
-from slide_viewer.ui.common.editor.range.range_editor import RangeEditor
+from common_qt.editor.range.range_editor import RangeEditor
 
 sys.excepthook = sys.excepthook
 

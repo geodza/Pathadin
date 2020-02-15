@@ -5,18 +5,14 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QToolBar
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
+from package1.a import slide_path_from_another_project
 from slide_viewer.common.debug_only_decorator import debug_only
-from slide_viewer.common_qt.abcq_meta import ABCQMeta
-from slide_viewer.config import slide_path
-from slide_viewer.ui.model.annotation_type import AnnotationType
-from slide_viewer.ui.odict.deep.model import AnnotationModel
-from slide_viewer.ui.slide.action.annotation_action_group import \
-    AnnotationActionGroup
+from common_qt.abcq_meta import ABCQMeta
+from slide_viewer.ui.slide.action.annotation_action_group import AnnotationActionGroup
 from slide_viewer.ui.slide.action.simple_actions import SimpleActions
 from slide_viewer.ui.slide.action.sync_action_group import SyncActionGroup
 from slide_viewer.ui.slide.action.zoom_action_group import ZoomActionGroup
 from slide_viewer.ui.slide.action.zoom_editor import ZoomEditor
-from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
 from slide_viewer.ui.slide.widget.dynamic_command_widget import DynamicCommandWidget
 from slide_viewer.ui.slide.widget.icons import IconName
 from slide_viewer.ui.slide.widget.interface.icon_provider import IconProvider
@@ -79,7 +75,7 @@ class AppContext(ApplicationContext, IconProvider, metaclass=ABCQMeta):
             w = self.main_window.add_sub_window()
             w.widget().id = i
             # w.widget().graphics_view_annotation_service.annotation_pixmap_provider.id = i
-            # w.widget().set_file_path(slide_path)
+            w.widget().set_file_path(slide_path_from_another_project)
             # w.widget().annotation_service.add(
             #     AnnotationModel(geometry=AnnotationGeometry(annotation_type=AnnotationType.ELLIPSE, origin_point=(0, 0), points=[(0, 0), (300, 300)]),
             #                     id="", label="", filter_id="1"))

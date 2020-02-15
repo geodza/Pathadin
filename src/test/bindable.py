@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-from slide_viewer.common_qt.message_handler import qt_message_handler
+from common_qt.message_handler import qt_message_handler
 
 QtCore.qInstallMessageHandler(qt_message_handler)
 

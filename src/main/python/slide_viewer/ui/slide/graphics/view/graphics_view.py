@@ -8,8 +8,8 @@ from dataclasses import dataclass
 
 from slide_viewer.common.debug_only_decorator import debug_only
 from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.common_qt.abcq_meta import ABCQMeta
-from slide_viewer.common_qt.key_press_util import KeyPressEventUtil
+from common_qt.abcq_meta import ABCQMeta
+from common_qt.key_press_util import KeyPressEventUtil
 from slide_viewer.ui.common.common import mime_data_is_url
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text

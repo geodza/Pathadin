@@ -3,8 +3,8 @@ from PyQt5.QtCore import Qt, QMargins, pyqtSignal, pyqtProperty, QVariant
 from PyQt5.QtGui import QPainter, QPen, QLinearGradient, QGradient, QBrush
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout
 
-from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
-from slide_viewer.ui.common.editor.range.range_editor import RangeEditor
+from common_qt.slot_disconnected_utils import slot_disconnected
+from common_qt.editor.range.range_editor import RangeEditor
 
 
 class GrayRangeEditor(QWidget):

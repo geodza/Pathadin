@@ -9,7 +9,7 @@ from img.filter.kmeans_filter import KMeansFilterResults
 from img.filter.nuclei import NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults
 from img.pos import ituple
-from slide_viewer.common_qt.abcq_meta import ABCQMeta
+from common_qt.abcq_meta import ABCQMeta
 from slide_viewer.ui.odict.deep.base.deepable import toplevel_keys
 from slide_viewer.ui.odict.deep.deepable_tree_model import DeepableTreeModel
 from slide_viewer.ui.odict.deep.model import AnnotationModel

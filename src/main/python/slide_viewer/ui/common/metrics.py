@@ -10,7 +10,7 @@ from PyQt5.QtGui import QVector2D
 #         pi, pj = polygon[i], polygon[i - 1]
 #         area += (pj.x() + pi.x()) * (pj.y() - pi.y())
 #     return abs(area) / 2
-from slide_viewer.common_qt.qobjects_convert_util import ituples_to_qpoints
+from common_qt.qobjects_convert_util import ituples_to_qpoints
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
 from slide_viewer.ui.model.annotation_type import AnnotationType
 

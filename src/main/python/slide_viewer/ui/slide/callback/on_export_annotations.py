@@ -3,7 +3,7 @@ from typing import Dict
 from PyQt5.QtCore import QFileInfo, QFile
 
 from slide_viewer.common import file_utils
-from slide_viewer.ui.common.action.select_json_file_action import SelectJsonFileAction
+from common_qt.select_json_file_action import SelectJsonFileAction
 from slide_viewer.ui.odict.deep.model import AnnotationModel, AnnotationTreeItems
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 

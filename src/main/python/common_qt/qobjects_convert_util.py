@@ -1,8 +1,10 @@
-from typing import Iterable, List
+from typing import Iterable, List, Tuple
 
 from PyQt5.QtCore import QPointF, QPoint, QSizeF, QSize
 
-from img.pos import ituple, ftuple
+ituple = Tuple[int, int]
+ituples = Tuple[ituple, ...]
+ftuple = Tuple[float, float]
 
 
 def qpointf_to_ftuple(p: QPointF) -> ftuple:

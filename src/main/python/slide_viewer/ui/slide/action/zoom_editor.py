@@ -5,7 +5,7 @@ from PyQt5.QtGui import QTransform
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QDoubleSpinBox
 from dataclasses import dataclass, InitVar
 
-from slide_viewer.common_qt.slot_disconnected_utils import slot_disconnected
+from common_qt.slot_disconnected_utils import slot_disconnected
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider
 from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService
 

@@ -4,8 +4,8 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QActionGroup, QAction
 from dataclasses import InitVar, dataclass
 
-from slide_viewer.common_qt.disableable_action import subscribe_disableable
-from slide_viewer.ui.common.action.my_action import MyAction
+from common_qt.disableable_action import subscribe_disableable
+from common_qt.my_action import MyAction
 from slide_viewer.ui.model.annotation_type import AnnotationType
 from slide_viewer.ui.slide.callback.on_annotation_item import on_annotation_item, on_selection_tool
 from slide_viewer.ui.slide.widget.icons import IconName

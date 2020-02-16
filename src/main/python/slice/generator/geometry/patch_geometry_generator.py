@@ -6,5 +6,5 @@ from slice.model.patch_pos import PatchPosIterable
 
 class PatchGeometryGenerator(ABC):
     @abstractmethod
-    def create(self, patch_positions: PatchPosIterable, grid_length: int) -> PatchGeometryIterable:
+    def create(self, patch_positions: PatchPosIterable) -> PatchGeometryIterable:
         pass

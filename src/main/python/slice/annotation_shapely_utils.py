@@ -1,8 +1,10 @@
+from collections import defaultdict
 from typing import List
 
 from shapely.affinity import translate
 from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
+from shapely.strtree import STRtree
 
 from slide_viewer.ui.model.annotation_type import AnnotationType
 from slide_viewer.ui.odict.deep.model import AnnotationModel, AnnotationTreeItems
@@ -34,6 +36,17 @@ def annotation_to_geom(annotation: AnnotationModel, prepare=False) -> BaseGeomet
         geom.annotation = annotation
         return geom
     return None
+
+
+def create_zlayers_rtrees(annotation_geoms: List[BaseGeometry]) -> List[STRtree]:
+    z_to_geoms = defaultdict(list)
+    for geom in annotation_geoms:
+        z = geom.annotation.user_attrs.get('z_index', 0)
+        z_to_geoms[z].append(geom)
+
+    z_list = sorted(z_to_geoms.keys())
+    zlayers_rtrees = list([STRtree(z_to_geoms[z]) for z in z_list])
+    return zlayers_rtrees
 
 
 def load_annotation_geoms(annotations_path: str) -> List[BaseGeometry]:

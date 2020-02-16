@@ -6,6 +6,5 @@ from slice.model.patch_image import PatchImageIterable
 
 class PatchImageGenerator(ABC):
     @abstractmethod
-    def create(self, slide_path: str, level: int,
-               patch_geometries: PatchGeometryIterable) -> PatchImageIterable:
+    def create(self, patch_geometries: PatchGeometryIterable) -> PatchImageIterable:
         pass

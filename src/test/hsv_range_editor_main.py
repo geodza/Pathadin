@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     range_editor = HSVRangeEditor(window)
     ndimg = convert_ndimg(range_editor.hue_sat_matrix_arrimg, 'HSV', 'RGB')
-    io.imsave(r"D:\\slide_cbir_47\\temp\\slides\\hsv_hue_sat.png", ndimg)
+    io.imsave(r"D:\\temp\\slides_more\\hsv_hue_sat.png", ndimg)
     range_editor.set_hsv_range(((0, 10, 10), (0, 100, 100)))
     range_editor.hsvRangeChanged.connect(update_label_by_range)
 

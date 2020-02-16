@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Iterable
 
 from dataclasses import dataclass, field
 
@@ -10,3 +10,6 @@ class PatchImageSourceConfig(PatchImageConfig):
     grid_length: int = 256
     stride: Optional[int] = None
     dependents: List[PatchImageConfig] = field(default_factory=list)
+
+
+PatchImageSourceConfigIterable = Iterable[PatchImageSourceConfig]

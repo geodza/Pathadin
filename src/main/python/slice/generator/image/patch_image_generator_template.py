@@ -1,6 +1,7 @@
 from abc import abstractmethod
 
 import openslide
+from dataclasses import dataclass
 from shapely.geometry import Polygon
 
 from img.ndimagedata import NdImageData
@@ -9,10 +10,13 @@ from slice.model.patch_geometry import PatchGeometryIterable
 from slice.model.patch_image import PatchImageIterable
 
 
+@dataclass
 class PatchImageGeneratorTemplate(PatchImageGenerator):
+    slide_path: str
+    level: int
 
-    def create(self, slide_path: str, level: int,
-               patch_geometries: PatchGeometryIterable) -> PatchImageIterable:
+    def create(self, patch_geometries: PatchGeometryIterable) -> PatchImageIterable:
+        slide_path, level = self.slide_path, self.level
         with openslide.open_slide(slide_path) as slide:
             # source_size = slide.level_dimensions[0]
             for (x, y), patch in patch_geometries:

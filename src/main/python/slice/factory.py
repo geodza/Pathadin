@@ -1,6 +1,7 @@
 from collections import defaultdict
 from typing import List, Tuple
 
+import openslide
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 from shapely.prepared import prep
@@ -12,8 +13,8 @@ from slice.generator.geometry.hook.bb_geometry_probably_contains_hook import BBG
 from slice.generator.geometry.hook.patch_geometry_hook import PatchGeometryHook
 from slice.generator.geometry.hook.patch_geometry_roi_hook import PatchGeometryROIHook
 from slice.generator.geometry.patch_geometry_generator_hooks import PatchGeometryGeneratorHooks
-
 from slice.generator.image.annotations_patch_image_generator import AnnotationsPatchImageGenerator
+from slice.generator.pos.patch_pos_generator import PatchPosGenerator
 
 
 def create_annotations_patch_image_generator(annotation_geoms: List[BaseGeometry]) -> AnnotationsPatchImageGenerator:
@@ -54,7 +55,12 @@ def create_hooks(annotation_geoms: List[BaseGeometry]) -> Tuple[List[BBGeometryH
             [*annotation_hooks[1], *roi_hooks[1]])
 
 
-def create_patch_geometry_hooks_generator(annotation_geoms: List[BaseGeometry]) -> PatchGeometryGeneratorHooks:
+def create_patch_pos_generator(slide_path: str, stride: int, offset_x: int = 0, offset_y: int = 0) -> PatchPosGenerator:
+    with openslide.OpenSlide(slide_path) as slide:
+        source_size = slide.level_dimensions[0]
+    return PatchPosGenerator(source_size, stride, offset_x, offset_y)
+
+
+def create_patch_geometry_hooks_generator(grid_length: int, annotation_geoms: List[BaseGeometry]) -> PatchGeometryGeneratorHooks:
     hooks = create_hooks(annotation_geoms)
-    pggf = PatchGeometryGeneratorHooks(hooks[0], hooks[1])
-    return pggf
+    return PatchGeometryGeneratorHooks(grid_length, hooks[0], hooks[1])

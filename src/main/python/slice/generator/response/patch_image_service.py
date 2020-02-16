@@ -7,9 +7,8 @@ from dataclasses import replace, asdict
 
 from slice.annotation_shapely_utils import load_annotation_geoms
 from common.itertools_utils import groupbyformat, map_inside_group
-from slice.generator.geometry.patch_geometry_generator import create_patch_geometry_hooks_generator_factory
 from slice.model.patch_geometry import PatchGeometryIterable
-from slice.generator.image.patch_image_generator import create_slide_annotations_patch_image_generator
+from slice.factory import create_annotations_patch_image_generator, create_patch_geometry_hooks_generator
 from slice.model.patch_image import PatchImageIterable
 from ndarray_persist.ndarray_persist_utils import save_named_ndarrays_to_hdf5, NamedNdarray, load_named_ndarrays_from_hdf5
 from slice.model.patch_response import PatchResponse, PatchResponseIterable
@@ -21,7 +20,7 @@ def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseIterable:
     cfg = fix_cfg(cfg)
     annotations_path = cfg.annotations_path
     annotation_geoms = load_annotation_geoms(annotations_path) if annotations_path else []
-    pggf = create_patch_geometry_hooks_generator_factory(annotation_geoms)
+    pggf = create_patch_geometry_hooks_generator(annotation_geoms)
     with openslide.OpenSlide(cfg.slide_path) as slide:
         source_size = slide.level_dimensions[0]
     pgg = pggf.create(source_size, cfg.grid_length, cfg.stride, cfg.offset_x, cfg.offset_y)
@@ -47,7 +46,7 @@ def process_pic(pgg: PatchGeometryIterable, cfg: PatchImageConfig) -> PatchImage
     cfg = fix_cfg(cfg)
     annotations_path = cfg.annotations_path
     annotation_geoms = load_annotation_geoms(annotations_path) if annotations_path else []
-    pigf = create_slide_annotations_patch_image_generator(annotation_geoms)
+    pigf = create_annotations_patch_image_generator(annotation_geoms)
     # TODO wrap pig to adjust offset if not None
     pig = pigf.create(cfg.slide_path, cfg.level, pgg)
     return pig

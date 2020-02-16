@@ -1,15 +1,9 @@
-from abc import ABC, abstractmethod
 from typing import Tuple
 
 from dataclasses import dataclass
 
 from common_shapely.shapely_utils import ProbablyContainsChecker
-
-
-class BBGeometryHook(ABC):
-    @abstractmethod
-    def filter(self, p1: Tuple[int, int], p2: Tuple[int, int]) -> bool:
-        pass
+from slice.generator.geometry.hook.bb_geometry_hook import BBGeometryHook
 
 
 @dataclass

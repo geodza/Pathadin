@@ -1,32 +1,20 @@
-from typing import Iterable, Tuple, List
+from pathlib import PurePath
+from typing import Iterable, Tuple, TypeVar
 
 import numpy as np
 import openslide
 from dataclasses import replace, asdict
-from shapely.geometry.base import BaseGeometry
 
-from shapely_utils import annotation_to_geom
+from slice.annotation_shapely_utils import load_annotation_geoms
 from common.itertools_utils import groupbyformat, map_inside_group
-from slice.patch_geometry_generator import create_patch_geometry_hooks_generator_factory
-from slice.patch_geometry import PatchGeometryIterable
-from slice.patch_image_generator import create_slide_annotations_patch_image_generator
-from slice.patch_image import PatchImageIterable
+from slice.generator.geometry.patch_geometry_generator import create_patch_geometry_hooks_generator_factory
+from slice.model.patch_geometry import PatchGeometryIterable
+from slice.generator.image.patch_image_generator import create_slide_annotations_patch_image_generator
+from slice.model.patch_image import PatchImageIterable
 from ndarray_persist.ndarray_persist_utils import save_named_ndarrays_to_hdf5, NamedNdarray, load_named_ndarrays_from_hdf5
-from slice.patch_response import PatchResponse, PatchResponseIterable
-from slice.slide_slice_config import fix_cfg
-from slice.patch_image_source_config import PatchImageSourceConfig
-from slice.patch_image_config import PatchImageConfig
-from slide_viewer.ui.odict.deep.model import AnnotationTreeItems
-
-
-def load_annotation_geoms(annotations_path: str) -> List[BaseGeometry]:
-    annotations_container = AnnotationTreeItems.parse_file(annotations_path)
-    annotations = annotations_container.annotations
-
-    train_annotations = [a for a in annotations.values() if a.label != 'test']
-
-    annotation_geoms = [annotation_to_geom(a, True) for a in train_annotations]
-    return annotation_geoms
+from slice.model.patch_response import PatchResponse, PatchResponseIterable
+from slice.model.patch_image_source_config import PatchImageSourceConfig
+from slice.model.patch_image_config import PatchImageConfig
 
 
 def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseIterable:
@@ -82,7 +70,11 @@ def collect_responses_to_image_groups(patch_responses: PatchResponseIterable, gr
 
 
 if __name__ == '__main__':
-
+    # TODO consider image and mask slide shifts
+    # TODO consider (level, grid_length, stride) collection?
+    # TODO consider imbalanced data
+    # TODO consider different objective-powers of slides? Do rescale to some target objective-power?
+    # TODO consider color mode conversion hooks (at least at start we dont need RGBA)
     # arrs1 = np.load(r"D:\slide_cbir_47\temp\npz_test.npz")
     # print(arrs1.files)
     # arrs = {
@@ -126,3 +118,19 @@ if __name__ == '__main__':
 
     # for p in pig:
     #     print(p[0])
+
+
+def posix_path(s: str) -> str:
+    pp = PurePath(s)
+    return pp.as_posix()
+
+
+CFG = TypeVar('CFG', PatchImageConfig, PatchImageSourceConfig)
+
+
+def fix_cfg(cfg: CFG) -> CFG:
+    if cfg.slide_path:
+        cfg = replace(cfg, slide_path=posix_path(cfg.slide_path))
+    if cfg.annotations_path:
+        cfg = replace(cfg, annotations_path=posix_path(cfg.annotations_path))
+    return cfg

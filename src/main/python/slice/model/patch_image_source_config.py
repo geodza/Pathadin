@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from dataclasses import dataclass, field
 
-from slice.patch_image_config import PatchImageConfig
+from slice.model.patch_image_config import PatchImageConfig
 
 
 @dataclass

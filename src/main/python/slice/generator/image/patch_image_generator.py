@@ -9,9 +9,9 @@ from shapely.geometry.base import BaseGeometry
 from shapely.strtree import STRtree
 
 from img.ndimagedata import NdImageData
-from slice.patch_geometry import PatchGeometryIterable
-from slice.patch_image import PatchImageIterable
-from slide_slice_utils import create_layer_polygon_image
+from slice.model.patch_geometry import PatchGeometryIterable
+from slice.model.patch_image import PatchImageIterable
+from slice.image_shapely_utils import create_layer_polygon_image
 
 
 class OpenSlidePatchImageGenerator(ABC):

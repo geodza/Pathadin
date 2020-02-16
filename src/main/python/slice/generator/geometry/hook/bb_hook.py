@@ -3,7 +3,7 @@ from typing import Tuple
 
 from dataclasses import dataclass
 
-from shapely_utils import ProbablyContainsChecker
+from common_shapely.shapely_utils import ProbablyContainsChecker
 
 
 class BBGeometryHook(ABC):

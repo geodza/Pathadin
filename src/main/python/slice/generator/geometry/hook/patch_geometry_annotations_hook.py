@@ -6,8 +6,8 @@ from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.strtree import STRtree
 
-from slice.patch_geometry import PatchGeometry
-from slice.patch_geometry_hook import PatchGeometryHook
+from slice.model.patch_geometry import PatchGeometry
+from slice.generator.geometry.hook.patch_geometry_hook import PatchGeometryHook
 
 
 @dataclass()

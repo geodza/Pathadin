@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from slice.patch_geometry import PatchGeometry
+from slice.model.patch_geometry import PatchGeometry
 
 
 class PatchGeometryHook(ABC):

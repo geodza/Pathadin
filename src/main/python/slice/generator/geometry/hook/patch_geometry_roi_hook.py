@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from shapely.geometry.base import BaseGeometry
 
-from slice.patch_geometry import PatchGeometry
-from slice.patch_geometry_hook import PatchGeometryHook
+from slice.model.patch_geometry import PatchGeometry
+from slice.generator.geometry.hook.patch_geometry_hook import PatchGeometryHook
 
 
 @dataclass()

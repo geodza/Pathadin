@@ -2,17 +2,16 @@ from abc import ABC, abstractmethod
 from typing import Tuple, List
 
 from dataclasses import dataclass, field
-from shapely.geometry import Polygon, box
+from shapely.geometry import box
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 from shapely.prepared import prep
 
-from common.grid_utils import pos_range
-from shapely_utils import ProbablyContainsChecker
-from slice.bb_hook import BBGeometryHook, BBGeometryProbablyContainsHook
-from slice.patch_geometry import PatchGeometryIterable, PatchGeometry
-from slice.patch_geometry_hook import PatchGeometryHook
-from slice.patch_geometry_roi_hook import PatchGeometryROIHook
+from common_shapely.shapely_utils import ProbablyContainsChecker
+from slice.generator.geometry.hook.bb_hook import BBGeometryHook, BBGeometryProbablyContainsHook
+from slice.model.patch_geometry import PatchGeometryIterable, PatchGeometry
+from slice.generator.geometry.hook.patch_geometry_hook import PatchGeometryHook
+from slice.generator.geometry.hook.patch_geometry_roi_hook import PatchGeometryROIHook
 
 
 # @dataclass()
@@ -25,25 +24,24 @@ from slice.patch_geometry_roi_hook import PatchGeometryROIHook
 # class PatchGeometry():
 #     pos: PatchPos
 #     polygon: Polygon
+from slice.model.patch_pos import PatchPosIterable
+from slice.generator.patch_pos_generator import PatchPosGenerator
 
 
 class PatchGeometryGenerator(ABC):
     @abstractmethod
-    def create(self, source_size: Tuple[int, int], grid_length: int,
-               stride: int = None, x_offset: int = 0, y_offset: int = 0) -> PatchGeometryIterable:
+    def create(self, patch_positions: PatchPosIterable, grid_length: int) -> PatchGeometryIterable:
         pass
 
 
 class PatchGeometryGeneratorHooksTemplate(PatchGeometryGenerator):
 
-    def create(self, source_size: Tuple[int, int], grid_length: int,
-               stride: int = None, x_offset: int = 0, y_offset: int = 0) -> PatchGeometryIterable:
-        stride = stride or grid_length
-        for x, y in pos_range(source_size, stride, x_offset, y_offset):
+    def create(self, patch_positions: PatchPosIterable, grid_length: int) -> PatchGeometryIterable:
+        for x, y in patch_positions:
             if not self.patch_bb_filter_hook((x, y), (x + grid_length, y + grid_length)):
                 continue
             patch = box(x, y, x + grid_length, y + grid_length)
-            if not self.patch_filter_hook(((x,y),patch)):
+            if not self.patch_filter_hook(((x, y), patch)):
                 continue
             yield ((x, y), patch)
             # yield PatchGeometry((x, y), patch)
@@ -111,7 +109,9 @@ if __name__ == '__main__':
         [BBGeometryProbablyContainsHook(ProbablyContainsChecker(512, 512, 1024, 1024))],
         []
     )
-    gen = roipg.create((1000, 1000), 256)
+    poss=PatchPosGenerator().create((1000,1000),256)
+    gen = roipg.create(poss, 256)
     print(gen)
     for i in gen:
         print(i)
+

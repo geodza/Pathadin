@@ -3,11 +3,11 @@ from typing import List
 import cv2
 import numpy as np
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 
 
-def convert_ndimg(ndimg: NdImageData, required_mode: str) -> NdImageData:
-    return NdImageData(convert_ndarray(ndimg.ndimg, ndimg.color_mode, required_mode), required_mode, ndimg.bool_mask_ndimg)
+def convert_ndimg(ndimg: Ndimg, required_mode: str) -> Ndimg:
+    return Ndimg(convert_ndarray(ndimg.ndarray, ndimg.color_mode, required_mode), required_mode, ndimg.bool_mask_ndarray)
 
 
 def convert_ndarray(ndarray: np.ndarray, current_mode: str, required_mode: str) -> np.ndarray:

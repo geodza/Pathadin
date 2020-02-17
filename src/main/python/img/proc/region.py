@@ -3,11 +3,13 @@ from typing import Tuple, Optional, NamedTuple, Iterable
 from PIL import Image
 from PyQt5.QtGui import QPolygon
 
-from common_image.model.pos import ituple, ituples
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from slide_viewer.cache_config import gcached
 from slide_viewer.common.slide_helper import SlideHelper
 from slide_viewer.ui.model.annotation_type import AnnotationType
+
+ituple = Tuple[int, int]
+ituples = Tuple[ituple, ...]
 
 
 class RegionData(NamedTuple):

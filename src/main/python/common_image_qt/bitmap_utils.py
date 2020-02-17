@@ -1,11 +1,14 @@
+from typing import Tuple
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBitmap, QPolygon, QPainter, QPen, QBrush
 
-from common_image.model.pos import ituple
+from common_qt.qobjects_convert_util import ituple_to_qsize, ituple_to_qpoint, ituples_to_qpoints
 from img.proc.region import RegionData, deshift_points, rescale_points
 from slide_viewer.cache_config import gcached
-from common_qt.qobjects_convert_util import ituple_to_qsize, ituple_to_qpoint, ituples_to_qpoints
 from slide_viewer.ui.model.annotation_type import AnnotationType
+
+ituple = Tuple[int, int]
 
 
 @gcached

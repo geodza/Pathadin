@@ -20,7 +20,7 @@ from common_image.core.hist import ndimg_to_hist
 from common_image.core.mode_convert import convert_ndimg, convert_ndarray
 from common_image.core.object_convert import pilimg_to_ndimg
 from common_image.core.threshold import ndimg_to_thresholded_ndimg
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
@@ -103,7 +103,7 @@ def build_region_data(slide_path: str, model: AnnotationModel, filter_level: int
     return RegionData(slide_path, filter_level, origin_point, points, model.geometry.annotation_type)
 
 
-def read_masked_region(rd: RegionData) -> NdImageData:
+def read_masked_region(rd: RegionData) -> Ndimg:
     pilimg = read_region(rd)
     level0_qsize = QPolygon([ituple_to_qpoint(p) for p in rd.points]).boundingRect().size()
     sx, sy = pilimg.width / level0_qsize.width(), pilimg.height / level0_qsize.height()
@@ -111,13 +111,13 @@ def read_masked_region(rd: RegionData) -> NdImageData:
     points = deshift_points(rd.points, rd.origin_point)
     points = rescale_points(points, sx, sy)
     # ituples = ituples_to_polygon_ituples(rd.points)
-    mask = build_mask(ndimg.ndimg.shape, points, rd.annotation_type, background_color=0, color=255)
+    mask = build_mask(ndimg.ndarray.shape, points, rd.annotation_type, background_color=0, color=255)
     # (0,0,0,0) for rgba means transparent
-    masked_ndimg = cv2.bitwise_and(ndimg.ndimg, ndimg.ndimg, mask=mask)
+    masked_ndimg = cv2.bitwise_and(ndimg.ndarray, ndimg.ndarray, mask=mask)
     # ndimg.ndimg = mask_ndimg(ndimg.ndimg, points, rd.annotation_type)
-    ndimg.ndimg = masked_ndimg
+    ndimg.ndarray = masked_ndimg
     # mask = cv2.bitwise_not(mask)
-    ndimg.bool_mask_ndimg = mask != 0
+    ndimg.bool_mask_ndarray = mask != 0
     return ndimg
 
 
@@ -132,7 +132,7 @@ def kmeans_filter(rd: RegionData, params: KMeansParams) -> KMeansFilterResults:
     hist = ndimg_to_hist(quantized_ndimg)
     hist_html = build_histogram_html(hist.sorted_most_freq_colors, hist.sorted_most_freq_colors_counts)
     qimg = ndimg_to_qimg(quantized_ndimg)
-    res = KMeansFilterResults(qimg, ndimg.bool_mask_ndimg, hist_html)
+    res = KMeansFilterResults(qimg, ndimg.bool_mask_ndarray, hist_html)
     return res
 
 
@@ -140,11 +140,11 @@ def kmeans_filter(rd: RegionData, params: KMeansParams) -> KMeansFilterResults:
 def nuclei_filter(rd: RegionData, params: NucleiParams) -> NucleiFilterResults:
     ndimg = read_masked_region(rd)
     seg_mask = ndimg_to_nuclei_seg_mask(ndimg, params)
-    region_props = skimage.measure.regionprops(seg_mask.ndimg)
-    labeled_ndimg = skimage.color.label2rgb(seg_mask.ndimg, ndimg.ndimg, bg_label=0)
+    region_props = skimage.measure.regionprops(seg_mask.ndarray)
+    labeled_ndimg = skimage.color.label2rgb(seg_mask.ndarray, ndimg.ndarray, bg_label=0)
     labeled_ndimg = skimage.util.img_as_ubyte(labeled_ndimg, force_copy=True)
-    qimg = ndimg_to_qimg(NdImageData(labeled_ndimg, "RGB", ndimg.bool_mask_ndimg))
-    return NucleiFilterResults(qimg, ndimg.bool_mask_ndimg, len(region_props))
+    qimg = ndimg_to_qimg(Ndimg(labeled_ndimg, "RGB", ndimg.bool_mask_ndarray))
+    return NucleiFilterResults(qimg, ndimg.bool_mask_ndarray, len(region_props))
 
 
 # @gcached
@@ -208,7 +208,7 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
         # TODO mirror if border tile
         # TODO img conversions in layer of model
         x, y = grid_pos_to_source_pos((row, col), grid_length)
-        tile = ndimg.ndimg[y:y + grid_length, x:x + grid_length]
+        tile = ndimg.ndarray[y:y + grid_length, x:x + grid_length]
         tile = convert_ndarray(tile, "RGBA", "RGB")
         tile = tile / 255
         tile_batch = np.array([tile])
@@ -234,8 +234,8 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
     region_mask_rgba[..., 3] = np.squeeze(region_mask)
     # io.imshow(np.squeeze(region_mask_rgba))
     # io.show()
-    qimg = ndimg_to_qimg(NdImageData(region_mask_rgba, "RGBA", ndimg.bool_mask_ndimg))
-    return KerasModelFilterResults(qimg, ndimg.bool_mask_ndimg)
+    qimg = ndimg_to_qimg(Ndimg(region_mask_rgba, "RGBA", ndimg.bool_mask_ndarray))
+    return KerasModelFilterResults(qimg, ndimg.bool_mask_ndarray)
 
 
 # if __name__ == '__main__':
@@ -248,12 +248,12 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
 #     print(fr)
 
 
-def threshold_filter(img: NdImageData, threshold_range: tuple) -> ThresholdFilterResults:
+def threshold_filter(img: Ndimg, threshold_range: tuple) -> ThresholdFilterResults:
     thresholded_ndimg = ndimg_to_thresholded_ndimg(img, threshold_range)
     hist = ndimg_to_hist(thresholded_ndimg)
     hist_html = build_histogram_html(hist.sorted_most_freq_colors, hist.sorted_most_freq_colors_counts)
     qimg = ndimg_to_qimg(thresholded_ndimg)
-    res = ThresholdFilterResults(qimg, thresholded_ndimg.bool_mask_ndimg, hist_html)
+    res = ThresholdFilterResults(qimg, thresholded_ndimg.bool_mask_ndarray, hist_html)
     return res
 
 
@@ -278,7 +278,7 @@ def positive_pixel_count_filter(rd: RegionData, params: PositivePixelCountParams
     converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg)("RGB")
     ndimg, stats = positive_pixel_count2(converted_ndimg, params)
     qimg = ndimg_to_qimg(ndimg)
-    res = PositivePixelCountFilterResults(qimg, ndimg.bool_mask_ndimg, stats)
+    res = PositivePixelCountFilterResults(qimg, ndimg.bool_mask_ndarray, stats)
     return res
 
 

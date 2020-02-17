@@ -4,7 +4,7 @@ from PIL import Image
 # def expose_ndarray_to_qimage(ndarray: np.array):
 # img = QImage(ndarray, ndarray.shape[1], ndarray.shape[0], QImage.Format_Indexed8)
 # return img
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 
 
 # https://stackoverflow.com/questions/47289884/how-to-convert-qimageqpixmap-to-pil-image-in-python-3?noredirect=1&lq=1
@@ -18,8 +18,8 @@ def expose_ndarray_buffer_to_pilimg(ndarray: np.ndarray, mode: str) -> Image.Ima
     return pilimg
 
 
-def expose_ndimg_buffer_to_pilimg(ndimg: NdImageData) -> Image.Image:
-    return expose_ndarray_buffer_to_pilimg(ndimg.ndimg, ndimg.color_mode)
+def expose_ndimg_buffer_to_pilimg(ndimg: Ndimg) -> Image.Image:
+    return expose_ndarray_buffer_to_pilimg(ndimg.ndarray, ndimg.color_mode)
 
 
 def pilimg_to_ndarray(pilimg: Image.Image) -> np.ndarray:
@@ -27,6 +27,6 @@ def pilimg_to_ndarray(pilimg: Image.Image) -> np.ndarray:
     return ndarray
 
 
-def pilimg_to_ndimg(pilimg: Image.Image) -> NdImageData:
+def pilimg_to_ndimg(pilimg: Image.Image) -> Ndimg:
     ndarray = np.array(pilimg)
-    return NdImageData(ndarray, pilimg.mode)
+    return Ndimg(ndarray, pilimg.mode)

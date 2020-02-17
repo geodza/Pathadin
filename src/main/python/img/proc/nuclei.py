@@ -9,7 +9,7 @@ import skimage.util
 from dataclasses import dataclass, asdict
 from scipy import ndimage
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 
 
 def default_stain_color_map():
@@ -23,7 +23,7 @@ def default_stain_color_map():
 
 @dataclass
 class NucleiResults:
-    labeled_img: NdImageData
+    labeled_img: Ndimg
     region_props: list
 
 
@@ -40,29 +40,29 @@ class NucleiParams():
     min_nucleus_area: int = 80
 
 
-def ndimg_to_region_props(i: NdImageData) -> list:
-    region_props = skimage.measure.regionprops(i.ndimg)
+def ndimg_to_region_props(i: Ndimg) -> list:
+    region_props = skimage.measure.regionprops(i.ndarray)
     return region_props
 
 
-def ndimg_to_nuclei_seg_mask(i: NdImageData, params: NucleiParams) -> NdImageData:
-    ndimg = i.ndimg
+def ndimg_to_nuclei_seg_mask(i: Ndimg, params: NucleiParams) -> Ndimg:
+    ndimg = i.ndarray
     if len(ndimg.shape) != 3 or ndimg.shape[2] > 4 or ndimg.shape[2] < 3:
         raise ValueError(f"Unsupported img shape: {ndimg.shape}")
-    nuclei_seg_mask = build_nuclei_seg_mask(i.ndimg, **asdict(params))
-    return NdImageData(nuclei_seg_mask, "L")
+    nuclei_seg_mask = build_nuclei_seg_mask(i.ndarray, **asdict(params))
+    return Ndimg(nuclei_seg_mask, "L")
 
 
 class Label2RgbInput(NamedTuple):
-    nuclei_seg_mask: NdImageData
-    img: NdImageData
+    nuclei_seg_mask: Ndimg
+    img: Ndimg
 
 
-def label2rgb(i: Label2RgbInput) -> NdImageData:
+def label2rgb(i: Label2RgbInput) -> Ndimg:
     i = Label2RgbInput(*i)
-    labeled_ndimg = skimage.color.label2rgb(i.nuclei_seg_mask.ndimg, i.img.ndimg, bg_label=0)
+    labeled_ndimg = skimage.color.label2rgb(i.nuclei_seg_mask.ndarray, i.img.ndarray, bg_label=0)
     labeled_ndimg = skimage.util.img_as_ubyte(labeled_ndimg, force_copy=True)
-    return NdImageData(labeled_ndimg, "RGB")
+    return Ndimg(labeled_ndimg, "RGB")
 
 
 def build_nuclei_seg_mask(im_reference: np.ndarray, foreground_threshold=60, min_radius=10,

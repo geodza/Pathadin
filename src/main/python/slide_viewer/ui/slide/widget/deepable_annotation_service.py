@@ -1,20 +1,21 @@
 from collections import OrderedDict
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from PyQt5.QtCore import QObject, pyqtBoundSignal, pyqtSignal
 
+from common_qt.abcq_meta import ABCQMeta
+from deepable.core import toplevel_keys
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 from img.filter.base_filter import FilterResults2, ThresholdFilterResults
 from img.filter.keras_model import KerasModelFilterResults
 from img.filter.kmeans_filter import KMeansFilterResults
 from img.filter.nuclei import NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults
-from common_image.model.pos import ituple
-from common_qt.abcq_meta import ABCQMeta
-from deepable.core import toplevel_keys
-from deepable_qt.deepable_tree_model import DeepableTreeModel
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationStats
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
+
+ituple = Tuple[int, int]
 
 
 # It is important to update tree annotations_tree_model from main gui thread and not from thread-pool task thread

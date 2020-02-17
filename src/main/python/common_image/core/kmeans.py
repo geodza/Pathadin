@@ -3,14 +3,14 @@ from typing import Optional
 import numpy as np
 from sklearn.cluster import KMeans
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 
 
-def ndimg_to_quantized_ndimg(ndimg: NdImageData, **kwargs) -> NdImageData:
-    fit_ndarray = ndimg.ndimg[ndimg.bool_mask_ndimg] if ndimg.bool_mask_ndimg is not None else ndimg.ndimg
-    predict_ndarray = ndimg.ndimg
+def ndimg_to_quantized_ndimg(ndimg: Ndimg, **kwargs) -> Ndimg:
+    fit_ndarray = ndimg.ndarray[ndimg.bool_mask_ndarray] if ndimg.bool_mask_ndarray is not None else ndimg.ndarray
+    predict_ndarray = ndimg.ndarray
     predict_ndarray_quantized = ndarray_to_quantized_ndarray(fit_ndarray, predict_ndarray, **kwargs)
-    return NdImageData(predict_ndarray_quantized, ndimg.color_mode, ndimg.bool_mask_ndimg)
+    return Ndimg(predict_ndarray_quantized, ndimg.color_mode, ndimg.bool_mask_ndarray)
 
 
 def ndarray_to_quantized_ndarray(fit_ndarray: np.ndarray, predict_ndarray: Optional[np.ndarray] = None, **kwargs) -> np.ndarray:

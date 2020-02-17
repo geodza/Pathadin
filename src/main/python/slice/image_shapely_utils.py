@@ -7,7 +7,7 @@ from shapely.strtree import STRtree
 from common_image.core.mode_convert import convert_ndimg
 from common_image.core.object_convert import pilimg_to_ndimg
 from common_image.core.img_polygon_utils import create_polygon_image, get_polygon_bbox_image_view, draw_source_on_target_polygon
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 from common_shapely.shapely_utils import locate, scale_at_origin, get_polygon_bbox_pos, get_polygon_bbox_size
 from img.filter.base_filter import FilterData, FilterType
 from img.filter.kmeans_filter import KMeansFilterData
@@ -17,7 +17,7 @@ from common_image.core.threshold import ndimg_to_thresholded_ndimg
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 
 
-def get_slide_polygon_bbox_rgb_region(slide: openslide.AbstractSlide, polygon: Polygon, level: int) -> NdImageData:
+def get_slide_polygon_bbox_rgb_region(slide: openslide.AbstractSlide, polygon: Polygon, level: int) -> Ndimg:
     """
     :param polygon: polygon with 0level coordinates
     :return: polygon bbox slide region downsized by level scale with color mode 'RGBA'
@@ -36,7 +36,7 @@ def get_filter(id: str) -> FilterData:
     return None
 
 
-def process_filter(img: NdImageData, filter_data: FilterData) -> NdImageData:
+def process_filter(img: Ndimg, filter_data: FilterData) -> Ndimg:
     converted_ndimgdata = convert_ndimg(img, 'L')
     params = SkimageThresholdParams(SkimageThresholdType.threshold_mean, {})
     threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimgdata)
@@ -45,7 +45,7 @@ def process_filter(img: NdImageData, filter_data: FilterData) -> NdImageData:
 
 def create_annotation_polygon_image(slide: openslide.AbstractSlide,
                                     annotation: AnnotationModel, annotation_geom: Polygon, polygon: Polygon,
-                                    zlayers_rtrees: List[STRtree]) -> NdImageData:
+                                    zlayers_rtrees: List[STRtree]) -> Ndimg:
     # filter = get_filter(annotation.filter_id)
     # filter_level = annotation.filter_level
     filter = KMeansFilterData("123")
@@ -66,12 +66,12 @@ def create_annotation_polygon_image(slide: openslide.AbstractSlide,
 
     source = create_layer_polygon_image(slide, source_polygon, filter_level, zlayers_rtrees[:-1])
     target_ = process_filter(source, filter)
-    target = get_polygon_bbox_image_view(target_.ndimg, target_polygon)
-    return NdImageData(target, target_.color_mode, target_.bool_mask_ndimg)
+    target = get_polygon_bbox_image_view(target_.ndarray, target_polygon)
+    return Ndimg(target, target_.color_mode, target_.bool_mask_ndarray)
 
 
 def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon: Polygon, level: int,
-                               zlayers_rtrees: List[STRtree]) -> NdImageData:
+                               zlayers_rtrees: List[STRtree]) -> Ndimg:
     if not zlayers_rtrees:
         return get_slide_polygon_bbox_rgb_region(slide, polygon, level)
 

@@ -3,9 +3,11 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-from common_image.model.pos import ituples
 from slide_viewer.cache_config import gcached
 from slide_viewer.ui.model.annotation_type import AnnotationType
+
+ituple = Tuple[int, int]
+ituples = Tuple[ituple, ...]
 
 
 def draw_annotation(img: np.ndarray, points: ituples, annotationType: AnnotationType = AnnotationType.RECT, color: int = 255) -> None:

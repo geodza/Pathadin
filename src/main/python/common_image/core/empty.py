@@ -1,6 +1,6 @@
 import numpy as np
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 
 # nchannels_to_empty_color = {1: (0,), 3: (0, 255, 0), 4: (0, 0, 0, 255)}
 # color_mode_to_empty_color = {'L': (0,), 'RGB': (0, 255, 0), 'RGBA': (0, 0, 0, 255)}
@@ -14,7 +14,7 @@ def create_empty_ndarray(nrows: int, ncols: int, color_mode: str) -> np.ndarray:
     return ndimg_
 
 
-def create_empty_ndimg(nrows: int, ncols: int, color_mode: str) -> NdImageData:
+def create_empty_ndimg(nrows: int, ncols: int, color_mode: str) -> Ndimg:
     # return np.empty((nrows, ncols, nchannels), dtype=np.uint8)
     ndimg_ = create_empty_ndarray(nrows, ncols, color_mode)
-    return NdImageData(ndimg_, color_mode, None)
+    return Ndimg(ndimg_, color_mode, None)

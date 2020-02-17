@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt, QMargins, pyqtSignal, pyqtProperty, QVariant, QSign
 from PyQt5.QtGui import QPainter, QPen, QImage
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QSizePolicy
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg
 from common_image.core.mode_convert import convert_ndarray
 from common_qt.editor.range.range_editor import RangeEditor
@@ -35,7 +35,7 @@ def build_hue_sat_matrix() -> QImage:
     np.transpose(arr, (1, 0, 2))[..., 1] = np.arange(0, 256)
     np.transpose(arr, (0, 1, 2))[..., 2] = 255
     hue_sat_matrix_img = convert_ndarray(arr, 'HSV', 'RGB')
-    hue_sat_matrix_qimg = ndimg_to_qimg(NdImageData(hue_sat_matrix_img, 'RGB'))
+    hue_sat_matrix_qimg = ndimg_to_qimg(Ndimg(hue_sat_matrix_img, 'RGB'))
     return hue_sat_matrix_qimg
 
 
@@ -57,7 +57,7 @@ def build_hue_sat_range_matrix(h_range: Tuple[int, int], s_range: Tuple[int, int
     np.transpose(v_h_s, axes=(1, 2, 3, 0))[..., 2, :] = np.arange(0, 256)
     hue_sat_range_matrix_ndimg = v_h_s.reshape((256, -1, 3))
     hue_sat_range_matrix_rgb_ndimg = convert_ndarray(hue_sat_range_matrix_ndimg, 'HSV', 'RGB')
-    hue_sat_range_matrix_qimg = ndimg_to_qimg(NdImageData(hue_sat_range_matrix_rgb_ndimg, 'RGB'))
+    hue_sat_range_matrix_qimg = ndimg_to_qimg(Ndimg(hue_sat_range_matrix_rgb_ndimg, 'RGB'))
     return hue_sat_range_matrix_qimg
 
 

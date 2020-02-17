@@ -4,7 +4,7 @@ import openslide
 from dataclasses import dataclass
 from shapely.geometry import Polygon
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 from slice.generator.image.patch_image_generator import PatchImageGenerator
 from slice.model.patch_geometry import PatchGeometryIterable
 from slice.model.patch_image import PatchImageIterable
@@ -25,5 +25,5 @@ class PatchImageGeneratorTemplate(PatchImageGenerator):
                 yield ((x, y), patch, img)
 
     @abstractmethod
-    def create_patch_image(self, slide: openslide.AbstractSlide, patch: Polygon, level: int) -> NdImageData:
+    def create_patch_image(self, slide: openslide.AbstractSlide, patch: Polygon, level: int) -> Ndimg:
         pass

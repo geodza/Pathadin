@@ -6,11 +6,11 @@ from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QBuffer
 from PyQt5.QtGui import QImage, QBitmap, QPixmap
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 from common_qt.qobjects_convert_util import ituple_to_qsize
 
 
-def ndimg_to_qimg(img: NdImageData) -> QImage:
+def ndimg_to_qimg(img: Ndimg) -> QImage:
     if img.color_mode == 'RGBA':
         format = QImage.Format_RGBA8888
     elif img.color_mode == 'RGB':
@@ -19,7 +19,7 @@ def ndimg_to_qimg(img: NdImageData) -> QImage:
         format = QImage.Format_Grayscale8
     else:
         raise ValueError(f"Unsupported img color mode: {img.color_mode}")
-    ndimg = img.ndimg
+    ndimg = img.ndarray
     h, w, *ch = ndimg.shape
     ch = ch[0] if ch else 1
     img = QImage(ndimg, w, h, w * ch, format)

@@ -3,7 +3,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 
 
 def ndarray_to_thresholded_ndarray(ndarray: np.ndarray, threshold_range: Tuple) -> np.ndarray:
@@ -27,6 +27,6 @@ def ndarray_to_thresholded_ndarray(ndarray: np.ndarray, threshold_range: Tuple) 
     return result_ndarray
 
 
-def ndimg_to_thresholded_ndimg(ndimg: NdImageData, threshold_range: Tuple) -> NdImageData:
-    thresholded_ndarray = ndarray_to_thresholded_ndarray(ndimg.ndimg, threshold_range)
-    return NdImageData(thresholded_ndarray, "L", ndimg.bool_mask_ndimg)
+def ndimg_to_thresholded_ndimg(ndimg: Ndimg, threshold_range: Tuple) -> Ndimg:
+    thresholded_ndarray = ndarray_to_thresholded_ndarray(ndimg.ndarray, threshold_range)
+    return Ndimg(thresholded_ndarray, "L", ndimg.bool_mask_ndarray)

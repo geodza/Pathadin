@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class NdImageData:
-    ndimg: np.ndarray
+class Ndimg:
+    ndarray: np.ndarray
     color_mode: str
-    bool_mask_ndimg: Optional[np.ndarray] = None
+    bool_mask_ndarray: Optional[np.ndarray] = None

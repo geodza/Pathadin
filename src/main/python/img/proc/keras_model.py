@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 from common.dataclass_utils import dataclass_fields
 
 
 @dataclass
 class KerasModelResults:
-    labeled_img: NdImageData
+    labeled_img: Ndimg
     region_props: list
 
 

@@ -10,7 +10,7 @@ PatchResponseGroup = Tuple[str, PatchResponseIterable]
 
 
 def collect_patch_responses_images_to_ndarray(patch_responses: PatchResponseIterable) -> np.ndarray:
-    imgs = [pr.img.ndimg for pr in patch_responses]
+    imgs = [pr.img.ndarray for pr in patch_responses]
     ndarray = np.stack(imgs)
     return ndarray
 

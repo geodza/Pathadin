@@ -2,7 +2,7 @@ from typing import Optional, NamedTuple
 
 import numpy as np
 
-from common_image.model.ndimagedata import NdImageData
+from common_image.model.ndimg import Ndimg
 
 
 class HistResults(NamedTuple):
@@ -26,6 +26,6 @@ def ndarray_to_hist(ndarray: np.ndarray, k: Optional[int] = None, normed: bool =
         return HistResults(sorted_most_freq_colors, sorted_most_freq_colors_counts)
 
 
-def ndimg_to_hist(ndimg: NdImageData, k: Optional[int] = None, normed: bool = True) -> HistResults:
-    ndarray = ndimg.ndimg[ndimg.bool_mask_ndimg] if ndimg.bool_mask_ndimg is not None else ndimg.ndimg
+def ndimg_to_hist(ndimg: Ndimg, k: Optional[int] = None, normed: bool = True) -> HistResults:
+    ndarray = ndimg.ndarray[ndimg.bool_mask_ndarray] if ndimg.bool_mask_ndarray is not None else ndimg.ndarray
     return ndarray_to_hist(ndarray, k, normed)

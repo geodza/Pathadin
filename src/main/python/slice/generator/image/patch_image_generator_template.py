@@ -4,7 +4,7 @@ import openslide
 from dataclasses import dataclass
 from shapely.geometry import Polygon
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 from slice.generator.image.patch_image_generator import PatchImageGenerator
 from slice.model.patch_geometry import PatchGeometryIterable
 from slice.model.patch_image import PatchImageIterable

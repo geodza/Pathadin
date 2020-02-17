@@ -6,7 +6,7 @@ from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QBuffer
 from PyQt5.QtGui import QImage, QBitmap, QPixmap
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 from common_qt.qobjects_convert_util import ituple_to_qsize
 
 

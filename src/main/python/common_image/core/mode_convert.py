@@ -3,7 +3,7 @@ from typing import List
 import cv2
 import numpy as np
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 
 
 def convert_ndimg(ndimg: NdImageData, required_mode: str) -> NdImageData:

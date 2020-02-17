@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from shapely.geometry import Polygon
 from shapely.strtree import STRtree
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 from slice.generator.image.patch_image_generator_template import PatchImageGeneratorTemplate
 from slice.image_shapely_utils import create_layer_polygon_image
 

@@ -7,7 +7,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout
 from skimage import io
 
-from common_image.img_mode_convert import convert_ndarray
+from common_image.core.mode_convert import convert_ndarray
 from common_qt.message_handler import qt_message_handler
 from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
 

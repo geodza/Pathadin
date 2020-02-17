@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 from common.dataclass_utils import dataclass_fields
 
 

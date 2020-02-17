@@ -1,22 +1,20 @@
-import typing
-from typing import Tuple, Optional
+from typing import Tuple, Optional, NamedTuple, Iterable
 
 from PIL import Image
 from PyQt5.QtGui import QPolygon
 
-from common_image.pos import ituple, ituples
+from common_image.model.pos import ituple, ituples
+from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from slide_viewer.cache_config import gcached
 from slide_viewer.common.slide_helper import SlideHelper
-from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple, ituples_to_qpoints, \
-    qpoints_to_ituples
 from slide_viewer.ui.model.annotation_type import AnnotationType
 
 
-class RegionData(typing.NamedTuple):
+class RegionData(NamedTuple):
     img_path: str
-    level: typing.Optional[int] = None
-    origin_point: typing.Optional[typing.Tuple[int, int]] = None
-    points: typing.Optional[typing.Tuple[typing.Tuple[int, int], ...]] = None
+    level: Optional[int] = None
+    origin_point: Optional[Tuple[int, int]] = None
+    points: Optional[Tuple[Tuple[int, int], ...]] = None
     annotation_type: AnnotationType = AnnotationType.RECT
 
 
@@ -50,15 +48,7 @@ def load_region(img_path: str, pos: Tuple[int, int] = (0, 0), level: Optional[in
     return region
 
 
-def ituples_to_polygon_ituples(points: ituples) -> ituples:
-    qpoints = tuple(ituples_to_qpoints(points))
-    top_left = QPolygon(qpoints).boundingRect().topLeft()
-    qpoints0 = [p - top_left for p in qpoints]
-    points0 = tuple(qpoints_to_ituples(qpoints0))
-    return points0
-
-
-def deshift_points(points: typing.Iterable[ituple], origin_point: ituple) -> ituples:
+def deshift_points(points: Iterable[ituple], origin_point: ituple) -> ituples:
     origin_point_deshifted = [(p[0] - origin_point[0], p[1] - origin_point[1]) for p in points]
     left = min(origin_point_deshifted, key=lambda p: p[0])
     top = min(origin_point_deshifted, key=lambda p: p[1])
@@ -67,6 +57,6 @@ def deshift_points(points: typing.Iterable[ituple], origin_point: ituple) -> itu
     return tuple(first_point_shifted)
 
 
-def rescale_points(points: typing.Iterable[ituple], sx: float, sy: float) -> ituples:
+def rescale_points(points: Iterable[ituple], sx: float, sy: float) -> ituples:
     rescaled_points = [(int(p[0] * sx), int(p[1] * sy)) for p in points]
     return tuple(rescaled_points)

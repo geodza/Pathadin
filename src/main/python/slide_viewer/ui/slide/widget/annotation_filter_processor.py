@@ -1,6 +1,4 @@
 from concurrent.futures import Future, ThreadPoolExecutor
-from itertools import product
-from math import ceil
 from typing import Tuple, Optional, Callable, Union, cast
 
 import cv2
@@ -12,8 +10,20 @@ import skimage.measure
 from PyQt5.QtCore import QObject, pyqtSignal, QPoint, QSize
 from PyQt5.QtGui import QPixmapCache, QPixmap, QPolygon
 from cachetools.keys import hashkey
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from itertools import product
+from math import ceil
 
+from common.debounce import debounce
+from common.dict_utils import remove_none_values
+from common_image.core.hist import ndimg_to_hist
+from common_image.core.mode_convert import convert_ndimg, convert_ndarray
+from common_image.core.object_convert import pilimg_to_ndimg
+from common_image.core.threshold import ndimg_to_thresholded_ndimg
+from common_image.model.ndimagedata import NdImageData
+from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
+from common_qt.abcq_meta import ABCQMeta
+from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from img.filter.base_filter import FilterData, ThresholdFilterResults, FilterResults2
 from img.filter.keras_model import KerasModelFilterResults, KerasModelFilterData
 from img.filter.kmeans_filter import KMeansFilterData, KMeansFilterResults
@@ -23,26 +33,18 @@ from img.filter.nuclei import NucleiFilterData, NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults, PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageAutoThresholdFilterData, SkimageThresholdParams, \
     SkimageMinimumThresholdFilterData, SkimageMeanThresholdFilterData
-from common_image.ndimagedata import NdImageData
-from common_image.img_object_convert import pilimg_to_ndimg
-from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
-from common_image.hist import ndimg_to_hist
-from img.proc.hist_html import build_histogram_html
-from common_image.img_mode_convert import convert_ndimg, convert_ndarray
+from common_image.core.hist_html import build_histogram_html
 from img.proc.keras_model import KerasModelParams
-from img.proc.kmeans import img_to_kmeans_quantized_img, KMeansParams
+from img.proc.kmeans import KMeansParams
+from common_image.core.kmeans import ndimg_to_quantized_ndimg
 from img.proc.mask import build_mask
 from img.proc.nuclei import NucleiParams, ndimg_to_nuclei_seg_mask
 from img.proc.positive_pixel_count import PositivePixelCountParams, positive_pixel_count2
 from img.proc.region import RegionData, read_region, deshift_points, rescale_points
 from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
-from common_image.threshold import ndimg_to_thresholded_ndimg
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
-from common.debounce import debounce
 from slide_viewer.common.slide_helper import SlideHelper
-from common_qt.abcq_meta import ABCQMeta
-from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import AnnotationItemPixmapProvider
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
@@ -122,11 +124,14 @@ def read_masked_region(rd: RegionData) -> NdImageData:
 @gcached
 def kmeans_filter(rd: RegionData, params: KMeansParams) -> KMeansFilterResults:
     ndimg = read_masked_region(rd)
-    img_to_kmeans_quantized_img_ = closure_nonhashable(hashkey(rd), ndimg, img_to_kmeans_quantized_img)
-    qantized_ndimg = img_to_kmeans_quantized_img_(params)
-    hist = ndimg_to_hist(qantized_ndimg)
+    # img_to_kmeans_quantized_img_ = closure_nonhashable(hashkey(rd), ndimg, img_to_kmeans_quantized_img)
+    kwargs = remove_none_values(asdict(params))
+    kwargs['init'] = params.init.value
+    quantized_ndimg = ndimg_to_quantized_ndimg(ndimg, **kwargs)
+    # quantized_ndimg = img_to_kmeans_quantized_img_(params)
+    hist = ndimg_to_hist(quantized_ndimg)
     hist_html = build_histogram_html(hist.sorted_most_freq_colors, hist.sorted_most_freq_colors_counts)
-    qimg = ndimg_to_qimg(qantized_ndimg)
+    qimg = ndimg_to_qimg(quantized_ndimg)
     res = KMeansFilterResults(qimg, ndimg.bool_mask_ndimg, hist_html)
     return res
 
@@ -180,7 +185,7 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
     width, height = ceil(level_width / grid_length) * grid_length, ceil(level_height / grid_length) * grid_length
     size = (width, height)
     with openslide.OpenSlide(rd.img_path) as f:
-        pilimg=f.read_region(pos, level, size)
+        pilimg = f.read_region(pos, level, size)
 
     #     pilimg.resize(())
     # transform = QTransform().translate(-polygon.boundingRect().left(), -polygon.boundingRect().top())\
@@ -190,7 +195,7 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
     # polygon_fit_grid=QTransform().scale(ws,hs).translate(polygon.boundingRect().left(), polygon.boundingRect().top())\
     #     .map(p1)
     # ws,hs=resultsize.width(),resultsize.height()
-        # .translate(polygon.boundingRect().left(),polygon.boundingRect().top())
+    # .translate(polygon.boundingRect().left(),polygon.boundingRect().top())
     # polygon_fit_grid=transform.map(polygon)
     # points_fit_grid_length=tuple(qpoint_to_ituple(p) for p in polygon_fit_grid)
     # ndimg=read_masked_region(rd._replace(points=points_fit_grid_length))

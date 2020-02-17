@@ -8,7 +8,7 @@ from img.filter.keras_model import KerasModelFilterResults
 from img.filter.kmeans_filter import KMeansFilterResults
 from img.filter.nuclei import NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults
-from common_image.pos import ituple
+from common_image.model.pos import ituple
 from common_qt.abcq_meta import ABCQMeta
 from deepable.core import toplevel_keys
 from deepable_qt.deepable_tree_model import DeepableTreeModel

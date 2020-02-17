@@ -4,7 +4,7 @@ import histomicstk.segmentation.positive_pixel_count as ppc
 import skimage.color
 from dataclasses import dataclass, asdict
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 
 colors = [(0, 0, 0), (0.5, 0.5, 0.5), (0.75, 0.75, 0.75), (1, 1, 1)]
 

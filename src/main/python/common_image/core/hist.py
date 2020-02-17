@@ -2,7 +2,7 @@ from typing import Optional, NamedTuple
 
 import numpy as np
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 
 
 class HistResults(NamedTuple):
@@ -11,7 +11,7 @@ class HistResults(NamedTuple):
 
 
 def ndarray_to_hist(ndarray: np.ndarray, k: Optional[int] = None, normed: bool = True) -> HistResults:
-    color_points = ndarray.reshape((-1, 1))
+    color_points = ndarray.reshape((-1, ndarray.shape[-1]))
     unique_colors, unique_counts = np.unique(color_points, return_counts=True, axis=0)
     k = min(k, len(unique_counts)) if k is not None else len(unique_counts)
     most_freq_colors_indices = np.argpartition(unique_counts, len(unique_counts) - k - 1)[-k:]
@@ -27,5 +27,5 @@ def ndarray_to_hist(ndarray: np.ndarray, k: Optional[int] = None, normed: bool =
 
 
 def ndimg_to_hist(ndimg: NdImageData, k: Optional[int] = None, normed: bool = True) -> HistResults:
-    foreground_color_points = ndimg.ndimg[ndimg.bool_mask_ndimg]
-    return ndarray_to_hist(foreground_color_points, k, normed)
+    ndarray = ndimg.ndimg[ndimg.bool_mask_ndimg] if ndimg.bool_mask_ndimg is not None else ndimg.ndimg
+    return ndarray_to_hist(ndarray, k, normed)

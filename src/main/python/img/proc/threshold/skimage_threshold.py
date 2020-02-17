@@ -3,7 +3,7 @@ from dataclasses import asdict
 
 from img.filter.skimage_threshold import SkimageAutoThresholdFilterData, SkimageMeanThresholdFilterData, \
     SkimageMinimumThresholdFilterData, SkimageMinimumThresholdFilterData_, SkimageThresholdParams, SkimageThresholdType
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 from common.dict_utils import remove_none_values, narrow_dict
 
 

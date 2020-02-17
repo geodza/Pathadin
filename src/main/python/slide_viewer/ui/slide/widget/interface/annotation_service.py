@@ -4,7 +4,7 @@ from typing import List, Dict
 from PyQt5.QtCore import pyqtBoundSignal
 
 from img.filter.base_filter import FilterResults2
-from common_image.pos import ituple
+from common_image.model.pos import ituple
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationStats
 

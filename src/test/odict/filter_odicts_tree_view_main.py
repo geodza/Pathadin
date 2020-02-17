@@ -12,7 +12,7 @@ from deepable_qt.deepable_tree_view import DeepableTreeView
 from img.filter.threshold_filter import ThresholdType
 from img.filter.manual_threshold import ManualThresholdFilterData
 from img.filter.base_filter import FilterType
-from common_image.color_mode import ColorMode
+from common_image.model.color_mode import ColorMode
 from slide_viewer.filter.filter_odicts_tree_model import FilterODictsTreeModel
 
 odicts = [

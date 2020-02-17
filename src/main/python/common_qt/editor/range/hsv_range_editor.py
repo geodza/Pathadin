@@ -6,9 +6,9 @@ from PyQt5.QtCore import Qt, QMargins, pyqtSignal, pyqtProperty, QVariant, QSign
 from PyQt5.QtGui import QPainter, QPen, QImage
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QSizePolicy
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 from common_image_qt.core import ndimg_to_qimg
-from common_image.img_mode_convert import convert_ndarray
+from common_image.core.mode_convert import convert_ndarray
 from common_qt.editor.range.range_editor import RangeEditor
 
 

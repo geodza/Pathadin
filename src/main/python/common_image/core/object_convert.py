@@ -4,7 +4,7 @@ from PIL import Image
 # def expose_ndarray_to_qimage(ndarray: np.array):
 # img = QImage(ndarray, ndarray.shape[1], ndarray.shape[0], QImage.Format_Indexed8)
 # return img
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 
 
 # https://stackoverflow.com/questions/47289884/how-to-convert-qimageqpixmap-to-pil-image-in-python-3?noredirect=1&lq=1

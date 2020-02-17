@@ -9,7 +9,7 @@ import skimage.util
 from dataclasses import dataclass, asdict
 from scipy import ndimage
 
-from common_image.ndimagedata import NdImageData
+from common_image.model.ndimagedata import NdImageData
 
 
 def default_stain_color_map():

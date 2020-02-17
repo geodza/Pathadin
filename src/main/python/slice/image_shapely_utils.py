@@ -4,16 +4,16 @@ import openslide
 from shapely.geometry import Polygon
 from shapely.strtree import STRtree
 
-from common_image.img_mode_convert import convert_ndimg
-from common_image.img_object_convert import pilimg_to_ndimg
-from common_image.img_polygon_utils import create_polygon_image, get_polygon_bbox_image_view, draw_source_on_target_polygon
-from common_image.ndimagedata import NdImageData
+from common_image.core.mode_convert import convert_ndimg
+from common_image.core.object_convert import pilimg_to_ndimg
+from common_image.core.img_polygon_utils import create_polygon_image, get_polygon_bbox_image_view, draw_source_on_target_polygon
+from common_image.model.ndimagedata import NdImageData
 from common_shapely.shapely_utils import locate, scale_at_origin, get_polygon_bbox_pos, get_polygon_bbox_size
 from img.filter.base_filter import FilterData, FilterType
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.skimage_threshold import SkimageThresholdParams, SkimageThresholdType
 from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
-from common_image.threshold import ndimg_to_thresholded_ndimg
+from common_image.core.threshold import ndimg_to_thresholded_ndimg
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 
 

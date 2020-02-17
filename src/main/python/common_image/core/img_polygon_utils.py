@@ -2,9 +2,10 @@ import cv2
 import numpy as np
 from shapely.geometry import Polygon
 
-from common_image.img_mode_convert import convert_ndimg
-from common_image.ndimagedata import NdImageData
-from common_image.ndimagedata_utils import create_empty_ndimg, resize_ndimg
+from common_image.core.mode_convert import convert_ndimg
+from common_image.model.ndimagedata import NdImageData
+from common_image.core.empty import create_empty_ndimg
+from common_image.core.resize import resize_ndimg
 from common_shapely.shapely_utils import get_polygon_bbox_size, get_polygon_bbox_pos
 
 

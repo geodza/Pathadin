@@ -20,30 +20,32 @@ ARCHIVE_EXTENSIONS = ('.npz', '.zip')
 DEFAULT_IMAGE_EXTENSION = '.png'
 
 
-def save_named_ndarrays(named_ndarrays: Iterable[NamedNdarray], path: str, delete_if_exists=False) -> None:
+def save_named_ndarrays(named_ndarrays: Iterable[NamedNdarray], path: str, delete_if_exists=False, verbosity=0) -> None:
     path = pathlib.Path(path)
     if path.is_dir():
-        save_named_ndarrays_to_folder(named_ndarrays, path, delete_working_folder=delete_if_exists)
+        save_named_ndarrays_to_folder(named_ndarrays, path, delete_working_folder=delete_if_exists, verbosity=verbosity)
     elif not path.exists() and not path.suffix:
-        save_named_ndarrays_to_folder(named_ndarrays, str(path), delete_working_folder=delete_if_exists)
+        save_named_ndarrays_to_folder(named_ndarrays, str(path), delete_working_folder=delete_if_exists, verbosity=verbosity)
     elif path.suffix in HDF5_EXTENSIONS:
-        save_named_ndarrays_to_hdf5(named_ndarrays, str(path), 'w' if delete_if_exists else 'a')
+        save_named_ndarrays_to_hdf5(named_ndarrays, str(path), 'w' if delete_if_exists else 'a', verbosity=verbosity)
     elif path.suffix in ARCHIVE_EXTENSIONS:
         if path.exists() and not delete_if_exists:
             raise ValueError('Appending to archive not supported, use delete_if_exists=True')
         else:
-            save_named_ndarrays_to_zip(named_ndarrays, str(path))
+            save_named_ndarrays_to_zip(named_ndarrays, str(path), verbosity=verbosity)
     else:
         raise ValueError('Unsupported file extension')
 
 
 def save_named_ndarrays_to_hdf5(named_ndarrays: Iterable[NamedNdarray],
-                                file_path: str, file_mode: str = "a", compression="gzip", **dataset_kwargs) -> None:
+                                file_path: str, file_mode: str = "a", compression="gzip", verbosity=0, **dataset_kwargs) -> None:
     file_path = pathlib.Path(file_path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     with h5py.File(file_path, file_mode) as f:
         for name, ndarray in named_ndarrays:
             ndarray_path = _build_valid_path(name)
+            if verbosity > 0:
+                print(f"saving {ndarray_path}")
             if ndarray_path in f:
                 # TODO delete only if we cant update (different shape and dtype)
                 del f[ndarray_path]
@@ -57,18 +59,20 @@ def save_named_ndarrays_to_hdf5(named_ndarrays: Iterable[NamedNdarray],
             # dataset.attrs['dataset_path_format'] = dataset_path_format
 
 
-def save_named_ndarrays_to_zip(named_ndarrays: Iterable[NamedNdarray], file_path: str) -> None:
+def save_named_ndarrays_to_zip(named_ndarrays: Iterable[NamedNdarray], file_path: str, verbosity=0, ) -> None:
     file_path = pathlib.Path(file_path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     ndarrays = {}
     for name, ndarray in named_ndarrays:
         ndarray_path = _build_valid_path(name)
+        if verbosity > 0:
+            print(f"saving {ndarray_path}")
         ndarray = _squeeze_if_need(ndarray)
         ndarrays[ndarray_path] = ndarray
     np.savez_compressed(str(file_path), **ndarrays)
 
 
-def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_folder: str, delete_working_folder=False) -> None:
+def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_folder: str, delete_working_folder=False, verbosity=0) -> None:
     predefined_working_folder = 'patches'
     working_folder = pathlib.Path(root_folder, predefined_working_folder)
     if delete_working_folder:
@@ -78,6 +82,8 @@ def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_f
         ndarray_path = _build_valid_path(name)
         ndarray_path = working_folder.joinpath(ndarray_path)
         ndarray_path = ndarray_path if ndarray_path.suffix else ndarray_path.with_suffix(DEFAULT_IMAGE_EXTENSION)
+        if verbosity > 0:
+            print(f"saving {ndarray_path}")
         ndarray = _squeeze_if_need(ndarray)
         save_ndarray_to_filesystem(ndarray, ndarray_path)
 

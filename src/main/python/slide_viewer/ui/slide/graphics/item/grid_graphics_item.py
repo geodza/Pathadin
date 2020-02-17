@@ -40,8 +40,8 @@ class GridGraphicsItem(QGraphicsItem):
         self.paint_called_count += 1
         # painter.setClipRect(option.exposedRect)
 
-        current_scale = 1 / painter.transform().m11()
-        alpha = 255 - 250 * log(1 + current_scale - 1 / self.max_scale, 1 / self.min_scale)
+        # current_scale = 1 / painter.transform().m11()
+        # alpha = 255 - 250 * log(1 + current_scale - 1 / self.max_scale, 1 / self.min_scale)
 
         # print(int(alpha))
         # qpen = QPen(QBrush(QColor(0, 0, 0, int(alpha))), 1)

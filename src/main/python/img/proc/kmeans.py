@@ -5,7 +5,7 @@ import numpy as np
 from dataclasses import dataclass, field, asdict
 from sklearn.cluster import KMeans
 
-from img.ndimagedata import NdImageData
+from common_image.ndimagedata import NdImageData
 from common.dataclass_utils import dataclass_fields
 from common.dict_utils import remove_none_values
 

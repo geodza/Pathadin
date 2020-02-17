@@ -4,7 +4,7 @@ import openslide
 from PIL.Image import Image
 from PyQt5.QtCore import QRectF
 
-from img.proc.img_object_convert import pilimage_to_pixmap
+from common_image_qt.core import pilimage_to_pixmap
 
 
 class SlideHelper:

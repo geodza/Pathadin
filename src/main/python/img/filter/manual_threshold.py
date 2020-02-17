@@ -2,7 +2,7 @@ import typing
 
 from dataclasses import dataclass, field
 
-from img.color_mode import ColorMode
+from common_image.color_mode import ColorMode
 from img.filter.threshold_filter import ThresholdFilterData, ThresholdType, HSV
 from common.dataclass_utils import dataclass_fields
 

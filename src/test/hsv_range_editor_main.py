@@ -7,7 +7,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLayout
 from skimage import io
 
-from img.proc.img_mode_convert import convert_ndimg
+from common_image.img_mode_convert import convert_ndarray
 from common_qt.message_handler import qt_message_handler
 from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     print(cv2.cvtColor(np.uint8([[[255, 255, 255]]]), cv2.COLOR_HSV2RGB))
 
     range_editor = HSVRangeEditor(window)
-    ndimg = convert_ndimg(range_editor.hue_sat_matrix_arrimg, 'HSV', 'RGB')
+    ndimg = convert_ndarray(range_editor.hue_sat_matrix_arrimg, 'HSV', 'RGB')
     io.imsave(r"D:\\temp\\slides_more\\hsv_hue_sat.png", ndimg)
     range_editor.set_hsv_range(((0, 10, 10), (0, 100, 100)))
     range_editor.hsvRangeChanged.connect(update_label_by_range)

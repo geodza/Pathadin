@@ -1,64 +1,20 @@
-import pathlib
-from itertools import islice
-from math import ceil
-from typing import List, Tuple, Iterable
+from typing import List
 
-import cv2
-import h5py
-import numpy as np
 import openslide
-from matplotlib import pyplot as plt
 from shapely.geometry import Polygon
 from shapely.strtree import STRtree
-from skimage.io import imshow
 
+from common_image.img_mode_convert import convert_ndimg
+from common_image.img_object_convert import pilimg_to_ndimg
+from common_image.img_polygon_utils import create_polygon_image, get_polygon_bbox_image_view, draw_source_on_target_polygon
+from common_image.ndimagedata import NdImageData
+from common_shapely.shapely_utils import locate, scale_at_origin, get_polygon_bbox_pos, get_polygon_bbox_size
 from img.filter.base_filter import FilterData, FilterType
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.skimage_threshold import SkimageThresholdParams, SkimageThresholdType
-from img.ndimagedata import NdImageData
-from img.ndimagedata_utils import imgresize, create_empty_image
-from img.proc.convert import pilimg_to_ndimg
-from img.proc.img_mode_convert import convert_ndimg2
 from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
-from img.proc.threshold.threshold import ndimg_to_thresholded_ndimg
-from common_shapely.shapely_utils import locate, scale_at_origin, get_polygon_bbox_pos, get_polygon_bbox_size
+from common_image.threshold import ndimg_to_thresholded_ndimg
 from slide_viewer.ui.odict.deep.model import AnnotationModel
-
-def create_polygon_image(polygon: Polygon, color_mode: str, color=None, create_mask=True) -> NdImageData:
-    nrows, ncols = get_polygon_bbox_size(polygon)
-    img = create_empty_image(nrows, ncols, color_mode)
-    if color is not None:
-        points = polygon.boundary.coords
-        points = np.array(points, dtype=np.int32).reshape((1, -1, 2), order='C')
-        cv2.fillPoly(img.ndimg, points, color)
-    if create_mask:
-        img_boolean_mask = create_polygon_image(polygon, 'L', 255, create_mask=False).ndimg
-    else:
-        img_boolean_mask = None
-    return NdImageData(img.ndimg, color_mode, img_boolean_mask)
-
-
-def get_polygon_bbox_image_view(img: np.ndarray, polygon: Polygon) -> np.ndarray:
-    # minx, miny, maxx, maxy = tuple(int(b) for b in polygon.bounds)
-    x, y = get_polygon_bbox_pos(polygon)
-    nrows, ncols = get_polygon_bbox_size(polygon)
-    polygon_ndimg = img[y:y + nrows, x:x + ncols]
-    return polygon_ndimg
-
-
-def draw_source_on_target(target: NdImageData, target_mask_polygon: Polygon, source: NdImageData) -> None:
-    target_region = get_polygon_bbox_image_view(target.ndimg, target_mask_polygon)
-    source_ = imgresize(source, target_region.shape[:2])
-    source_ = convert_ndimg2(source_, target.color_mode)
-    # imgshow(source_.ndimg, 'prepared source image')
-    # imgshow(target_region, 'Target(canvas)')
-    # TODO target may have mask too, combine it with source_ mask through AND?
-    cv2.subtract(target_region, target_region, target_region, mask=source_.bool_mask_ndimg)
-    # imgshow(target_region, 'Target(canvas) after substract')
-    cv2.add(source_.ndimg, target_region, target_region, mask=source_.bool_mask_ndimg)
-    # imgshow(target_region, 'Target(canvas) result')
-    # imgshow(target.ndimg, 'Target(canvas) resulting img')
-    pass
 
 
 def get_slide_polygon_bbox_rgb_region(slide: openslide.AbstractSlide, polygon: Polygon, level: int) -> NdImageData:
@@ -81,10 +37,10 @@ def get_filter(id: str) -> FilterData:
 
 
 def process_filter(img: NdImageData, filter_data: FilterData) -> NdImageData:
-    converted_ndimgdata = convert_ndimg2(img, 'L')
+    converted_ndimgdata = convert_ndimg(img, 'L')
     params = SkimageThresholdParams(SkimageThresholdType.threshold_mean, {})
     threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimgdata)
-    return ndimg_to_thresholded_ndimg(threshold_range, converted_ndimgdata)
+    return ndimg_to_thresholded_ndimg(converted_ndimgdata, threshold_range)
 
 
 def create_annotation_polygon_image(slide: openslide.AbstractSlide,
@@ -138,24 +94,11 @@ def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon: Polygon,
     for intersecting_geom, intersecting_geom_intersection in zip(intersecting_geoms, intersecting_geoms_intersections):
         if not isinstance(intersecting_geom_intersection, Polygon):
             # TODO consider geometry collection containing polygon
-            print(f"Ignoring not Polygon intersection ${intersecting_geom_intersection}")
+            print(f"Ignoring not Polygon intersection {intersecting_geom_intersection}")
             continue
         intersecting_geom_intersection_ = scale_at_origin(locate(intersecting_geom_intersection, polygon), level_scale)
         annotation_polygon_image = create_annotation_polygon_image(slide, intersecting_geom.annotation, intersecting_geom,
                                                                    intersecting_geom_intersection_, zlayers_rtrees[:-1])
-        draw_source_on_target(polygon_img, intersecting_geom_intersection_, annotation_polygon_image)
+        draw_source_on_target_polygon(polygon_img, intersecting_geom_intersection_, annotation_polygon_image)
 
     return polygon_img
-
-def npz_imgshow(file_path: str, slice_from, slice_to=None):
-    npzfile = np.load(file_path)
-    file_names = npzfile.files[slice_from: slice_to]
-    arrs = [npzfile[file_name] for file_name in file_names]
-    # imgshow(np.vstack(arrs))
-    cols = 10
-    rows = ceil(len(arrs) / cols)
-    for i, arr in enumerate(arrs):
-        ax = plt.subplot(rows, cols, i + 1)
-        ax.axis('off')
-        plt.imshow(arr)
-    plt.show()

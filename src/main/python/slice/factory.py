@@ -13,19 +13,7 @@ from slice.generator.geometry.hook.bb_geometry_probably_contains_hook import BBG
 from slice.generator.geometry.hook.patch_geometry_hook import PatchGeometryHook
 from slice.generator.geometry.hook.patch_geometry_roi_hook import PatchGeometryROIHook
 from slice.generator.geometry.patch_geometry_generator_hooks import PatchGeometryGeneratorHooks
-from slice.generator.image.annotations_patch_image_generator import AnnotationsPatchImageGenerator
 from slice.generator.pos.patch_pos_generator import PatchPosGenerator
-
-
-def create_annotations_patch_image_generator(annotation_geoms: List[BaseGeometry]) -> AnnotationsPatchImageGenerator:
-    z_to_geoms = defaultdict(list)
-    for geom in annotation_geoms:
-        z = geom.annotation.user_attrs.get('z_index', 0)
-        z_to_geoms[z].append(geom)
-
-    z_list = sorted(z_to_geoms.keys())
-    zlayers_rtrees = list([STRtree(z_to_geoms[z]) for z in z_list])
-    return AnnotationsPatchImageGenerator(zlayers_rtrees)
 
 
 def create_roi_hooks(roi_geoms: List[BaseGeometry]) -> Tuple[List[BBGeometryHook], List[PatchGeometryHook]]:

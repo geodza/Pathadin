@@ -23,6 +23,9 @@ class DeepableTreeView(QTreeView):
         self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.header().hide()
         self.setModel(model_)
+        # font = self.font()
+        # font.setPointSize(8)
+        # self.setFont(font)
         # self.delegate = ODictsTreeViewDelegate()
         # self.setItemDelegate(self.delegate)
 

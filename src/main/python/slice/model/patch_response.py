@@ -2,7 +2,7 @@ from typing import NamedTuple, Iterable
 
 from shapely.geometry import Polygon
 
-from img.ndimagedata import NdImageData
+from common_image.ndimagedata import NdImageData
 from slice.model.patch_pos import PatchPos
 from slice.model.patch_image_config import PatchImageConfig
 

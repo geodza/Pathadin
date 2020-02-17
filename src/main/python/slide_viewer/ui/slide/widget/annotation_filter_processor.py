@@ -23,11 +23,12 @@ from img.filter.nuclei import NucleiFilterData, NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults, PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageAutoThresholdFilterData, SkimageThresholdParams, \
     SkimageMinimumThresholdFilterData, SkimageMeanThresholdFilterData
-from img.ndimagedata import NdImageData
-from img.proc.convert import pilimg_to_ndimg, ndimg_to_qimg, ndimg_to_bitmap
-from img.proc.hist import ndimg_to_hist, HistParams
+from common_image.ndimagedata import NdImageData
+from common_image.img_object_convert import pilimg_to_ndimg
+from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
+from common_image.hist import ndimg_to_hist
 from img.proc.hist_html import build_histogram_html
-from img.proc.img_mode_convert import convert_ndimg2, convert_ndimg
+from common_image.img_mode_convert import convert_ndimg, convert_ndarray
 from img.proc.keras_model import KerasModelParams
 from img.proc.kmeans import img_to_kmeans_quantized_img, KMeansParams
 from img.proc.mask import build_mask
@@ -35,7 +36,7 @@ from img.proc.nuclei import NucleiParams, ndimg_to_nuclei_seg_mask
 from img.proc.positive_pixel_count import PositivePixelCountParams, positive_pixel_count2
 from img.proc.region import RegionData, read_region, deshift_points, rescale_points
 from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
-from img.proc.threshold.threshold import ndimg_to_thresholded_ndimg
+from common_image.threshold import ndimg_to_thresholded_ndimg
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
 from common.debounce import debounce
@@ -123,7 +124,7 @@ def kmeans_filter(rd: RegionData, params: KMeansParams) -> KMeansFilterResults:
     ndimg = read_masked_region(rd)
     img_to_kmeans_quantized_img_ = closure_nonhashable(hashkey(rd), ndimg, img_to_kmeans_quantized_img)
     qantized_ndimg = img_to_kmeans_quantized_img_(params)
-    hist = ndimg_to_hist(HistParams(), qantized_ndimg)
+    hist = ndimg_to_hist(qantized_ndimg)
     hist_html = build_histogram_html(hist.sorted_most_freq_colors, hist.sorted_most_freq_colors_counts)
     qimg = ndimg_to_qimg(qantized_ndimg)
     res = KMeansFilterResults(qimg, ndimg.bool_mask_ndimg, hist_html)
@@ -203,7 +204,7 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
         # TODO img conversions in layer of model
         x, y = grid_pos_to_source_pos((row, col), grid_length)
         tile = ndimg.ndimg[y:y + grid_length, x:x + grid_length]
-        tile = convert_ndimg(tile, "RGBA", "RGB")
+        tile = convert_ndarray(tile, "RGBA", "RGB")
         tile = tile / 255
         tile_batch = np.array([tile])
         tile_mask_batch = keras_model.predict(tile_batch)
@@ -243,8 +244,8 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
 
 
 def threshold_filter(img: NdImageData, threshold_range: tuple) -> ThresholdFilterResults:
-    thresholded_ndimg = ndimg_to_thresholded_ndimg(threshold_range, img)
-    hist = ndimg_to_hist(HistParams(), thresholded_ndimg)
+    thresholded_ndimg = ndimg_to_thresholded_ndimg(img, threshold_range)
+    hist = ndimg_to_hist(thresholded_ndimg)
     hist_html = build_histogram_html(hist.sorted_most_freq_colors, hist.sorted_most_freq_colors_counts)
     qimg = ndimg_to_qimg(thresholded_ndimg)
     res = ThresholdFilterResults(qimg, thresholded_ndimg.bool_mask_ndimg, hist_html)
@@ -254,14 +255,14 @@ def threshold_filter(img: NdImageData, threshold_range: tuple) -> ThresholdFilte
 @gcached
 def manual_threshold_filter(rd: RegionData, color_mode: str, threshold_range: tuple):
     ndimg = read_masked_region(rd)
-    converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg2)(color_mode)
+    converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg)(color_mode)
     return threshold_filter(converted_ndimg, threshold_range)
 
 
 @gcached
 def skimage_threshold_filter(rd: RegionData, params: SkimageThresholdParams):
     ndimg = read_masked_region(rd)
-    converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg2)("L")
+    converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg)("L")
     threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimg)
     return threshold_filter(converted_ndimg, threshold_range)
 
@@ -269,7 +270,7 @@ def skimage_threshold_filter(rd: RegionData, params: SkimageThresholdParams):
 @gcached
 def positive_pixel_count_filter(rd: RegionData, params: PositivePixelCountParams):
     ndimg = read_masked_region(rd)
-    converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg2)("RGB")
+    converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg)("RGB")
     ndimg, stats = positive_pixel_count2(converted_ndimg, params)
     qimg = ndimg_to_qimg(ndimg)
     res = PositivePixelCountFilterResults(qimg, ndimg.bool_mask_ndimg, stats)

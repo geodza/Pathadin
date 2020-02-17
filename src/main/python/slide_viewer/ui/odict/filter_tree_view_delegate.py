@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
     QStyleOptionViewItem
 from dataclasses import dataclass, InitVar, replace
 
-from img.color_mode import ColorMode
+from common_image.color_mode import ColorMode
 from img.filter.base_filter import FilterData, FilterData_, FilterType
 from img.filter.keras_model import KerasModelFilterData
 from img.filter.kmeans_filter import KMeansFilterData

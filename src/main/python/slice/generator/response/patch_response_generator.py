@@ -16,6 +16,11 @@ class PatchResponseGenerator():
 
 
 def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseIterable:
+    # TODO consider image and mask slide shifts
+    # TODO consider (level, grid_length, stride) collection?
+    # TODO consider imbalanced data
+    # TODO consider different objective-powers of slides? Do rescale to some target objective-power?
+    # TODO consider color mode conversion hooks (at least at start we dont need RGBA)
     cfg = fix_cfg(cfg)
     patch_positions = create_patch_pos_generator(cfg.slide_path, cfg.stride, cfg.offset_x, cfg.offset_y).create()
     annotation_geoms = load_annotation_geoms(cfg.annotations_path) if cfg.annotations_path else []

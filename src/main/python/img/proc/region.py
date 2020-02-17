@@ -4,7 +4,7 @@ from typing import Tuple, Optional
 from PIL import Image
 from PyQt5.QtGui import QPolygon
 
-from img.pos import ituple, ituples
+from common_image.pos import ituple, ituples
 from slide_viewer.cache_config import gcached
 from slide_viewer.common.slide_helper import SlideHelper
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple, ituples_to_qpoints, \

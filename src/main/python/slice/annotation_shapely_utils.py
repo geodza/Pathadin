@@ -52,8 +52,6 @@ def create_zlayers_rtrees(annotation_geoms: List[BaseGeometry]) -> List[STRtree]
 def load_annotation_geoms(annotations_path: str) -> List[BaseGeometry]:
     annotations_container = AnnotationTreeItems.parse_file(annotations_path)
     annotations = annotations_container.annotations
-
-    train_annotations = [a for a in annotations.values() if a.label != 'test']
-
-    annotation_geoms = [annotation_to_geom(a, True) for a in train_annotations]
-    return annotation_geoms
+    annotation_geoms = [annotation_to_geom(a, True) for a in annotations.values()]
+    not_none_annotation_geoms = [a for a in annotation_geoms if a]
+    return not_none_annotation_geoms

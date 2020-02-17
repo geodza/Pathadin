@@ -1,4 +1,4 @@
-from img.color_mode import ColorMode
+from common_image.color_mode import ColorMode
 
 
 def default_range(color_mode):

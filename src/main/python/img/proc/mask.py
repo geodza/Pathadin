@@ -3,7 +3,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-from img.pos import ituples
+from common_image.pos import ituples
 from slide_viewer.cache_config import gcached
 from slide_viewer.ui.model.annotation_type import AnnotationType
 

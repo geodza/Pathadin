@@ -4,16 +4,37 @@ import numpy as np
 from PIL import Image
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QBuffer
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QBitmap, QPixmap
+
+from common_image.ndimagedata import NdImageData
+from common_qt.qobjects_convert_util import ituple_to_qsize
 
 
-# https://stackoverflow.com/questions/47289884/how-to-convert-qimageqpixmap-to-pil-image-in-python-3?noredirect=1&lq=1
+def ndimg_to_qimg(img: NdImageData) -> QImage:
+    if img.color_mode == 'RGBA':
+        format = QImage.Format_RGBA8888
+    elif img.color_mode == 'RGB':
+        format = QImage.Format_RGB888
+    elif img.color_mode == 'L':
+        format = QImage.Format_Grayscale8
+    else:
+        raise ValueError(f"Unsupported img color mode: {img.color_mode}")
+    ndimg = img.ndimg
+    h, w, *ch = ndimg.shape
+    ch = ch[0] if ch else 1
+    img = QImage(ndimg, w, h, w * ch, format)
+    img.__dict__['ndimg'] = ndimg
+    return img
 
-# be careful, use QPixmap only in main GUI thread
 
-# def expose_ndarray_to_qimage(ndarray: np.array):
-# img = QImage(ndarray, ndarray.shape[1], ndarray.shape[0], QImage.Format_Indexed8)
-# return img
+def ndimg_to_bitmap(bool_mask_ndimg: np.ndarray) -> QBitmap:
+    mask_bits = np.packbits(bool_mask_ndimg, axis=-1)
+    bitmap_size = ituple_to_qsize(bool_mask_ndimg.shape[::-1])
+    mask_bits_bytes = mask_bits.tobytes()
+    bitmap = QBitmap.fromData(bitmap_size, mask_bits_bytes, format=QImage.Format_Mono)
+    # cache_['123'] = mask_bits_bytes
+    # bitmap.__dict__['mask_bits'] = mask_bits_bytes
+    return bitmap
 
 
 def qimage_to_pillowimage(qimg: QImage) -> Image.Image:
@@ -23,25 +44,6 @@ def qimage_to_pillowimage(qimg: QImage) -> Image.Image:
     pillowimage = Image.open(io.BytesIO(buffer.data()))
     buffer.close()
     return pillowimage
-
-
-def expose_pilimage_buffer_to_ndarray(pilimg: Image.Image) -> np.ndarray:
-    return np.array(pilimg)
-    b = pilimg.tobytes()
-    # TODO is np.array(img) or np.array(img.getdata()) better than tobytes()?
-    # For raw types (like bmp, png) img.getdata() will return really internal buffer without any additional memory allocation? and tobytes() will allocate?
-    arr = np.frombuffer(b, dtype=np.uint8)
-    r, c, ch = pilimg.height, pilimg.width, len(pilimg.getbands())
-    arr = arr.reshape((r, c, ch))
-    # setattr(pilimg, 'arr', arr)
-    return arr
-
-
-def expose_ndarray_buffer_to_pillowimage(arr: np.ndarray, mode: str) -> Image.Image:
-    h, w, *a = arr.shape
-    pilimg = Image.frombuffer(mode, (w, h), arr, 'raw', mode, 0, 1)
-    # setattr(pilimg, 'arr', arr)
-    return pilimg
 
 
 def expose_qimage_buffer_to_pillowimage(qimg: QImage) -> Image.Image:

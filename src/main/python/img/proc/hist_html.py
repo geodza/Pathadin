@@ -1,6 +1,6 @@
 import numpy as np
 
-from img.proc.hist import HistResults
+from common_image.hist import HistResults
 
 
 def build_histogram_html_(i: HistResults) -> str:

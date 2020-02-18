@@ -8,20 +8,17 @@ from dataclasses import dataclass, InitVar, replace
 
 from common_image.model.color_mode import ColorMode
 from img.filter.base_filter import FilterData, FilterData_, FilterType
-from img.filter.keras_model import KerasModelFilterData
-from img.filter.kmeans_filter import KMeansFilterData
+from img.filter.keras_model import KerasModelFilterData, KerasModelParams, KerasModelParams_
+from img.filter.kmeans_filter import KMeansFilterData, KMeansInitType, KMeansParams_
 from img.filter.manual_threshold import ManualThresholdFilterData, ManualThresholdFilterData_, \
     GrayManualThresholdFilterData, GrayManualThresholdFilterData_, HSVManualThresholdFilterData, \
     HSVManualThresholdFilterData_
 from img.filter.nuclei import NucleiFilterData, NucleiParams
-from img.filter.positive_pixel_count import PositivePixelCountFilterData
+from img.filter.positive_pixel_count import PositivePixelCountFilterData, PositivePixelCountParams
 from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresholdFilterData, \
     SkimageAutoThresholdFilterData_, SkimageMeanThresholdFilterData, SkimageMinimumThresholdFilterData
 from img.filter.threshold_filter import ThresholdFilterData, ThresholdFilterData_, \
     ThresholdType
-from img.proc.keras_model import KerasModelParams, KerasModelParams_
-from img.proc.kmeans import KMeansInitType, KMeansParams_
-from img.proc.positive_pixel_count import PositivePixelCountParams
 from common.dict_utils import dict_to_data_ignore_extra, asodict2
 from common_qt.editor.dropdown import Dropdown
 from common_qt.editor.file_path_editor import FilePathEditor

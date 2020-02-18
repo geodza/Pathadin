@@ -17,31 +17,29 @@ from math import ceil
 from common.debounce import debounce
 from common.dict_utils import remove_none_values
 from common_image.core.hist import ndimg_to_hist
+from common_image.core.hist_html import build_histogram_html
+from common_image.core.kmeans import ndimg_to_quantized_ndimg
 from common_image.core.mode_convert import convert_ndimg, convert_ndarray
 from common_image.core.object_convert import pilimg_to_ndimg
+from common_image.core.skimage_threshold import find_ndimg_skimage_threshold
 from common_image.core.threshold import ndimg_to_thresholded_ndimg
 from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from img.filter.base_filter import FilterData, ThresholdFilterResults, FilterResults2
-from img.filter.keras_model import KerasModelFilterResults, KerasModelFilterData
-from img.filter.kmeans_filter import KMeansFilterData, KMeansFilterResults
+from img.filter.keras_model import KerasModelFilterResults, KerasModelFilterData, KerasModelParams
+from img.filter.kmeans_filter import KMeansFilterData, KMeansFilterResults, KMeansParams
 from img.filter.manual_threshold import ManualThresholdFilterData, HSVManualThresholdFilterData, \
     GrayManualThresholdFilterData
-from img.filter.nuclei import NucleiFilterData, NucleiFilterResults
-from img.filter.positive_pixel_count import PositivePixelCountFilterResults, PositivePixelCountFilterData
+from img.filter.nuclei import NucleiFilterData, NucleiFilterResults, NucleiParams
+from img.filter.positive_pixel_count import PositivePixelCountFilterResults, PositivePixelCountFilterData, PositivePixelCountParams, \
+    positive_pixel_count2
 from img.filter.skimage_threshold import SkimageAutoThresholdFilterData, SkimageThresholdParams, \
     SkimageMinimumThresholdFilterData, SkimageMeanThresholdFilterData
-from common_image.core.hist_html import build_histogram_html
-from img.proc.keras_model import KerasModelParams
-from img.proc.kmeans import KMeansParams
-from common_image.core.kmeans import ndimg_to_quantized_ndimg
 from img.proc.mask import build_mask
-from img.proc.nuclei import NucleiParams, ndimg_to_nuclei_seg_mask
-from img.proc.positive_pixel_count import PositivePixelCountParams, positive_pixel_count2
+from common_htk.nuclei import ndimg_to_nuclei_seg_mask
 from img.proc.region import RegionData, read_region, deshift_points, rescale_points
-from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
 from slide_viewer.common.slide_helper import SlideHelper
@@ -268,7 +266,11 @@ def manual_threshold_filter(rd: RegionData, color_mode: str, threshold_range: tu
 def skimage_threshold_filter(rd: RegionData, params: SkimageThresholdParams):
     ndimg = read_masked_region(rd)
     converted_ndimg = closure_nonhashable(hashkey(rd), ndimg, convert_ndimg)("L")
-    threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimg)
+    kwargs = remove_none_values(asdict(params.params)) if params.params else {}
+    # return ndimg_to_skimage_thresholded_ndimg(img.ndarray, params.type.name, **kwargs)
+    threshold = find_ndimg_skimage_threshold(converted_ndimg, params.type.name, **kwargs)
+    threshold_range = (0, threshold)
+    # threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimg)
     return threshold_filter(converted_ndimg, threshold_range)
 
 

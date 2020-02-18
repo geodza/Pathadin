@@ -1,9 +1,11 @@
 from typing import List
 
 import openslide
+from dataclasses import asdict
 from shapely.geometry import Polygon
 from shapely.strtree import STRtree
 
+from common.dict_utils import remove_none_values
 from common_image.core.mode_convert import convert_ndimg
 from common_image.core.object_convert import pilimg_to_ndimg
 from common_image.core.img_polygon_utils import create_polygon_image, get_polygon_bbox_image_view, draw_source_on_target_polygon
@@ -12,8 +14,7 @@ from common_shapely.shapely_utils import locate, scale_at_origin, get_polygon_bb
 from img.filter.base_filter import FilterData, FilterType
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.skimage_threshold import SkimageThresholdParams, SkimageThresholdType
-from img.proc.threshold.skimage_threshold import ndimg_to_skimage_threshold_range
-from common_image.core.threshold import ndimg_to_thresholded_ndimg
+from common_image.core.skimage_threshold import  ndimg_to_skimage_thresholded_ndimg
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 
 
@@ -39,8 +40,10 @@ def get_filter(id: str) -> FilterData:
 def process_filter(img: Ndimg, filter_data: FilterData) -> Ndimg:
     converted_ndimgdata = convert_ndimg(img, 'L')
     params = SkimageThresholdParams(SkimageThresholdType.threshold_mean, {})
-    threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimgdata)
-    return ndimg_to_thresholded_ndimg(converted_ndimgdata, threshold_range)
+    kwargs = remove_none_values(asdict(params.params))
+    return ndimg_to_skimage_thresholded_ndimg(img.ndarray, params.type.name, **kwargs)
+    # threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimgdata)
+    # return ndimg_to_thresholded_ndimg(converted_ndimgdata, threshold_range)
 
 
 def create_annotation_polygon_image(slide: openslide.AbstractSlide,

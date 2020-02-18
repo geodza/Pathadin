@@ -9,13 +9,12 @@ from PyQt5.QtGui import QCloseEvent, QColor, QBrush
 from PyQt5.QtWidgets import QMainWindow, QApplication, QItemEditorFactory, \
     QDockWidget, QMdiArea, QMdiSubWindow, QMenu
 
-from img.filter.keras_model import KerasModelFilterData
+from img.filter.keras_model import KerasModelFilterData, KerasModelParams
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.manual_threshold import GrayManualThresholdFilterData, HSVManualThresholdFilterData
 from img.filter.nuclei import NucleiFilterData
 from img.filter.positive_pixel_count import PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
-from img.proc.keras_model import KerasModelParams
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.persistent_settings.settings_utils import write_settings, read_settings
 from common_qt.slot_disconnected_utils import slot_disconnected

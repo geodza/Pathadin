@@ -24,6 +24,7 @@ def ndarray_to_thresholded_ndarray(ndarray: np.ndarray, threshold_range: Tuple) 
         result_ndarray = np.sum(result_ndarray != 0, axis=2, dtype=np.uint8)
         result_ndarray[:] = result_ndarray // nchannels
         result_ndarray[:] = result_ndarray * 255
+    result_ndarray = np.atleast_3d(result_ndarray)
     return result_ndarray
 
 

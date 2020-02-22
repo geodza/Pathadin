@@ -19,6 +19,7 @@ def annotation_geom_to_shapely_geom(geometry: AnnotationGeometry) -> BaseGeometr
         p1, p2 = geometry.points
         # return box(p1[0], p1[1], p2[0], p2[1])
         return translate(Polygon([p1, (p2[0], p1[1]), p2, (p1[0], p2[1]), p1]), *shift)
+    # TODO another types
     else:
         # ignore ellipse and line
         print(f"Ignoring not polygon or rect geometry: {geometry}")
@@ -29,8 +30,9 @@ def annotation_to_geom(annotation: AnnotationModel, prepare=False) -> BaseGeomet
     geom = annotation_geom_to_shapely_geom(annotation.geometry)
     if geom:
         if not geom.is_valid:
+            geom = geom.buffer(0)
+        if not geom.is_valid:
             print(f'invalid geom: {annotation}')
-        geom = geom if geom.is_valid else geom.buffer(0)
         # if prepare:
         #     geom = prep(geom)
         geom.annotation = annotation

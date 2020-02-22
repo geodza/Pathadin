@@ -29,6 +29,7 @@ def plot_image_tuples(image_tuples: Iterable[Tuple[np.ndarray, ...]], ncols: int
     # for image_tuple in image_tuples:
     for image in images:
         ax = plt.subplot(nrows, ncols, i + 1)
+        # ax.set_title(str)
         ax.axis('off')
         plt.imshow(image, **imshow_kwargs)
         i += 1

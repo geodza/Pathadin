@@ -124,31 +124,32 @@ def save_ndarray_as_image_to_filesystem(ndarray: np.ndarray, path: str) -> None:
 
 def load_named_ndarrays(path: str,
                         name_filter: Callable[[str], bool] = lambda _: True,
-                        name_filter_pattern: Optional[str] = None) \
+                        name_pattern: Optional[str] = None) \
         -> Iterable[NamedNdarray]:
     path = pathlib.Path(path)
     if path.suffix in HDF5_EXTENSIONS:
-        return load_named_ndarrays_from_hdf5(path, name_filter, name_filter_pattern)
+        return load_named_ndarrays_from_hdf5(path, name_filter, name_pattern)
     elif path.suffix in ARCHIVE_EXTENSIONS:
-        return load_named_ndarrays_from_zip(path, name_filter, name_filter_pattern)
+        return load_named_ndarrays_from_zip(path, name_filter, name_pattern)
     elif path.is_dir():
-        return load_named_ndarrays_from_folder(path, name_filter, name_filter_pattern)
+        return load_named_ndarrays_from_folder(path, name_filter, name_pattern)
     else:
         raise ValueError(f"Cant load from {path}")
 
 
 def load_named_ndarrays_from_hdf5(file_path: str,
                                   name_filter: Callable[[str], bool] = lambda _: True,
-                                  name_filter_pattern: Optional[str] = None,
+                                  name_pattern: Optional[str] = None,
                                   force_copy_to_memory: bool = True) \
         -> Iterable[NamedNdarray]:
     filtered_names = []
 
     def visit(name, obj):
         if isinstance(obj, Dataset):
-            if _filter_name(name, name_filter, name_filter_pattern):
+            if _filter_name(name, name_filter, name_pattern):
                 filtered_names.append(name)
 
+    filtered_names.sort()
     with h5py.File(file_path, 'r') as f:
         f.visititems(visit)
         for name in filtered_names:
@@ -159,30 +160,34 @@ def load_named_ndarrays_from_hdf5(file_path: str,
 
 def load_named_ndarrays_from_zip(file_path: str,
                                  name_filter: Callable[[str], bool] = lambda _: True,
-                                 name_filter_pattern: Optional[str] = None,
+                                 name_pattern: Optional[str] = None,
                                  mmap_mode=None) -> Iterable[NamedNdarray]:
     with np.load(file_path, mmap_mode=mmap_mode) as f:
-        for name in f.keys():
-            if _filter_name(name, name_filter, name_filter_pattern):
-                ndarray = f[name]
-                yield (name, ndarray)
+        filtered_names = [name for name in f.keys() if _filter_name(name, name_filter, name_pattern)]
+        filtered_names.sort()
+        for name in filtered_names:
+            ndarray = f[name]
+            yield (name, ndarray)
 
 
 def load_named_ndarrays_from_folder(root_folder: str,
                                     name_filter: Callable[[str], bool] = lambda _: True,
-                                    name_filter_pattern: Optional[str] = None) -> Iterable[NamedNdarray]:
+                                    name_pattern: Optional[str] = None) -> Iterable[NamedNdarray]:
     predefined_working_folder = 'patches'
     working_folder = pathlib.Path(root_folder, predefined_working_folder)
+    filtered_names=[]
     for root, dirs, files in os.walk(working_folder, topdown=True):
         for name in files:
             # name = os.path.join(root, name)
-            file_path = os.path.join(root, name)
             # name = str(pathlib.Path(root, name).with_suffix(""))
             name = str(pathlib.Path(root, name).relative_to(working_folder).as_posix())
-            if _filter_name(name, name_filter, name_filter_pattern):
-                ndarray = load_ndarray_from_filesystem(file_path)
-                yield (name, ndarray)
-
+            if _filter_name(name, name_filter, name_pattern):
+                filtered_names.append(name)
+    filtered_names.sort()
+    for name in filtered_names:
+        file_path = str(pathlib.Path(working_folder, name))
+        ndarray = load_ndarray_from_filesystem(file_path)
+        yield (name, ndarray)
 
 def load_ndarray_from_filesystem(path: str) -> np.ndarray:
     path = pathlib.Path(path)
@@ -196,8 +201,8 @@ def named_ndarrays_to_ndarrays(named_ndarrays: Iterable[NamedNdarray]) -> Iterab
     return map(operator.itemgetter(1), named_ndarrays)
 
 
-def _filter_name(name: str, name_filter: Callable[[str], bool], name_filter_pattern: Optional[str] = None) -> bool:
-    return name_filter(name) and (not name_filter_pattern or re.search(name_filter_pattern, name))
+def _filter_name(name: str, name_filter: Callable[[str], bool], name_pattern: Optional[str] = None) -> bool:
+    return name_filter(name) and (not name_pattern or re.search(name_pattern, name))
 
 
 def _build_valid_path(path: str) -> str:

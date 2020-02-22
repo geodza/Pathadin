@@ -45,12 +45,6 @@ if __name__ == '__main__':
                     2,
                     True,
                     metadata={"name": "image"}
-                ),
-                PatchImageConfig(
-                    r"D:\temp\slides\slide1.mrxs",
-                    3,
-                    True,
-                    metadata={"name": "image"}
                 )
             ]
         ),
@@ -64,7 +58,7 @@ if __name__ == '__main__':
                                                     level, metadata={"name": "image"}),
                                ]),
     ]
-    patch_responses = PatchResponseGenerator().create(configs[:1])
+    patch_responses = PatchResponseGenerator().create(configs[1:])
     # format_str = r"{cfg.slide_path}/{cfg.level}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[0]},{pos[1]})_{cfg.level}_{cfg.metadata[name]}.png"
     # format_str = r"{cfg.slide_path}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[0]},{pos[1]})_{cfg.level}_{cfg.metadata[name]}.png"
     format_str = r"{cfg.slide_path}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[1]},{pos[0]})_{cfg.level}_{cfg.metadata[name]}"

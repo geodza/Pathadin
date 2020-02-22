@@ -2,7 +2,7 @@ from typing import List
 
 import openslide
 from dataclasses import asdict
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, MultiPolygon
 from shapely.strtree import STRtree
 
 from common.dict_utils import remove_none_values
@@ -100,13 +100,17 @@ def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon: Polygon,
         polygon_img = create_polygon_image(polygon, 'RGB')
 
     for intersecting_geom, intersecting_geom_intersection in zip(intersecting_geoms, intersecting_geoms_intersections):
-        if not isinstance(intersecting_geom_intersection, Polygon):
-            # TODO consider geometry collection containing polygon
+        if isinstance(intersecting_geom_intersection, Polygon):
+            intersecting_geoms_polygons=[intersecting_geom_intersection]
+        elif isinstance(intersecting_geom_intersection,MultiPolygon):
+            intersecting_geoms_polygons=intersecting_geom_intersection.geoms
+        else:
             print(f"Ignoring not Polygon intersection {intersecting_geom_intersection}")
             continue
-        intersecting_geom_intersection = scale_at_origin(locate(intersecting_geom_intersection, polygon), level_scale)
-        annotation_polygon_image = create_annotation_polygon_image(slide, intersecting_geom.annotation, intersecting_geom,
-                                                                   intersecting_geom_intersection, zlayers_rtrees[:-1])
-        draw_source_on_target_polygon(polygon_img, intersecting_geom_intersection, annotation_polygon_image)
+        for intersecting_geom_polygon in intersecting_geoms_polygons:
+            intersecting_geom_polygon = scale_at_origin(locate(intersecting_geom_polygon, polygon), level_scale)
+            annotation_polygon_image = create_annotation_polygon_image(slide, intersecting_geom.annotation, intersecting_geom,
+                                                                       intersecting_geom_polygon, zlayers_rtrees[:-1])
+            draw_source_on_target_polygon(polygon_img, intersecting_geom_polygon, annotation_polygon_image)
 
     return polygon_img

@@ -22,7 +22,6 @@ def process_pic(patch_geometries: PatchGeometryIterable, cfg: PatchImageConfig) 
     annotations_path = cfg.annotations_path
     annotation_geoms = load_annotation_geoms(annotations_path) if annotations_path else []
     zlayers_rtrees = create_zlayers_rtrees(annotation_geoms)
-    pigf = AnnotationsPatchImageGenerator(cfg.slide_path, cfg.level, zlayers_rtrees)
     # TODO wrap pig to adjust offset if not None
-    pig = pigf.create(patch_geometries)
-    return pig
+    patch_images = AnnotationsPatchImageGenerator(cfg.slide_path, cfg.level, cfg.rescale_result_image, zlayers_rtrees).create(patch_geometries)
+    return patch_images

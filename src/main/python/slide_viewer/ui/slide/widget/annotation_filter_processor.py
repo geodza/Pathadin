@@ -39,7 +39,8 @@ from img.filter.skimage_threshold import SkimageAutoThresholdFilterData, Skimage
     SkimageMinimumThresholdFilterData, SkimageMeanThresholdFilterData
 from img.proc.mask import build_mask
 from common_htk.nuclei import ndimg_to_nuclei_seg_mask
-from img.proc.region import RegionData, read_region, deshift_points, rescale_points
+from img.proc.region import RegionData, read_region
+from common.points_utils import deshift_points, rescale_points
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
 from slide_viewer.common.slide_helper import SlideHelper

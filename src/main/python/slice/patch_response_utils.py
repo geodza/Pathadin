@@ -9,22 +9,14 @@ from slice.model.patch_response import PatchResponseIterable
 PatchResponseGroup = Tuple[str, PatchResponseIterable]
 
 
-def collect_patch_responses_images_to_ndarray(patch_responses: PatchResponseIterable) -> np.ndarray:
+def stack_patch_responses_images(patch_responses: PatchResponseIterable) -> np.ndarray:
     imgs = [pr.img.ndarray for pr in patch_responses]
     ndarray = np.stack(imgs)
     return ndarray
 
 
-def collect_images_inside_groups(groups: Iterable[PatchResponseGroup]) -> Iterable[Tuple[str, np.ndarray]]:
-    return map_inside_group(groups, collect_patch_responses_images_to_ndarray)
-
-
-def group_patch_responses(patch_responses: PatchResponseIterable, group_key_format: str) -> Iterable[PatchResponseGroup]:
-    return groupbyformat(patch_responses, group_key_format)
-
-
-def collect_responses_to_named_ndarrays(patch_responses: PatchResponseIterable, group_key_format: str) -> Iterable[NamedNdarray]:
-    response_groups = groupbyformat(patch_responses, group_key_format)
-    image_groups = collect_images_inside_groups(response_groups)
+def patch_responses_to_named_ndarrays(patch_responses: PatchResponseIterable, group_key_format: str) -> Iterable[NamedNdarray]:
+    patch_responses_groups = groupbyformat(patch_responses, group_key_format)
+    image_groups = map_inside_group(patch_responses_groups, stack_patch_responses_images)
     # image_groups = list(image_groups)
     return image_groups

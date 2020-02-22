@@ -6,10 +6,11 @@ import numpy as np
 from common_image.model.ndimg import Ndimg
 
 
-def resize_ndarray(ndarray: np.ndarray, nrows_ncols: Tuple[int, int], interpolation=None) -> np.ndarray:
+def resize_ndarray(ndarray: np.ndarray, nrows_ncols: Tuple[int, int], interpolation=cv2.INTER_LINEAR) -> np.ndarray:
     ndarray_ = cv2.resize(ndarray, nrows_ncols[::-1], interpolation=interpolation)
     ndarray_ = np.atleast_3d(ndarray_)
     return ndarray_
+
 
 def resize_ndimg(ndimg: Ndimg, nrows_ncols: Tuple[int, int]) -> Ndimg:
     ndarray_ = resize_ndarray(ndimg.ndarray, nrows_ncols)

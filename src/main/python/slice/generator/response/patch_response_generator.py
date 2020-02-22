@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import replace, asdict
 
 from slice.annotation_shapely_utils import load_annotation_geoms
@@ -26,13 +27,13 @@ def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseIterable:
     annotation_geoms = load_annotation_geoms(cfg.annotations_path) if cfg.annotations_path else []
     patch_geometries = create_patch_geometry_hooks_generator(cfg.grid_length, annotation_geoms).create(patch_positions)
     # patch_geometries = itertools.islice(patch_geometries, 5)
-    pig = process_pic(patch_geometries, cfg)
+    patch_images = process_pic(patch_geometries, cfg)
     if not cfg.dependents:
-        for (x, y), polygon, img in pig:
+        for (x, y), polygon, img in patch_images:
             yield PatchResponse((x, y), polygon, img, cfg)
     else:
         patch_source_geometries = []
-        for (x, y), polygon, img in pig:
+        for (x, y), polygon, img in patch_images:
             yield PatchResponse((x, y), polygon, img, cfg)
             patch_source_geometries.append(((x, y), polygon))
         for dep in cfg.dependents:

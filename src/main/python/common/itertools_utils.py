@@ -1,16 +1,31 @@
+from typing import TypeVar, Iterable, Tuple, Callable, Any
+
 import itertools
-from typing import TypeVar, Iterable, Tuple, Callable
 
 
-def batchify(generator, batch_size):
-    items = []
-    for i, item in enumerate(generator):
-        items.append(item)
-        if (i + 1) % batch_size == 0:
-            yield items
-            items = []
-    if items:
-        yield items
+def batchify(items: Iterable, batch_size: int, batches_mapper: Callable[[Iterable], Any] = None) -> Iterable[Iterable]:
+    item_groups = itertools.groupby(enumerate(items), lambda t: t[0] // batch_size)
+    item_batches = ((item[1] for item in group_items) for key, group_items in item_groups)
+    if batches_mapper is not None:
+        item_batches = map(batches_mapper, item_batches)
+    return item_batches
+
+
+def do_by_batches(items: Iterable, batch_size, func: Callable[[Iterable], None]) -> None:
+    items_batches = batchify(items, batch_size)
+    for batch in items_batches:
+        func(batch)
+
+
+# def batchify(generator, batch_size):
+#     items = []
+#     for i, item in enumerate(generator):
+#         items.append(item)
+#         if (i + 1) % batch_size == 0:
+#             yield items
+#             items = []
+#     if items:
+#         yield items
 
 
 def star_batchify(generator, batch_size):

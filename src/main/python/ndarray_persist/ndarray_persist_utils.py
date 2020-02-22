@@ -59,7 +59,7 @@ def save_named_ndarrays_to_hdf5(named_ndarrays: Iterable[NamedNdarray],
             # dataset.attrs['dataset_path_format'] = dataset_path_format
 
 
-def save_named_ndarrays_to_zip(named_ndarrays: Iterable[NamedNdarray], file_path: str, verbosity=0, ) -> None:
+def save_named_ndarrays_to_zip(named_ndarrays: Iterable[NamedNdarray], file_path: str, verbosity=0) -> None:
     file_path = pathlib.Path(file_path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     ndarrays = {}
@@ -69,7 +69,9 @@ def save_named_ndarrays_to_zip(named_ndarrays: Iterable[NamedNdarray], file_path
             print(f"saving {ndarray_path}")
         ndarray = _squeeze_if_need(ndarray)
         ndarrays[ndarray_path] = ndarray
-    np.savez_compressed(str(file_path), **ndarrays)
+    with open(file_path, 'wb') as f:
+        # np.savez_compressed(str(file_path), **ndarrays)
+        np.savez_compressed(f, **ndarrays)
 
 
 def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_folder: str, delete_working_folder=False, verbosity=0) -> None:
@@ -81,7 +83,7 @@ def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_f
     for name, ndarray in named_ndarrays:
         ndarray_path = _build_valid_path(name)
         ndarray_path = working_folder.joinpath(ndarray_path)
-        ndarray_path = ndarray_path if ndarray_path.suffix else ndarray_path.with_suffix(DEFAULT_IMAGE_EXTENSION)
+        # ndarray_path = ndarray_path if ndarray_path.suffix else ndarray_path.with_suffix(DEFAULT_IMAGE_EXTENSION)
         if verbosity > 0:
             print(f"saving {ndarray_path}")
         ndarray = _squeeze_if_need(ndarray)
@@ -90,7 +92,7 @@ def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_f
 
 def save_ndarray_to_filesystem(ndarray: np.ndarray, path: str) -> None:
     path = pathlib.Path(path)
-    path = path if path.suffix else path.with_suffix('.npz')
+    # path = path if path.suffix else path.with_suffix('.npz')
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.suffix == '.npy':
         np.save(str(path), ndarray)
@@ -102,15 +104,22 @@ def save_ndarray_to_filesystem(ndarray: np.ndarray, path: str) -> None:
 
 def save_ndarray_as_image_to_filesystem(ndarray: np.ndarray, path: str) -> None:
     path = pathlib.Path(path)
-    path = path if path.suffix else path.with_suffix(DEFAULT_IMAGE_EXTENSION)
+    # path = path if path.suffix else path.with_suffix(DEFAULT_IMAGE_EXTENSION)
     path.parent.mkdir(parents=True, exist_ok=True)
     image = _squeeze_if_need(ndarray)
     if len(ndarray.shape) > 3 and ndarray.shape[0] != 1:
         # raise ValueError('Cant save multidim image')
         image = np.atleast_3d(ndarray.ravel())
         warnings.warn(f"ndarray with shape {ndarray.shape} reshaped to {image.shape}")
-
-    io.imsave(path, image, check_contrast=False)
+    if pathlib.Path(path).suffix:
+        if pathlib.Path(path).suffix.lower() == '.png':
+            io.imsave(path, image, check_contrast=False, compress_level=3)
+        else:
+            io.imsave(path, image, check_contrast=False)
+    else:
+        # we save in png format but do not add suffix to path because client
+        # doesn't specify it and will expect the same name when loading it back to memory
+        io.imsave(path, image, check_contrast=False, format='png', compress_level=3)
 
 
 def load_named_ndarrays(path: str,
@@ -162,11 +171,16 @@ def load_named_ndarrays_from_zip(file_path: str,
 def load_named_ndarrays_from_folder(root_folder: str,
                                     name_filter: Callable[[str], bool] = lambda _: True,
                                     name_filter_pattern: Optional[str] = None) -> Iterable[NamedNdarray]:
-    for root, dirs, files in os.walk(root_folder, topdown=True):
+    predefined_working_folder = 'patches'
+    working_folder = pathlib.Path(root_folder, predefined_working_folder)
+    for root, dirs, files in os.walk(working_folder, topdown=True):
         for name in files:
-            name = os.path.join(root, name)
+            # name = os.path.join(root, name)
+            file_path = os.path.join(root, name)
+            # name = str(pathlib.Path(root, name).with_suffix(""))
+            name = str(pathlib.Path(root, name).relative_to(working_folder).as_posix())
             if _filter_name(name, name_filter, name_filter_pattern):
-                ndarray = load_ndarray_from_filesystem(name)
+                ndarray = load_ndarray_from_filesystem(file_path)
                 yield (name, ndarray)
 
 

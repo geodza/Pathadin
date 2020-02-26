@@ -5,9 +5,9 @@ from slice.generator.pos.patch_pos_generator import PatchPosGenerator
 
 if __name__ == '__main__':
     roipg = PatchGeometryGeneratorHooks(
-        256,
-        [BBGeometryProbablyContainsHook(ProbablyContainsChecker(512, 512, 1024, 1024))],
-        []
+        patch_size=(256, 256),
+        bb_hooks=[BBGeometryProbablyContainsHook(ProbablyContainsChecker(512, 512, 1024, 1024))],
+        patch_hooks=[]
     )
     poss = PatchPosGenerator((1000, 1000), 256).create()
     gen = roipg.create(poss)

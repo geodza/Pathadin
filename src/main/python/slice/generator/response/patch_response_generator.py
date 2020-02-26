@@ -1,5 +1,5 @@
-import itertools
 from dataclasses import replace, asdict
+from shapely.affinity import translate
 
 from slice.annotation_shapely_utils import load_annotation_geoms
 from slice.factory import create_patch_geometry_hooks_generator, create_patch_pos_generator
@@ -23,9 +23,13 @@ def process_pisc(cfg: PatchImageSourceConfig) -> PatchResponseIterable:
     # TODO consider different objective-powers of slides? Do rescale to some target objective-power?
     # TODO consider color mode conversion hooks (at least at start we dont need RGBA)
     cfg = fix_cfg(cfg)
-    patch_positions = create_patch_pos_generator(cfg.slide_path, cfg.stride, cfg.offset_x, cfg.offset_y).create()
+    stride_x = cfg.stride_x if cfg.stride_x else cfg.patch_size[0]
+    stride_y = cfg.stride_y if cfg.stride_y else cfg.patch_size[1]
+    patch_positions = create_patch_pos_generator(cfg.slide_path, stride_x, stride_y, cfg.offset_x, cfg.offset_y).create()
     annotation_geoms = load_annotation_geoms(cfg.annotations_path) if cfg.annotations_path else []
-    patch_geometries = create_patch_geometry_hooks_generator(cfg.grid_length, annotation_geoms).create(patch_positions)
+    patch_geometries = create_patch_geometry_hooks_generator(cfg.slide_path, cfg.patch_size, annotation_geoms).create(patch_positions)
+    if cfg.offset_x and cfg.offset_y:
+        patch_geometries = map(lambda p: translate(p, cfg.offset_x, cfg.offset_y), patch_geometries)
     # patch_geometries = itertools.islice(patch_geometries, 5)
     patch_images = process_pic(patch_geometries, cfg)
     if not cfg.dependents:

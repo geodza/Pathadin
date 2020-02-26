@@ -35,6 +35,8 @@ def save_named_ndarrays(named_ndarrays: Iterable[NamedNdarray], path: str, delet
             save_named_ndarrays_to_zip(named_ndarrays, str(path), verbosity=verbosity)
     else:
         raise ValueError('Unsupported file extension')
+    if verbosity > 0:
+        print(f"successfully saved to: {path}")
 
 
 def save_named_ndarrays_to_hdf5(named_ndarrays: Iterable[NamedNdarray],
@@ -175,7 +177,7 @@ def load_named_ndarrays_from_folder(root_folder: str,
                                     name_pattern: Optional[str] = None) -> Iterable[NamedNdarray]:
     predefined_working_folder = 'patches'
     working_folder = pathlib.Path(root_folder, predefined_working_folder)
-    filtered_names=[]
+    filtered_names = []
     for root, dirs, files in os.walk(working_folder, topdown=True):
         for name in files:
             # name = os.path.join(root, name)
@@ -188,6 +190,7 @@ def load_named_ndarrays_from_folder(root_folder: str,
         file_path = str(pathlib.Path(working_folder, name))
         ndarray = load_ndarray_from_filesystem(file_path)
         yield (name, ndarray)
+
 
 def load_ndarray_from_filesystem(path: str) -> np.ndarray:
     path = pathlib.Path(path)

@@ -1,13 +1,15 @@
-from typing import TypeVar, Iterable, Tuple, Callable, Any
-
 import itertools
+from typing import TypeVar, Iterable, Tuple, Callable, Any
 
 
 def batchify(items: Iterable, batch_size: int, batches_mapper: Callable[[Iterable], Any] = None) -> Iterable[Iterable]:
+    # enumerate items and group them by batch index
     item_groups = itertools.groupby(enumerate(items), lambda t: t[0] // batch_size)
-    item_batches = ((item[1] for item in group_items) for key, group_items in item_groups)
-    if batches_mapper is not None:
-        item_batches = map(batches_mapper, item_batches)
+    # extract items from enumeration tuples
+    if batches_mapper:
+        item_batches = (batches_mapper(t[1] for t in group_items) for key, group_items in item_groups)
+    else:
+        item_batches = ((t[1] for t in group_items) for key, group_items in item_groups)
     return item_batches
 
 

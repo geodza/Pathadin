@@ -49,9 +49,22 @@ def grid_pos_range(source_size: Tuple[int, int], grid_length: int):
 #     rows = ceil(sh / gh)
 #     return ((x_offset + col * grid_length, y_offset + row * grid_length) for row in range(rows) for col in range(cols))
 
-def pos_range(source_size: Tuple[int, int], stride: int, x_offset: int = 0, y_offset: int = 0):
+def pos_range(source_size: Tuple[int, int], x_stride: int, y_stride: int, x_offset: int = 0, y_offset: int = 0):
     # x,y
     sw, sh = source_size
-    cols = ceil((sw - x_offset) / stride)
-    rows = ceil((sh - y_offset) / stride)
-    return ((int(x_offset + col * stride), int(y_offset + row * stride)) for row in range(rows) for col in range(cols))
+    if x_stride <= 0:
+        x_stride = source_size[0]
+    elif x_stride <= 1:
+        x_stride = source_size[0] * x_stride
+    if y_stride <= 0:
+        y_stride = source_size[1]
+    elif y_stride <= 1:
+        y_stride = source_size[1] * y_stride
+
+    cols = ceil((sw - x_offset) / x_stride)
+    rows = ceil((sh - y_offset) / y_stride)
+    return ((int(x_offset + col * x_stride), int(y_offset + row * y_stride)) for row in range(rows) for col in range(cols))
+
+
+if __name__ == '__main__':
+    print(list(pos_range((100, 500), -1, 10)))

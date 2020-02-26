@@ -10,14 +10,14 @@ from slice.model.patch_pos import PatchPosIterable
 
 @dataclass
 class PatchGeometryGeneratorHooksTemplate(PatchGeometryGenerator):
-    grid_length: int
+    patch_size: Tuple[int, int]
 
     def create(self, patch_positions: PatchPosIterable) -> PatchGeometryIterable:
-        grid_length = self.grid_length
+        w, h = self.patch_size
         for x, y in patch_positions:
-            if not self.patch_bb_filter_hook((x, y), (x + grid_length, y + grid_length)):
+            if not self.patch_bb_filter_hook((x, y), (x + w, y + h)):
                 continue
-            patch = box(x, y, x + grid_length, y + grid_length)
+            patch = box(x, y, x + w, y + h)
             if not self.patch_filter_hook(((x, y), patch)):
                 continue
             yield ((x, y), patch)

@@ -1,4 +1,4 @@
-from typing import Optional, List, Iterable
+from typing import Optional, List, Iterable, Tuple
 
 from dataclasses import dataclass, field
 
@@ -7,8 +7,9 @@ from slice.model.patch_image_config import PatchImageConfig
 
 @dataclass
 class PatchImageSourceConfig(PatchImageConfig):
-    grid_length: int = 256
-    stride: Optional[int] = None
+    patch_size: Tuple[int, int]=(256,256)
+    stride_x: Optional[int] = None
+    stride_y: Optional[int] = None
     dependents: List[PatchImageConfig] = field(default_factory=list)
 
 

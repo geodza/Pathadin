@@ -183,7 +183,7 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
     level_width, level_height = ceil(width / level_downsample), ceil(height / level_downsample)
     width, height = ceil(level_width / grid_length) * grid_length, ceil(level_height / grid_length) * grid_length
     size = (width, height)
-    with openslide.OpenSlide(rd.img_path) as f:
+    with openslide.open_slide(rd.img_path) as f:
         pilimg = f.read_region(pos, level, size)
 
     #     pilimg.resize(())

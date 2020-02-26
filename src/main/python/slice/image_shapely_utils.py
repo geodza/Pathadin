@@ -1,20 +1,13 @@
 from typing import List
 
 import openslide
-from dataclasses import asdict
 from shapely.geometry import Polygon, MultiPolygon
 from shapely.strtree import STRtree
 
-from common.dict_utils import remove_none_values
-from common_image.core.img_polygon_utils import create_polygon_image, get_polygon_bbox_image_view, draw_source_on_target_polygon
-from common_image.core.mode_convert import convert_ndimg
+from common_image.core.img_polygon_utils import create_polygon_image, draw_source_on_target_polygon
 from common_image.core.object_convert import pilimg_to_ndimg
-from common_image.core.skimage_threshold import ndimg_to_skimage_thresholded_ndimg
 from common_image.model.ndimg import Ndimg
 from common_shapely.shapely_utils import locate, scale_at_origin, get_polygon_bbox_pos, get_polygon_bbox_size
-from img.filter.base_filter import FilterData, FilterType
-from img.filter.kmeans_filter import KMeansFilterData
-from img.filter.skimage_threshold import SkimageThresholdParams, SkimageThresholdType
 from slide_viewer.ui.odict.deep.model import AnnotationModel
 
 
@@ -38,17 +31,17 @@ def get_slide_polygon_bbox_rgb_region(slide: openslide.AbstractSlide, polygon: P
     return ndimg
 
 
-def get_filter(id: str) -> FilterData:
-    return None
-
-
-def process_filter(img: Ndimg, filter_data: FilterData) -> Ndimg:
-    converted_ndimgdata = convert_ndimg(img, 'L')
-    params = SkimageThresholdParams(SkimageThresholdType.threshold_mean, {})
-    kwargs = remove_none_values(asdict(params.params))
-    return ndimg_to_skimage_thresholded_ndimg(img.ndarray, params.type.name, **kwargs)
-    # threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimgdata)
-    # return ndimg_to_thresholded_ndimg(converted_ndimgdata, threshold_range)
+# def get_filter(id: str) -> FilterData:
+#     return None
+#
+#
+# def process_filter(img: Ndimg, filter_data: FilterData) -> Ndimg:
+#     converted_ndimgdata = convert_ndimg(img, 'L')
+#     params = SkimageThresholdParams(SkimageThresholdType.threshold_mean, {})
+#     kwargs = remove_none_values(asdict(params.params))
+#     return ndimg_to_skimage_thresholded_ndimg(img.ndarray, params.type.name, **kwargs)
+#     # threshold_range = ndimg_to_skimage_threshold_range(params, converted_ndimgdata)
+#     # return ndimg_to_thresholded_ndimg(converted_ndimgdata, threshold_range)
 
 
 def create_annotation_polygon_image(slide: openslide.AbstractSlide,
@@ -56,8 +49,10 @@ def create_annotation_polygon_image(slide: openslide.AbstractSlide,
                                     zlayers_rtrees: List[STRtree]) -> Ndimg:
     # filter = get_filter(annotation.filter_id)
     # filter_level = annotation.filter_level
-    filter = KMeansFilterData("123")
-    filter_level = 2
+    # filter = KMeansFilterData("123")
+
+    filter_level = annotation.filter_level if annotation.filter_level is not None else min(2, slide.level_count - 1)
+    filter_level = int(filter_level)
     level_scale = 1 / slide.level_downsamples[filter_level]
 
     # TODO mask color - is filter too!?
@@ -65,17 +60,17 @@ def create_annotation_polygon_image(slide: openslide.AbstractSlide,
     if mask_color is not None:
         polygon_ = scale_at_origin(locate(polygon, polygon), level_scale)
         return create_polygon_image(polygon_, 'L', mask_color)
-
-    if filter.filter_type in [FilterType.KMEANS]:
-        source_polygon = annotation_geom
-    else:
-        source_polygon = polygon
-    target_polygon = scale_at_origin(locate(polygon, source_polygon), level_scale)
-
-    source = create_layer_polygon_image(slide, source_polygon, filter_level, zlayers_rtrees[:-1])
-    target_ = process_filter(source, filter)
-    target = get_polygon_bbox_image_view(target_.ndarray, target_polygon)
-    return Ndimg(target, target_.color_mode, target_.bool_mask_ndarray)
+    #
+    # if filter.filter_type in [FilterType.KMEANS]:
+    #     source_polygon = annotation_geom
+    # else:
+    #     source_polygon = polygon
+    # target_polygon = scale_at_origin(locate(polygon, source_polygon), level_scale)
+    #
+    # source = create_layer_polygon_image(slide, source_polygon, filter_level, zlayers_rtrees[:-1])
+    # target_ = process_filter(source, filter)
+    # target = get_polygon_bbox_image_view(target_.ndarray, target_polygon)
+    # return Ndimg(target, target_.color_mode, target_.bool_mask_ndarray)
 
 
 def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon: Polygon, level: int,
@@ -101,9 +96,9 @@ def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon: Polygon,
 
     for intersecting_geom, intersecting_geom_intersection in zip(intersecting_geoms, intersecting_geoms_intersections):
         if isinstance(intersecting_geom_intersection, Polygon):
-            intersecting_geoms_polygons=[intersecting_geom_intersection]
-        elif isinstance(intersecting_geom_intersection,MultiPolygon):
-            intersecting_geoms_polygons=intersecting_geom_intersection.geoms
+            intersecting_geoms_polygons = [intersecting_geom_intersection]
+        elif isinstance(intersecting_geom_intersection, MultiPolygon):
+            intersecting_geoms_polygons = intersecting_geom_intersection.geoms
         else:
             print(f"Ignoring not Polygon intersection {intersecting_geom_intersection}")
             continue

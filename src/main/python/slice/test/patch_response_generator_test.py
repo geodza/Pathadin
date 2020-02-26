@@ -27,9 +27,9 @@ if __name__ == '__main__':
     # named_ndarrays = load_named_ndarrays_from_hdf5(h5py_file_path)
     # named_ndarrays = list(named_ndarrays)
     level = 2
-    grid_length = 256
+    patch_size = (256, 256)
     # grid_length = 128 * (level) ** 2
-    stride = grid_length
+    stride = patch_size[0]
     configs = [
         PatchImageSourceConfig(
             r"D:\temp\slides\slide1.mrxs",
@@ -37,8 +37,9 @@ if __name__ == '__main__':
             True,
             r"D:\temp\slides\slide1_annotations.json",
             metadata={"name": "label"},
-            grid_length=grid_length,
-            stride=stride,
+            patch_size=patch_size,
+            stride_x=stride,
+            stride_y=stride,
             dependents=[
                 PatchImageConfig(
                     r"D:\temp\slides\slide1.mrxs",
@@ -52,7 +53,9 @@ if __name__ == '__main__':
                                level,
                                True,
                                r"D:\temp\slides\slide5_annotations.json",
-                               metadata={"name": "label"}, grid_length=grid_length, stride=stride,
+                               metadata={"name": "label"}, patch_size=patch_size,
+                               stride_x=stride,
+                               stride_y=stride,
                                dependents=[
                                    PatchImageConfig(r"D:\temp\slides\slide5.mrxs",
                                                     level, metadata={"name": "image"}),
@@ -61,7 +64,7 @@ if __name__ == '__main__':
     patch_responses = PatchResponseGenerator().create(configs[1:])
     # format_str = r"{cfg.slide_path}/{cfg.level}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[0]},{pos[1]})_{cfg.level}_{cfg.metadata[name]}.png"
     # format_str = r"{cfg.slide_path}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[0]},{pos[1]})_{cfg.level}_{cfg.metadata[name]}.png"
-    format_str = r"{cfg.slide_path}/{cfg.grid_length}/{cfg.metadata[name]}/({pos[1]},{pos[0]})_{cfg.level}_{cfg.metadata[name]}"
+    format_str = r"{cfg.slide_path}/{cfg.patch_size}/{cfg.metadata[name]}/({pos[1]},{pos[0]})_{cfg.level}_{cfg.metadata[name]}"
     named_ndarrays = patch_responses_to_named_ndarrays(patch_responses, format_str)
 
     data_folder = pathlib.Path.home().joinpath("temp/slice/256")
@@ -70,7 +73,7 @@ if __name__ == '__main__':
     # data_path = pathlib.Path(data_folder, 'data.zip')
     # data_path = data_folder
     print(data_path)
-    named_ndarrays=list(named_ndarrays)
+    named_ndarrays = list(named_ndarrays)
     save_named_ndarrays(named_ndarrays, str(data_path), delete_if_exists=True, verbosity=1)
 
     # save_named_ndarrays_to_hdf5(named_ndarrays, h5py_file_path, "w", verbosity=1)

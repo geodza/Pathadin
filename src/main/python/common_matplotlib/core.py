@@ -40,3 +40,7 @@ def plot_image_tuples_by_batches(image_tuples: Iterable[Tuple[np.ndarray, ...]],
                                  ncols: int, tuples_per_plot: int, **imshow_kwargs) -> None:
     do_by_batches(image_tuples, tuples_per_plot, lambda batch: plot_image_tuples(batch, ncols, **imshow_kwargs))
 
+def plot_labels_histogram(labels:np.ndarray)->None:
+    values, counts = np.unique(labels, return_counts=True)
+    _ = plt.bar(values, counts, tick_label=values)
+    plt.show()

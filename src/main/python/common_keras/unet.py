@@ -1,8 +1,10 @@
+from typing import Tuple
+
 from keras.layers import *
 from keras.models import *
 
 
-def conv2d_block(input_tensor, n_filters, kernel_size=3, batchnorm=True):
+def conv2d_block(input_tensor, n_filters, kernel_size=3, batchnorm=True) -> Layer:
     # https://github.com/hlamba28/UNET-TGS
     """Function to add 2 convolutional layers with the parameters passed to it"""
     # first layer
@@ -22,10 +24,12 @@ def conv2d_block(input_tensor, n_filters, kernel_size=3, batchnorm=True):
     return x
 
 
-def get_unet(input_img, n_filters=16, dropout=0.1, batchnorm=True):
+# def get_unet(input_img, n_filters=16, dropout=0.1, batchnorm=True):
+def get_unet(input_image_shape: Tuple[int, ...], n_filters=16, dropout=0.1, batchnorm=True) -> Model:
     # https://github.com/hlamba28/UNET-TGS
     """Function to define the UNET Model"""
     # Contracting Path
+    input_img = Input(input_image_shape)
     c1 = conv2d_block(input_img, n_filters * 1, kernel_size=3, batchnorm=batchnorm)
     p1 = MaxPooling2D((2, 2))(c1)
     p1 = Dropout(dropout)(p1)

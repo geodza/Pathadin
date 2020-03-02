@@ -179,9 +179,9 @@ if __name__ == '__main__':
     #
     from ndarray_persist.ndarray_persist_utils import save_named_ndarrays
 
-    data_path = root_output_path.joinpath("results")
+    # data_path = root_output_path.joinpath("results")
     # data_path = root_output_path.joinpath("results.zip")
-    # data_path = root_output_path.joinpath("results.hdf5")
+    data_path = root_output_path.joinpath("results.hdf5")
     save_named_ndarrays(named_ndarrays, str(data_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.

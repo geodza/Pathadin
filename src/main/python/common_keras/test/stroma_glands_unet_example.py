@@ -1,4 +1,4 @@
-from common_matplotlib.core import plot_image_tuples_by_batches
+
 
 if __name__ == '__main__':
     # Warning.
@@ -28,6 +28,9 @@ if __name__ == '__main__':
 
     plt.rcParams['figure.figsize'] = (20, 10)
 
+    # We need to clone project and add it to sys.path (we haven't installable packages yet)
+    # Git clone will work after opening access
+    # !git clone git@gitlab.com:Digipathology/dieyepy.git
     path_to_project = r'D:\projects\dieyepy\src\main\python'
     # path_to_project = 'dieyepy/src/main/python'
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
@@ -37,13 +40,13 @@ if __name__ == '__main__':
 
     # Define path to patches (both images and labels).
     # Example of generating and storing patches from slide images can be found in "slice_example".
-    patches_path = root_path.joinpath("output/results.hdf5")
-
+    patches_path = root_path.joinpath("slice_example_results.hdf5")
+    patches_path.mkdir(parents=True, exist_ok=True)
 
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
     def load_patches():
         if not pathlib.Path(patches_path).exists():
-            urlretrieve("https://drive.google.com/uc?id=1n8TDA-4gnNSb0fUFhm5i7J5FitfcJVoH", str(patches_path))
+            urlretrieve("https://drive.google.com/uc?id=1q842Tv1DZ3vp7068465JNujcencLSZWS", str(patches_path))
 
 
     load_patches()
@@ -137,7 +140,12 @@ if __name__ == '__main__':
     history = model.fit_generator(samples, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=callbacks,
                                   validation_data=(X_test, Y_test))
 
-    # Plot learning process
+    # Plot learning process.
+    # We dont seek for excellent results.
+    # We just want to check some basic indicators of doing things right like:
+    # 1) Train and test losses should decrease
+    # 2) Train and test losses should not too diverge
+    # 3) Train and test losses should not be too similar
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('model loss')
@@ -146,7 +154,9 @@ if __name__ == '__main__':
     plt.legend(['train', 'test'], loc='upper left')
     plt.show()
 
+    # And finally we will check results visually.
     # Let's visualize predictions on train data
+    from common_matplotlib.core import plot_image_tuples_by_batches
     Y_tain_predict = model.predict(X_train)
     plot_image_tuples_by_batches(zip(X_train, Y_train, Y_tain_predict), ncols=6, tuples_per_plot=20)
 

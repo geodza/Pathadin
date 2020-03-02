@@ -1,10 +1,10 @@
-from typing import Tuple, Iterable, Callable
+from math import ceil
+from typing import Tuple, Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
-from math import ceil
 
-from common.itertools_utils import batchify, do_by_batches
+from common.itertools_utils import do_by_batches
 
 
 def plot_named_ndarrays_tuples(named_ndarray_tuples: Iterable[Tuple[Tuple[str, np.ndarray], ...]],
@@ -31,6 +31,7 @@ def plot_image_tuples(image_tuples: Iterable[Tuple[np.ndarray, ...]], ncols: int
         ax = plt.subplot(nrows, ncols, i + 1)
         # ax.set_title(str)
         ax.axis('off')
+        image = image.squeeze()
         plt.imshow(image, **imshow_kwargs)
         i += 1
     plt.show()
@@ -40,7 +41,8 @@ def plot_image_tuples_by_batches(image_tuples: Iterable[Tuple[np.ndarray, ...]],
                                  ncols: int, tuples_per_plot: int, **imshow_kwargs) -> None:
     do_by_batches(image_tuples, tuples_per_plot, lambda batch: plot_image_tuples(batch, ncols, **imshow_kwargs))
 
-def plot_labels_histogram(labels:np.ndarray)->None:
+
+def plot_labels_histogram(labels: np.ndarray) -> None:
     values, counts = np.unique(labels, return_counts=True)
     _ = plt.bar(values, counts, tick_label=values)
     plt.show()

@@ -1,6 +1,19 @@
-
-
 if __name__ == '__main__':
+    # %tensorflow_version 1.x
+    # !ssh-keygen -R gitlab.com
+    # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
+    # !ssh-keygen -t rsa -b 4096 -C gitlab2
+    # !cat ~/.ssh/id_rsa.pub
+    # Git clone will work without ssh after opening access
+    # !git clone git@gitlab.com:Digipathology/dieyepy.git
+    # !git -C dieyepy pull
+    #
+    # We need to clone project and add it to sys.path (we haven't installable packages yet)
+    path_to_project = r'D:\projects\dieyepy\src\main\python'
+    # path_to_project = 'dieyepy/src/main/python'
+    import pathlib, sys
+    sys.path.append(str(pathlib.Path(path_to_project).resolve()))
+
     # Warning.
     # Model-learning process is computationally heavy.
     # We recommend you to run it on machine with powerful GPU.
@@ -22,18 +35,9 @@ if __name__ == '__main__':
     # It means that in application you can specify keras model as a filter for annotation
     # and it will perform segmentation(stroma/gldands) of region of this annotation on slide.
     import matplotlib.pyplot as plt
-    import pathlib, sys
     import numpy as np
-    from urllib.request import urlretrieve
 
     plt.rcParams['figure.figsize'] = (20, 10)
-
-    # We need to clone project and add it to sys.path (we haven't installable packages yet)
-    # Git clone will work after opening access
-    # !git clone git@gitlab.com:Digipathology/dieyepy.git
-    path_to_project = r'D:\projects\dieyepy\src\main\python'
-    # path_to_project = 'dieyepy/src/main/python'
-    sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # We define working root folder for convenience
     root_path = pathlib.Path.home().joinpath("temp/slice_example1")
@@ -43,10 +47,11 @@ if __name__ == '__main__':
     patches_path = root_path.joinpath("slice_example_results.hdf5")
     patches_path.mkdir(parents=True, exist_ok=True)
 
+
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
     def load_patches():
-        if not pathlib.Path(patches_path).exists():
-            urlretrieve("https://drive.google.com/uc?id=1q842Tv1DZ3vp7068465JNujcencLSZWS", str(patches_path))
+        from common_urllib.core import load_gdrive_file
+        load_gdrive_file("1q842Tv1DZ3vp7068465JNujcencLSZWS", str(patches_path))
 
 
     load_patches()
@@ -72,7 +77,7 @@ if __name__ == '__main__':
     # But now we need to prepare data for keras.
     def convert_label(named_ndarray: NamedNdarray) -> np.ndarray:
         label = named_ndarray[1]
-        return np.atleast_3d(np.squeeze(label[..., 0] // 255)).astype(np.float32)
+        return np.atleast_3d(np.squeeze(label // 255)).astype(np.float32)
 
 
     def convert_image(named_ndarray: NamedNdarray) -> np.ndarray:
@@ -156,6 +161,7 @@ if __name__ == '__main__':
     # And finally we will check results visually.
     # Let's visualize predictions on train data
     from common_matplotlib.core import plot_image_tuples_by_batches
+
     Y_tain_predict = model.predict(X_train)
     plot_image_tuples_by_batches(zip(X_train, Y_train, Y_tain_predict), ncols=6, tuples_per_plot=8)
 

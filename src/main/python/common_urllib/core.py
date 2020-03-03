@@ -1,8 +1,11 @@
+import pathlib
 import urllib.request
 from shutil import copyfileobj
 
 
-def load_gdrive_file(file_id: str, file_path: str) -> None:
+def load_gdrive_file(file_id: str, file_path: str, force=False) -> None:
+    if pathlib.Path(file_path).exists() and not force:
+        return
     url = f'https://drive.google.com/uc?export=downlod&id={file_id}'
     with urllib.request.urlopen(url) as resp, open(file_path, 'wb') as f:
         cookie = resp.info()['Set-Cookie']

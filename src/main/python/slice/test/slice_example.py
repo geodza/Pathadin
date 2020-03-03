@@ -1,7 +1,8 @@
+from common_urllib.core import load_gdrive_file
+
 if __name__ == '__main__':
     import pathlib
     import sys
-    from urllib.request import urlretrieve
 
     import matplotlib.pyplot as plt
 
@@ -19,7 +20,7 @@ if __name__ == '__main__':
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example2")
+    root_path = pathlib.Path.home().joinpath("temp/slice_example3")
     root_input_path = root_path.joinpath("input")
     root_output_path = root_path.joinpath("output")
     root_input_path.mkdir(parents=True, exist_ok=True)
@@ -33,22 +34,18 @@ if __name__ == '__main__':
     slide2_path = str(root_input_path.joinpath("slide2.jpeg").resolve())
     slide2_annotations_path = str(root_input_path.joinpath("slide2_annotations.json").resolve())
 
+
     # Original big-size slides.
     # slide1_path = r"D:\temp\slides\slide1.mrxs"
     # slide1_annotations_path = r"D:\temp\slides\slide1_annotations.json"
     # slide2_path = r"D:\temp\slides\slide5.mrxs"
     # slide2_annotations_path = r"D:\temp\slides\slide5_annotations.json"
 
-
     def load_images_and_annotations():
-        if not pathlib.Path(slide1_path).exists():
-            urlretrieve("https://drive.google.com/uc?id=1n8TDA-4gnNSb0fUFhm5i7J5FitfcJVoH", slide1_path)
-        if not pathlib.Path(slide1_annotations_path).exists():
-            urlretrieve("https://drive.google.com/uc?id=1He8XhiRTw6zGiVqlYLtqSGeHiI4th1LX", slide1_annotations_path)
-        if not pathlib.Path(slide2_path).exists():
-            urlretrieve("https://drive.google.com/uc?id=1BrpN42SZoaz46CjqUQNy2rn5seRBui0w", slide2_path)
-        if not pathlib.Path(slide2_annotations_path).exists():
-            urlretrieve("https://drive.google.com/uc?id=1itDFGs83HiGuSGLNV-G1BVJUOuv1LPtO", slide2_annotations_path)
+        load_gdrive_file('1n8TDA-4gnNSb0fUFhm5i7J5FitfcJVoH', slide1_path)
+        load_gdrive_file('1He8XhiRTw6zGiVqlYLtqSGeHiI4th1LX', slide1_annotations_path)
+        load_gdrive_file('1BrpN42SZoaz46CjqUQNy2rn5seRBui0w', slide2_path)
+        load_gdrive_file('1itDFGs83HiGuSGLNV-G1BVJUOuv1LPtO', slide2_annotations_path)
 
 
     load_images_and_annotations()

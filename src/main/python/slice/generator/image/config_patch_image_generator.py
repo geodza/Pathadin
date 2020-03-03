@@ -25,5 +25,7 @@ def process_pic(patch_geometries: PatchGeometryIterable, cfg: PatchImageConfig) 
     zlayers_rtrees = create_zlayers_rtrees(annotation_geoms)
     if cfg.offset_x and cfg.offset_y:
         patch_geometries = map(lambda p: translate(p, cfg.offset_x, cfg.offset_y), patch_geometries)
-    patch_images = AnnotationsPatchImageGenerator(cfg.slide_path, cfg.level, cfg.rescale_result_image, zlayers_rtrees).create(patch_geometries)
+    patch_images = AnnotationsPatchImageGenerator(cfg.slide_path, cfg.level,
+                                                  cfg.target_color_mode,
+                                                  cfg.rescale_result_image, zlayers_rtrees).create(patch_geometries)
     return patch_images

@@ -93,7 +93,6 @@ if __name__ == '__main__':
     print_ndarrays_info(labels)
     print_ndarrays_info(images)
 
-    # We will
     from sklearn.model_selection import train_test_split
 
     X, Y = images, labels
@@ -105,7 +104,7 @@ if __name__ == '__main__':
     from common_keras.unet import get_unet
 
     patch_shape = X.shape[-3:]
-    model = get_unet(patch_shape, n_filters=1)
+    model = get_unet(patch_shape, n_filters=16)
     model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy'])
     # One more check. Ensure our data is compatible with model definition.
     # These statements asserts ndarrays shapes and dtypes.
@@ -158,8 +157,8 @@ if __name__ == '__main__':
     # Let's visualize predictions on train data
     from common_matplotlib.core import plot_image_tuples_by_batches
     Y_tain_predict = model.predict(X_train)
-    plot_image_tuples_by_batches(zip(X_train, Y_train, Y_tain_predict), ncols=6, tuples_per_plot=20)
+    plot_image_tuples_by_batches(zip(X_train, Y_train, Y_tain_predict), ncols=6, tuples_per_plot=8)
 
     # Let's visualize predictions on test data
     Y_test_predict = model.predict(X_test)
-    plot_image_tuples_by_batches(zip(X_test, Y_test, Y_test_predict), ncols=6, tuples_per_plot=20)
+    plot_image_tuples_by_batches(zip(X_test, Y_test, Y_test_predict), ncols=6, tuples_per_plot=8)

@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 class PatchImageConfig:
     slide_path: str
     level: int
+    target_color_mode: str = 'RGB'
     rescale_result_image: bool = True
     annotations_path: Optional[str] = None
     offset_x: int = 0

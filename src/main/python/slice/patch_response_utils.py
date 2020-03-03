@@ -4,7 +4,7 @@ import numpy as np
 
 from common.itertools_utils import map_inside_group, groupbyformat
 from ndarray_persist.ndarray_persist_utils import NamedNdarray
-from slice.model.patch_image import PatchImage, PatchImageIterable
+from slice.model.patch_image import PatchImageIterable
 from slice.model.patch_response import PatchResponseIterable
 
 PatchResponseGroup = Tuple[str, PatchResponseIterable]
@@ -12,7 +12,10 @@ PatchResponseGroup = Tuple[str, PatchResponseIterable]
 
 def stack_patch_responses_images(patch_responses: PatchResponseIterable) -> np.ndarray:
     imgs = [pr.img.ndarray for pr in patch_responses]
-    ndarray = np.stack(imgs)
+    if len(imgs) == 1:
+        ndarray = np.asarray(imgs[0])
+    else:
+        ndarray = np.asarray(imgs)
     return ndarray
 
 

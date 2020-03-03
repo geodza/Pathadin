@@ -51,8 +51,8 @@ def save_named_ndarrays_to_hdf5(named_ndarrays: Iterable[NamedNdarray],
             if ndarray_path in f:
                 # TODO delete only if we cant update (different shape and dtype)
                 del f[ndarray_path]
-            ndarray = _squeeze_if_need(ndarray)
-            if len(ndarray.shape) == 3:
+            # ndarray = _squeeze_if_need(ndarray)
+            if len(ndarray.shape) == 3 or len(ndarray.shape) == 2:
                 dataset = f.create_dataset(ndarray_path, data=ndarray, compression=compression, **dataset_kwargs)
                 update_dataset_image_attrs(dataset)
             else:
@@ -69,7 +69,7 @@ def save_named_ndarrays_to_zip(named_ndarrays: Iterable[NamedNdarray], file_path
         ndarray_path = _build_valid_path(name)
         if verbosity > 0:
             print(f"saving {ndarray_path}")
-        ndarray = _squeeze_if_need(ndarray)
+        # ndarray = _squeeze_if_need(ndarray)
         ndarrays[ndarray_path] = ndarray
     with open(file_path, 'wb') as f:
         # np.savez_compressed(str(file_path), **ndarrays)
@@ -88,7 +88,7 @@ def save_named_ndarrays_to_folder(named_ndarrays: Iterable[NamedNdarray], root_f
         # ndarray_path = ndarray_path if ndarray_path.suffix else ndarray_path.with_suffix(DEFAULT_IMAGE_EXTENSION)
         if verbosity > 0:
             print(f"saving {ndarray_path}")
-        ndarray = _squeeze_if_need(ndarray)
+        # ndarray = _squeeze_if_need(ndarray)
         save_ndarray_to_filesystem(ndarray, ndarray_path)
 
 
@@ -108,11 +108,13 @@ def save_ndarray_as_image_to_filesystem(ndarray: np.ndarray, path: str) -> None:
     path = pathlib.Path(path)
     # path = path if path.suffix else path.with_suffix(DEFAULT_IMAGE_EXTENSION)
     path.parent.mkdir(parents=True, exist_ok=True)
-    image = _squeeze_if_need(ndarray)
+    image = ndarray
+    # image = _squeeze_if_need(ndarray)
     if len(ndarray.shape) > 3 and ndarray.shape[0] != 1:
         # raise ValueError('Cant save multidim image')
         image = np.atleast_3d(ndarray.ravel())
         warnings.warn(f"ndarray with shape {ndarray.shape} reshaped to {image.shape}")
+    #
     if pathlib.Path(path).suffix:
         if pathlib.Path(path).suffix.lower() == '.png':
             io.imsave(path, image, check_contrast=False, compress_level=3)

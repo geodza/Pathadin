@@ -74,9 +74,10 @@ def create_annotation_polygon_image(slide: openslide.AbstractSlide,
 
 
 def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon: Polygon, level: int,
-                               zlayers_rtrees: List[STRtree], rescale_result_image=True) -> Ndimg:
+                               zlayers_rtrees: List[STRtree], target_color_mode='RGB', rescale_result_image=True) -> Ndimg:
     if not zlayers_rtrees:
-        return get_slide_polygon_bbox_rgb_region(slide, polygon, level, rescale_result_image=rescale_result_image)
+        return get_slide_polygon_bbox_rgb_region(slide, polygon, level,
+                                                 target_color_mode=target_color_mode, rescale_result_image=rescale_result_image)
 
     # We search intersections only for last(top most) z-index layer.
     # We do not search intersections for all layers to detect if polygon is fully labeled or is inside ROI.
@@ -88,11 +89,11 @@ def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon: Polygon,
 
     level_scale = 1 / slide.level_downsamples[level] if not rescale_result_image else 1
     if intersection_area != polygon.area:
-        below_layer_polygon_img = create_layer_polygon_image(slide, polygon, level, zlayers_rtrees[:-1], rescale_result_image)
+        below_layer_polygon_img = create_layer_polygon_image(slide, polygon, level, zlayers_rtrees[:-1], target_color_mode, rescale_result_image)
         polygon_img = below_layer_polygon_img
     else:
         polygon = scale_at_origin(polygon, level_scale)
-        polygon_img = create_polygon_image(polygon, 'RGB')
+        polygon_img = create_polygon_image(polygon, target_color_mode)
 
     for intersecting_geom, intersecting_geom_intersection in zip(intersecting_geoms, intersecting_geoms_intersections):
         if isinstance(intersecting_geom_intersection, Polygon):

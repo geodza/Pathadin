@@ -19,7 +19,7 @@ if __name__ == '__main__':
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example1")
+    root_path = pathlib.Path.home().joinpath("temp/slice_example2")
     root_input_path = root_path.joinpath("input")
     root_output_path = root_path.joinpath("output")
     root_input_path.mkdir(parents=True, exist_ok=True)
@@ -38,6 +38,8 @@ if __name__ == '__main__':
     # slide1_annotations_path = r"D:\temp\slides\slide1_annotations.json"
     # slide2_path = r"D:\temp\slides\slide5.mrxs"
     # slide2_annotations_path = r"D:\temp\slides\slide5_annotations.json"
+
+
     def load_images_and_annotations():
         if not pathlib.Path(slide1_path).exists():
             urlretrieve("https://drive.google.com/uc?id=1n8TDA-4gnNSb0fUFhm5i7J5FitfcJVoH", slide1_path)
@@ -106,6 +108,7 @@ if __name__ == '__main__':
         PatchImageSourceConfig(
             slide_path=slide1_path,
             level=level,
+            target_color_mode='L',
             annotations_path=slide1_annotations_path,
             metadata={"name": "label"},
             patch_size=patch_size,
@@ -115,6 +118,7 @@ if __name__ == '__main__':
                 PatchImageConfig(
                     slide_path=slide1_path,
                     level=level,
+                    target_color_mode='RGB',
                     metadata={"name": "image"}
                 )
             ]
@@ -122,6 +126,7 @@ if __name__ == '__main__':
         PatchImageSourceConfig(
             slide_path=slide2_path,
             level=level,
+            target_color_mode='L',
             annotations_path=slide2_annotations_path,
             metadata={"name": "label"},
             patch_size=patch_size,
@@ -131,6 +136,7 @@ if __name__ == '__main__':
                 PatchImageConfig(
                     slide_path=slide2_path,
                     level=level,
+                    target_color_mode='RGB',
                     metadata={"name": "image"}
                 )
             ]
@@ -181,7 +187,7 @@ if __name__ == '__main__':
 
     # data_path = root_output_path.joinpath("results")
     # data_path = root_output_path.joinpath("results.zip")
-    data_path = root_output_path.joinpath("results.hdf5")
+    data_path = root_output_path.joinpath("slice_example_results2.hdf5")
     save_named_ndarrays(named_ndarrays, str(data_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.

@@ -12,6 +12,7 @@ if __name__ == '__main__':
     path_to_project = r'D:\projects\dieyepy\src\main\python'
     # path_to_project = 'dieyepy/src/main/python'
     import pathlib, sys
+
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # Warning.
@@ -40,12 +41,13 @@ if __name__ == '__main__':
     plt.rcParams['figure.figsize'] = (20, 10)
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example1")
+    root_path = pathlib.Path.home().joinpath("temp/slice_example4")
+    root_path.mkdir(parents=True, exist_ok=True)
 
     # Define path to patches (both images and labels).
     # Example of generating and storing patches from slide images can be found in "slice_example".
-    patches_path = root_path.joinpath("slice_example_results.hdf5")
-    patches_path.mkdir(parents=True, exist_ok=True)
+    patches_path = root_path.joinpath("output/slice_example_results.hdf5")
+    # patches_path = r"C:\Users\User\GoogleDisk\slice_example1\slice_example_results2.hdf5"
 
 
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
@@ -54,49 +56,39 @@ if __name__ == '__main__':
         load_gdrive_file("1q842Tv1DZ3vp7068465JNujcencLSZWS", str(patches_path))
 
 
-    load_patches()
+    # load_patches()
 
-    from ndarray_persist.ndarray_persist_utils import load_named_ndarrays, NamedNdarray
+    from ndarray_persist.ndarray_persist_utils import stack_ndarrays_from_hdf5
 
     patch_size = (512, 512)
     # Images and labels were saved as named ndarrays in one file.
     # To load labels and images separately we can load them by name pattern.
     labels_name_pattern = f'.*/{patch_size[0]},{patch_size[1]}/label/.*'
     images_name_pattern = f'.*/{patch_size[0]},{patch_size[1]}/image/.*'
-    named_labels = list(load_named_ndarrays(str(patches_path), name_pattern=labels_name_pattern))
-    named_images = list(load_named_ndarrays(str(patches_path), name_pattern=images_name_pattern))
-
-    from common.numpy_utils import print_named_ndarrays_info
-
-    # Let's print what we have load.
-    print_named_ndarrays_info(named_labels)
-    print_named_ndarrays_info(named_images)
 
 
     # Named ndarrays are convenience for storing.
     # But now we need to prepare data for keras.
-    def convert_label(named_ndarray: NamedNdarray) -> np.ndarray:
-        label = named_ndarray[1]
-        return np.atleast_3d(np.squeeze(label // 255)).astype(np.float32)
+    def convert_label(ndarray: np.ndarray) -> np.ndarray:
+        return np.atleast_3d(np.squeeze(ndarray // 255)).astype(np.float32)
 
 
-    def convert_image(named_ndarray: NamedNdarray) -> np.ndarray:
-        image = named_ndarray[1]
-        return np.atleast_3d(np.squeeze(image / 255)).astype(np.float32)
+    def convert_image(ndarray: np.ndarray) -> np.ndarray:
+        return np.atleast_3d(np.squeeze(ndarray / 255)).astype(np.float32)
 
 
-    labels = np.asarray([convert_label(label) for label in named_labels])
-    images = np.asarray([convert_image(image) for image in named_images])
-
-    from common.numpy_utils import print_ndarrays_info
+    labels = stack_ndarrays_from_hdf5(str(patches_path), name_pattern=labels_name_pattern, ndarray_converter=convert_label)
+    images = stack_ndarrays_from_hdf5(str(patches_path), name_pattern=images_name_pattern, ndarray_converter=convert_image)
 
     # Always check your data.
     # 1. Check shape, dtype, min, max
     # 2. Check Y classes distribution.
     #       If there is a big class imbalance then you probably should perform some balancing of your data.
     #       The simplest methods are undersampling and oversampling: https://machinelearningmastery.com/data-sampling-methods-for-imbalanced-classification/
-    print_ndarrays_info(labels)
-    print_ndarrays_info(images)
+    from common.numpy_utils import print_ndarray_info
+
+    print_ndarray_info(labels)
+    print_ndarray_info(images)
 
     from sklearn.model_selection import train_test_split
 

@@ -70,3 +70,9 @@ def map_inside_group(groups: Iterable[Tuple[K1, T1]], map_func: Callable[[T1], C
     for key, group_items in groups:
         c = map_func(group_items)
         yield (key, c)
+
+
+def peek(iterable: Iterable[T1]) -> Tuple[T1, Iterable[T1]]:
+    first = next(iterable)
+    restored = itertools.chain([first], iterable)
+    return (first, restored)

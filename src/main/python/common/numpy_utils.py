@@ -1,12 +1,20 @@
-from typing import Tuple, List, Union, NamedTuple
+from typing import Tuple, List, Union
 
 import numpy as np
 
 NamedNdarray = Tuple[str, np.ndarray]
 
+
 # class NdarrayInfo(NamedTuple):
 #     shape:Tuple[int,...]
 #     shape:Tuple[int,...]
+
+def ndarray_info(ndarr: np.ndarray) -> Tuple:
+    return (ndarr.shape, ndarr.dtype, ndarr.min(), ndarr.max())
+
+
+def print_ndarray_info(ndarr: np.ndarray) -> None:
+    print(f"(name,shape,dtype,min,max): {ndarray_info(ndarr)}")
 
 
 def print_named_ndarrays_info(named_ndarrays: List[NamedNdarray]) -> None:
@@ -14,8 +22,6 @@ def print_named_ndarrays_info(named_ndarrays: List[NamedNdarray]) -> None:
     if len(named_ndarrays):
         name, ndarr = named_ndarrays[0]
         print(f"1-st array (name,shape,dtype,min,max): {(name, ndarr.shape, ndarr.dtype, ndarr.min(), ndarr.max())}")
-
-
 
 
 def print_ndarrays_info(ndarrays: Union[np.ndarray, List[np.ndarray]]) -> None:
@@ -26,7 +32,7 @@ def print_ndarrays_info(ndarrays: Union[np.ndarray, List[np.ndarray]]) -> None:
             distribution = hist / ndarrays.size
             print(f"ndarrays (shape,dtype,min,max): {(ndarrays.shape, ndarrays.dtype, ndarrays.min(), ndarrays.max())}")
             # TODO format float
-            print(f"ndarrays distribution (bins,prob): {(list(edges),list(distribution))}")
+            print(f"ndarrays distribution (bins,prob): {(list(edges), list(distribution))}")
         else:
             ndarr = ndarrays[0]
             print(f"1-st ndarray (shape,dtype,min,max): {(ndarr.shape, ndarr.dtype, ndarr.min(), ndarr.max())}")

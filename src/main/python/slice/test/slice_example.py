@@ -20,7 +20,7 @@ if __name__ == '__main__':
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example3")
+    root_path = pathlib.Path.home().joinpath("temp/slice_example4")
     root_input_path = root_path.joinpath("input")
     root_output_path = root_path.joinpath("output")
     root_input_path.mkdir(parents=True, exist_ok=True)
@@ -29,17 +29,17 @@ if __name__ == '__main__':
     # Original mrxs slide is about 4gb memory.
     # To make example more reproducible and lightweight we cut a small region from it and interpret it as a real slide.
     # Define paths to slides and annotations
-    slide1_path = str(root_input_path.joinpath("slide1.jpeg").resolve())
-    slide1_annotations_path = str(root_input_path.joinpath("slide1_annotations.json").resolve())
-    slide2_path = str(root_input_path.joinpath("slide2.jpeg").resolve())
-    slide2_annotations_path = str(root_input_path.joinpath("slide2_annotations.json").resolve())
+    # slide1_path = str(root_input_path.joinpath("slide1.jpeg").resolve())
+    # slide1_annotations_path = str(root_input_path.joinpath("slide1_annotations.json").resolve())
+    # slide2_path = str(root_input_path.joinpath("slide2.jpeg").resolve())
+    # slide2_annotations_path = str(root_input_path.joinpath("slide2_annotations.json").resolve())
 
 
     # Original big-size slides.
-    # slide1_path = r"D:\temp\slides\slide1.mrxs"
-    # slide1_annotations_path = r"D:\temp\slides\slide1_annotations.json"
-    # slide2_path = r"D:\temp\slides\slide5.mrxs"
-    # slide2_annotations_path = r"D:\temp\slides\slide5_annotations.json"
+    slide1_path = r"D:\temp\slides\slide1.mrxs"
+    slide1_annotations_path = r"D:\temp\slides\slide1_annotations.json"
+    slide2_path = r"D:\temp\slides\slide5.mrxs"
+    slide2_annotations_path = r"D:\temp\slides\slide5_annotations.json"
 
     def load_images_and_annotations():
         load_gdrive_file('1n8TDA-4gnNSb0fUFhm5i7J5FitfcJVoH', slide1_path)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
         load_gdrive_file('1itDFGs83HiGuSGLNV-G1BVJUOuv1LPtO', slide2_annotations_path)
 
 
-    load_images_and_annotations()
+    # load_images_and_annotations()
     # There are several use-cases for slicing slide-images.
     # 1) Generating patch_label_images together with generating patch_slide_images. Where
     #    a) patch_label_image is a result of drawing annotation with label color stored in annotation
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     # level of slide. Can be interpreted as level of detail(resolution) with the best detail at 0-level.
     level = 0
     # stride of slicer - distance between subsequent patches
-    stride_x, stride_y = patch_size[0] // 2, patch_size[1] // 2
+    stride_x, stride_y = patch_size[0], patch_size[1]
 
     from slice.model.patch_image_config import PatchImageConfig
     from slice.model.patch_image_source_config import PatchImageSourceConfig
@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
     # data_path = root_output_path.joinpath("results")
     # data_path = root_output_path.joinpath("results.zip")
-    data_path = root_output_path.joinpath("slice_example_results2.hdf5")
+    data_path = root_output_path.joinpath("slice_example_results.hdf5")
     save_named_ndarrays(named_ndarrays, str(data_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.

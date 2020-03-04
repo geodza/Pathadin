@@ -4,13 +4,15 @@ import pathlib
 import re
 import shutil
 import warnings
-from typing import Iterable, Tuple, Callable, Optional
+from typing import Iterable, Tuple, Callable, Optional, List
 
 import h5py
 import numpy as np
 from h5py import Dataset
 from skimage import io
 
+from common.itertools_utils import peek
+from common_image.core.resize import resize_ndarray
 from ndarray_persist.h5py_utils import update_dataset_image_attrs
 
 NamedNdarray = Tuple[str, np.ndarray]
@@ -126,6 +128,109 @@ def save_ndarray_as_image_to_filesystem(ndarray: np.ndarray, path: str) -> None:
         io.imsave(path, image, check_contrast=False, format='png', compress_level=3)
 
 
+def load_names(path: str,
+               name_filter: Callable[[str], bool] = lambda _: True,
+               name_pattern: Optional[str] = None) \
+        -> List[str]:
+    path = pathlib.Path(path)
+    if path.suffix in HDF5_EXTENSIONS:
+        return load_names_from_hdf5(path, name_filter, name_pattern)
+    elif path.suffix in ARCHIVE_EXTENSIONS:
+        return load_names_from_zip(path, name_filter, name_pattern)
+    elif path.is_dir():
+        return load_names_from_folder(path, name_filter, name_pattern)
+    else:
+        raise ValueError(f"Cant load from {path}")
+
+
+def load_names_from_hdf5(file_path: str,
+                         name_filter: Callable[[str], bool] = lambda _: True,
+                         name_pattern: Optional[str] = None) -> List[str]:
+    filtered_names = []
+
+    def visit(name, obj):
+        if isinstance(obj, Dataset):
+            if _filter_name(name, name_filter, name_pattern):
+                filtered_names.append(name)
+
+    with h5py.File(file_path, 'r') as f:
+        f.visititems(visit)
+    filtered_names.sort()
+    return filtered_names
+
+
+def load_names_from_zip(file_path: str,
+                        name_filter: Callable[[str], bool] = lambda _: True,
+                        name_pattern: Optional[str] = None) -> List[str]:
+    with np.load(file_path) as f:
+        filtered_names = [name for name in f.keys() if _filter_name(name, name_filter, name_pattern)]
+        filtered_names.sort()
+    return filtered_names
+
+
+def load_names_from_folder(root_folder: str,
+                           name_filter: Callable[[str], bool] = lambda _: True,
+                           name_pattern: Optional[str] = None) -> List[str]:
+    predefined_working_folder = 'patches'
+    working_folder = pathlib.Path(root_folder, predefined_working_folder)
+    filtered_names = []
+    for root, dirs, files in os.walk(working_folder, topdown=True):
+        for name in files:
+            # name = os.path.join(root, name)
+            # name = str(pathlib.Path(root, name).with_suffix(""))
+            name = str(pathlib.Path(root, name).relative_to(working_folder).as_posix())
+            if _filter_name(name, name_filter, name_pattern):
+                filtered_names.append(name)
+    filtered_names.sort()
+    return filtered_names
+
+
+def load_ndarrays_from_hdf5(file_path: str,
+                            names: List[str],
+                            force_copy_to_memory: bool = True) -> Iterable[np.ndarray]:
+    with h5py.File(file_path, 'r') as f:
+        for name in names:
+            ndarray = f[name]
+            ndarray = ndarray[:] if force_copy_to_memory else ndarray
+            yield ndarray
+
+
+def load_named_ndarrays_from_hdf5(file_path: str,
+                                  name_filter: Callable[[str], bool] = lambda _: True,
+                                  name_pattern: Optional[str] = None,
+                                  force_copy_to_memory: bool = True) \
+        -> Iterable[NamedNdarray]:
+    filtered_names = load_names_from_hdf5(file_path, name_filter, name_pattern)
+    return zip(filtered_names, load_ndarrays_from_hdf5(file_path, filtered_names, force_copy_to_memory))
+
+
+def stack_ndarrays_from_hdf5(file_path: str,
+                             name_filter: Callable[[str], bool] = lambda _: True,
+                             name_pattern: Optional[str] = None,
+                             ndarray_converter: Callable[[np.ndarray], np.ndarray] = None
+                             ) \
+        -> np.ndarray:
+    filtered_names = load_names_from_hdf5(file_path, name_filter, name_pattern)
+    ndarrays = load_ndarrays_from_hdf5(file_path, filtered_names)
+    return stack_ndarrays(ndarrays, len(filtered_names), ndarray_converter)
+
+
+def stack_ndarrays(ndarrays: Iterable[np.ndarray],
+                   count: int,
+                   ndarray_converter: Callable[[np.ndarray], np.ndarray] = None) \
+        -> np.ndarray:
+    first, ndarrays = peek(ndarrays)
+    first = ndarray_converter(first) if ndarray_converter else first
+    shape = (count, *first.shape)
+    ndarray = np.empty(shape, first.dtype)
+    for i, arr in enumerate(ndarrays):
+        arr = ndarray_converter(arr) if ndarray_converter else arr
+        if arr.shape != first.shape:
+            arr = resize_ndarray(arr, first.shape[:2]).reshape(first.shape)
+        ndarray[i, ...] = arr
+    return ndarray
+
+
 def load_named_ndarrays(path: str,
                         name_filter: Callable[[str], bool] = lambda _: True,
                         name_pattern: Optional[str] = None) \
@@ -141,34 +246,12 @@ def load_named_ndarrays(path: str,
         raise ValueError(f"Cant load from {path}")
 
 
-def load_named_ndarrays_from_hdf5(file_path: str,
-                                  name_filter: Callable[[str], bool] = lambda _: True,
-                                  name_pattern: Optional[str] = None,
-                                  force_copy_to_memory: bool = True) \
-        -> Iterable[NamedNdarray]:
-    filtered_names = []
-
-    def visit(name, obj):
-        if isinstance(obj, Dataset):
-            if _filter_name(name, name_filter, name_pattern):
-                filtered_names.append(name)
-
-    filtered_names.sort()
-    with h5py.File(file_path, 'r') as f:
-        f.visititems(visit)
-        for name in filtered_names:
-            ndarray = f[name]
-            ndarray = ndarray[:] if force_copy_to_memory else ndarray
-            yield (name, ndarray)
-
-
 def load_named_ndarrays_from_zip(file_path: str,
                                  name_filter: Callable[[str], bool] = lambda _: True,
                                  name_pattern: Optional[str] = None,
                                  mmap_mode=None) -> Iterable[NamedNdarray]:
+    filtered_names = load_names_from_zip(file_path, name_filter, name_pattern)
     with np.load(file_path, mmap_mode=mmap_mode) as f:
-        filtered_names = [name for name in f.keys() if _filter_name(name, name_filter, name_pattern)]
-        filtered_names.sort()
         for name in filtered_names:
             ndarray = f[name]
             yield (name, ndarray)
@@ -179,15 +262,7 @@ def load_named_ndarrays_from_folder(root_folder: str,
                                     name_pattern: Optional[str] = None) -> Iterable[NamedNdarray]:
     predefined_working_folder = 'patches'
     working_folder = pathlib.Path(root_folder, predefined_working_folder)
-    filtered_names = []
-    for root, dirs, files in os.walk(working_folder, topdown=True):
-        for name in files:
-            # name = os.path.join(root, name)
-            # name = str(pathlib.Path(root, name).with_suffix(""))
-            name = str(pathlib.Path(root, name).relative_to(working_folder).as_posix())
-            if _filter_name(name, name_filter, name_pattern):
-                filtered_names.append(name)
-    filtered_names.sort()
+    filtered_names = load_names_from_folder(root_folder, name_filter, name_pattern)
     for name in filtered_names:
         file_path = str(pathlib.Path(working_folder, name))
         ndarray = load_ndarray_from_filesystem(file_path)

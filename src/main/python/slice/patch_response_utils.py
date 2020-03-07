@@ -13,9 +13,9 @@ PatchResponseGroup = Tuple[str, PatchResponseIterable]
 def stack_patch_responses_images(patch_responses: PatchResponseIterable) -> np.ndarray:
     imgs = [pr.img.ndarray for pr in patch_responses]
     if len(imgs) == 1:
-        ndarray = np.asarray(imgs[0])
+        ndarray = imgs[0]
     else:
-        ndarray = np.asarray(imgs)
+        ndarray = np.vstack(imgs)
     return ndarray
 
 
@@ -28,7 +28,7 @@ def patch_responses_to_named_ndarrays(patch_responses: PatchResponseIterable, gr
 
 def stack_patch_images(patch_images: PatchImageIterable) -> np.ndarray:
     imgs = [p[2].ndarray for p in patch_images]
-    ndarray = np.stack(imgs)
+    ndarray = np.vstack(imgs)
     return ndarray
 
 

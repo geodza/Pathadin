@@ -38,7 +38,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import numpy as np
 
-    plt.rcParams['figure.figsize'] = (20, 10)
+    plt.rcParams['figure.figsize'] = (10, 5)
 
     # We define working root folder for convenience
     root_path = pathlib.Path.home().joinpath("temp/slice_example4")

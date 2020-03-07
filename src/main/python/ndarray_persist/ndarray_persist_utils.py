@@ -289,9 +289,3 @@ def _build_valid_path(path: str) -> str:
     path_ = pathlib.PurePath(path)
     # TODO replace invalid chars
     return path_.relative_to(path_.anchor).as_posix()
-
-
-def _squeeze_if_need(ndarray: np.ndarray) -> np.ndarray:
-    if ndarray.shape[0] == 1:
-        ndarray = ndarray.reshape(ndarray.shape[1:])
-    return ndarray

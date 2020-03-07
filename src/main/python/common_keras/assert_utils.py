@@ -12,3 +12,12 @@ def assert_model_output(model: Model, Y: np.ndarray):
     assert len(Y.shape) == len(model.output_shape)
     assert tuple(Y.shape[1:]) == tuple(model.output_shape[1:])
     assert np.can_cast(Y.dtype, model.output.dtype.as_numpy_dtype)
+
+if __name__ == '__main__':
+    print(np.can_cast(np.int, np.float32))
+    print(np.can_cast(np.float32, np.int))
+    print(np.can_cast(np.float32, np.float64))
+    print(np.can_cast(np.float64, np.float32))
+    print(np.can_cast(np.float64, np.float))
+    print(np.can_cast(np.float64, float))
+    print(np.can_cast(np.float32, float))

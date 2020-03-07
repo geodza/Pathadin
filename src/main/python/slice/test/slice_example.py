@@ -20,7 +20,7 @@ if __name__ == '__main__':
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example4")
+    root_path = pathlib.Path.home().joinpath("temp/slice_example5")
     root_input_path = root_path.joinpath("input")
     root_output_path = root_path.joinpath("output")
     root_input_path.mkdir(parents=True, exist_ok=True)
@@ -144,13 +144,14 @@ if __name__ == '__main__':
     # one data-flow: Iterable[PatchResponse]
     from slice.generator.response.patch_response_generator import PatchResponseGenerator
 
-    patch_responses = PatchResponseGenerator().create(configs)
+    patch_responses = PatchResponseGenerator().create(configs[:1])
 
     # Then we convert every patch_response to named_ndarray - Tuple[str, np.ndarray]
     # We select name format convenient for saving/loading to/from disk.
     from slice.patch_response_utils import patch_responses_to_named_ndarrays
 
     format_str = r"{cfg.slide_path}/{cfg.patch_size[0]},{cfg.patch_size[1]}/{cfg.metadata[name]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}.png"
+    # format_str = r"{cfg.slide_path}/{cfg.patch_size[0]},{cfg.patch_size[1]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}.png"
     named_ndarrays = patch_responses_to_named_ndarrays(patch_responses, format_str)
 
 
@@ -182,9 +183,9 @@ if __name__ == '__main__':
     #
     from ndarray_persist.ndarray_persist_utils import save_named_ndarrays
 
-    # data_path = root_output_path.joinpath("results")
+    data_path = root_output_path.joinpath("results")
     # data_path = root_output_path.joinpath("results.zip")
-    data_path = root_output_path.joinpath("slice_example_results.hdf5")
+    # data_path = root_output_path.joinpath("slice_example_results.hdf5")
     save_named_ndarrays(named_ndarrays, str(data_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.

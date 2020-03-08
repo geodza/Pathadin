@@ -5,7 +5,7 @@ if __name__ == '__main__':
     #
     # !ssh-keygen -R gitlab.com
     # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-    # !ssh-keygen -t rsa -b 4096 -C gitlab2
+    # !ssh-keygen -t rsa -b 4096 -C gitlab1
     # !cat ~/.ssh/id_rsa.pub
     # Git clone will work without ssh after opening access
     # !git clone git@gitlab.com:Digipathology/dieyepy.git
@@ -25,6 +25,26 @@ if __name__ == '__main__':
     root_input_path.mkdir(parents=True, exist_ok=True)
     root_output_path.mkdir(parents=True, exist_ok=True)
 
+
+    # In this example we will show how to generate label/image patches from slide images.
+    # We will generate:
+    # 1) patch_slide_image - color patch image from slide
+    # 2) patch_label_image - binary patch image as result of drawing annotation region with color specified in annotation
+    # To better explain idea of annotation-drawing we will show screenshot from main application.
+    # In this screenshot we have 2 annotations: one stroma(red) annotation and one glands(blue) annotation.
+    # Attribute user_attrs.label_color in annotation specifies with what color this annotation will be drawn.
+    def show_app_annotation_screenshot():
+        from common_urllib.core import load_gdrive_file
+
+        app_annotation1_screenshot_path = str(root_path.joinpath('app_annotation1_screenshot.png'))
+        load_gdrive_file('1bO9a0LSdXsuvt9o4wkpBw-zldOrIMQBM', app_annotation1_screenshot_path)
+        from IPython.display import Image
+        Image(filename=app_annotation1_screenshot_path, width=800)
+
+
+    show_app_annotation_screenshot()
+
+    # Lets begin our example itself.
     # Define paths to slides and annotations.
     # Choose one method below to use your data or example data.
     from slice.slide_path import SlidePath
@@ -176,9 +196,9 @@ if __name__ == '__main__':
 
     from ndarray_persist.save import save_named_ndarrays
 
-    data_path = root_output_path.joinpath("slice_example_results")
+    # data_path = root_output_path.joinpath("slice_example_results")
     # data_path = root_output_path.joinpath("slice_example_results.zip")
-    # data_path = root_output_path.joinpath("slice_example_results.hdf5")
+    data_path = root_output_path.joinpath("slice_example_results.hdf5")
     save_named_ndarrays(named_ndarrays, str(data_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.

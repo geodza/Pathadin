@@ -1,9 +1,9 @@
 if __name__ == '__main__':
     # %tensorflow_version 1.x
-    # !ssh-keygen -R gitlab.com
-    # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
     # !ssh-keygen -t rsa -b 4096 -C gitlab2
     # !cat ~/.ssh/id_rsa.pub
+    # !ssh-keygen -R gitlab.com
+    # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
     # Git clone will work without ssh after opening access
     # !git clone git@gitlab.com:Digipathology/dieyepy.git
     # !git -C dieyepy pull
@@ -41,25 +41,22 @@ if __name__ == '__main__':
     plt.rcParams['figure.figsize'] = (10, 5)
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example4")
+    root_path = pathlib.Path.home().joinpath("temp/slice_example1")
     root_path.mkdir(parents=True, exist_ok=True)
 
     # Define path to patches (both images and labels).
     # Example of generating and storing patches from slide images can be found in "slice_example".
+    # patches_path = r"C:\Users\User\GoogleDisk\slice_example1\slice_example_results2.hdf5"
     patches_path = root_path.joinpath("output/slice_example_results.hdf5")
 
 
-    # patches_path = r"C:\Users\User\GoogleDisk\slice_example1\slice_example_results2.hdf5"
-
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
-    def load_patches():
+    def load_example_patches():
         from common_urllib.core import load_gdrive_file
         load_gdrive_file("1q842Tv1DZ3vp7068465JNujcencLSZWS", str(patches_path))
 
 
-    # load_patches()
-
-    from ndarray_persist.ndarray_persist_utils import stack_ndarrays_from_hdf5
+    # load_example_patches()
 
     # Images and labels were saved as named ndarrays in one file.
     # To load labels and images separately we can load them by name pattern.
@@ -77,8 +74,12 @@ if __name__ == '__main__':
         return np.atleast_3d(np.squeeze(ndarray / 255)).astype(np.float32)
 
 
-    labels = stack_ndarrays_from_hdf5(str(patches_path), name_pattern=labels_name_pattern, ndarray_converter=convert_label)
-    images = stack_ndarrays_from_hdf5(str(patches_path), name_pattern=images_name_pattern, ndarray_converter=convert_image)
+    from ndarray_persist.load.ndarray_loader_factory import NdarrayLoaderFactory
+
+    labels_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=labels_name_pattern, ndarray_converter=convert_label)
+    images_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=images_name_pattern, ndarray_converter=convert_image)
+    labels = labels_loader.stack_ndarrays()
+    images = images_loader.stack_ndarrays()
 
     # Recipe for training neural networks: http://karpathy.github.io/2019/04/25/recipe/
     # states: "Become one with the data".
@@ -88,10 +89,12 @@ if __name__ == '__main__':
     # 2. Check Y classes distribution.
     #       If there is a big class imbalance then you probably should perform some balancing of your data.
     #       The simplest methods are undersampling and oversampling: https://machinelearningmastery.com/data-sampling-methods-for-imbalanced-classification/
-    from common.numpy_utils import print_ndarray_info
+    from common.numpy_utils import ndarray_info_str
 
-    print_ndarray_info(labels)
-    print_ndarray_info(images)
+    print("Loaded labels:")
+    print(ndarray_info_str(labels))
+    print("Loaded images:")
+    print(ndarray_info_str(images))
 
     # We split our data for training and validation
     from sklearn.model_selection import train_test_split
@@ -118,23 +121,21 @@ if __name__ == '__main__':
 
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 
-    # We define callbacks to reduce
     callbacks = [
         ReduceLROnPlateau(factor=0.1, patience=5, min_lr=0.00001, verbose=1, monitor='val_loss'),
         ModelCheckpoint(str(model_path), verbose=1, monitor='val_loss', save_best_only=True, save_weights_only=False),
         EarlyStopping(patience=10, verbose=1, monitor='val_loss'),
     ]
 
-    from keras.preprocessing.image import ImageDataGenerator
-
     # We prepare our example to be augmentation-ready (using ImageDataGenerator).
     # But for simplicity we do not use augmentation here.
+    from keras.preprocessing.image import ImageDataGenerator
+
     augment_kwargs = dict()
     data_generator = ImageDataGenerator(**augment_kwargs)
 
-    batch_size = 3
-    # batch_size=6
-    epochs = 3
+    batch_size = 5
+    epochs = 50
     steps_per_epoch = len(X_train) / batch_size
     samples = data_generator.flow(X_train, Y_train, batch_size=batch_size, shuffle=True)
     history = model.fit_generator(samples, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=callbacks,

@@ -3,10 +3,10 @@ if __name__ == '__main__':
     # !apt-get install openslide-tools
     # !pip install scikit-image opencv-python shapely h5py openslide-python dataclasses pydantic
     #
-    # !ssh-keygen -R gitlab.com
-    # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
     # !ssh-keygen -t rsa -b 4096 -C gitlab1
     # !cat ~/.ssh/id_rsa.pub
+    # !ssh-keygen -R gitlab.com
+    # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
     # Git clone will work without ssh after opening access
     # !git clone git@gitlab.com:Digipathology/dieyepy.git
     # !git -C dieyepy pull
@@ -33,16 +33,18 @@ if __name__ == '__main__':
     # To better explain idea of annotation-drawing we will show screenshot from main application.
     # In this screenshot we have 2 annotations: one stroma(red) annotation and one glands(blue) annotation.
     # Attribute user_attrs.label_color in annotation specifies with what color this annotation will be drawn.
-    def show_app_annotation_screenshot():
+    def show_app_slide1_annotations_screenshot():
         from common_urllib.core import load_gdrive_file
 
-        app_annotation1_screenshot_path = str(root_path.joinpath('app_annotation1_screenshot.png'))
-        load_gdrive_file('1bO9a0LSdXsuvt9o4wkpBw-zldOrIMQBM', app_annotation1_screenshot_path)
-        from IPython.display import Image
-        Image(filename=app_annotation1_screenshot_path, width=800)
+        app_slide1_annotations_screenshot_path = str(root_path.joinpath('app_slide1_annotations_screenshot_path.png'))
+        load_gdrive_file('1bO9a0LSdXsuvt9o4wkpBw-zldOrIMQBM', app_slide1_annotations_screenshot_path)
+        from IPython.display import Image, display
+        img = Image(filename=app_slide1_annotations_screenshot_path, width=800)
+        print("Screenshot of slide1 annotations in main application:")
+        display(img)
 
 
-    show_app_annotation_screenshot()
+    show_app_slide1_annotations_screenshot()
 
     # Lets begin our example itself.
     # Define paths to slides and annotations.
@@ -169,13 +171,13 @@ if __name__ == '__main__':
     from slice.patch_response_utils import patch_responses_to_named_ndarrays
 
     format_str = r"{cfg.slide_path}/{cfg.patch_size[0]},{cfg.patch_size[1]}/{cfg.metadata[name]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}"
-    # format_str = r"{cfg.slide_path}/{cfg.patch_size[0]},{cfg.patch_size[1]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}.png"
     named_ndarrays = patch_responses_to_named_ndarrays(patch_responses, format_str)
 
     from common.numpy_utils import named_ndarrays_info_str
 
     # Lets collect data-flow to list and print some info
     named_ndarrays = list(named_ndarrays)
+    print("Generated patches:")
     print(named_ndarrays_info_str(named_ndarrays))
 
     # We often want to store results of generating patches.
@@ -210,7 +212,9 @@ if __name__ == '__main__':
     images_loader = NdarrayLoaderFactory.from_name_filter(str(data_path), name_pattern=f'.*/{patch_size[0]},{patch_size[1]}/image/.*')
     named_labels = list(labels_loader.load_named_ndarrays())
     named_images = list(images_loader.load_named_ndarrays())
+    print("Loaded label patches:")
     print(named_ndarrays_info_str(named_labels))
+    print("Loaded image patches:")
     print(named_ndarrays_info_str(named_images))
 
     # Lets plot (patch_image, patch_label) pairs
@@ -220,4 +224,5 @@ if __name__ == '__main__':
     plt.rcParams['figure.figsize'] = (10, 5)
 
     image_tuples = zip(named_images, named_labels)
+    print("Image-label pairs:")
     plot_named_ndarrays_tuples_by_batches(image_tuples, ncols=6, tuples_per_plot=12)

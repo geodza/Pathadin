@@ -24,4 +24,4 @@ class NdarrayLoader(ABC):
     def stack_ndarrays(self):
         names = list(self.load_names())
         ndarrays = self.load_ndarrays()
-        return stack_ndarrays(ndarrays, len(names), self.ndarray_converter)
+        return stack_ndarrays(ndarrays, len(names))

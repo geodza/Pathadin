@@ -35,10 +35,7 @@ if __name__ == '__main__':
     # After trained model will be saved you can then load it from main application and use it as an image filter.
     # It means that in main application you can specify keras model as a filter for annotation
     # and it will perform segmentation(stroma/gldands) of region of this annotation on slide in real-time.
-    import matplotlib.pyplot as plt
     import numpy as np
-
-    plt.rcParams['figure.figsize'] = (10, 5)
 
     # We define working root folder for convenience
     root_path = pathlib.Path.home().joinpath("temp/slice_example1")
@@ -48,6 +45,7 @@ if __name__ == '__main__':
     # Example of generating and storing patches from slide images can be found in "slice_example".
     # patches_path = r"C:\Users\User\GoogleDisk\slice_example1\slice_example_results2.hdf5"
     patches_path = root_path.joinpath("output/slice_example_results.hdf5")
+    patches_path.parent.mkdir(parents=True, exist_ok=True)
 
 
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
@@ -147,6 +145,9 @@ if __name__ == '__main__':
     # 1) Train and test losses should decrease
     # 2) Train and test losses should not too diverge
     # 3) Train and test losses should not be too similar
+    import matplotlib.pyplot as plt
+    from common_matplotlib.core import plot_image_tuples_by_batches
+
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('model loss')
@@ -157,11 +158,13 @@ if __name__ == '__main__':
 
     # And finally we will check results visually.
     # Let's visualize predictions on train data
-    from common_matplotlib.core import plot_image_tuples_by_batches
+    plt.rcParams['figure.figsize'] = (10, 5)
 
     Y_tain_predict = model.predict(X_train)
+    print("Training data(image, true label, predicted label):")
     plot_image_tuples_by_batches(zip(X_train, Y_train, Y_tain_predict), ncols=6, tuples_per_plot=8)
 
     # Let's visualize predictions on test data
     Y_test_predict = model.predict(X_test)
+    print("Test data(image, true label, predicted label):")
     plot_image_tuples_by_batches(zip(X_test, Y_test, Y_test_predict), ncols=6, tuples_per_plot=8)

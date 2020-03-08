@@ -173,12 +173,12 @@ if __name__ == '__main__':
     format_str = r"{cfg.slide_path}/{cfg.patch_size[0]},{cfg.patch_size[1]}/{cfg.metadata[name]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}"
     named_ndarrays = patch_responses_to_named_ndarrays(patch_responses, format_str)
 
-    from common.numpy_utils import named_ndarrays_info_str
+    from common.numpy_utils import named_ndarrays_info
 
     # Lets collect data-flow to list and print some info
     named_ndarrays = list(named_ndarrays)
     print("Generated patches:")
-    print(named_ndarrays_info_str(named_ndarrays))
+    print(named_ndarrays_info(named_ndarrays))
 
     # We often want to store results of generating patches.
     # It is convenient to store data hierarchically.
@@ -213,9 +213,9 @@ if __name__ == '__main__':
     named_labels = list(labels_loader.load_named_ndarrays())
     named_images = list(images_loader.load_named_ndarrays())
     print("Loaded label patches:")
-    print(named_ndarrays_info_str(named_labels))
+    print(named_ndarrays_info(named_labels))
     print("Loaded image patches:")
-    print(named_ndarrays_info_str(named_images))
+    print(named_ndarrays_info(named_images))
 
     # Lets plot (patch_image, patch_label) pairs
     import matplotlib.pyplot as plt

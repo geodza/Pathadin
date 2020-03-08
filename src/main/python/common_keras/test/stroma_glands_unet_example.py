@@ -87,12 +87,12 @@ if __name__ == '__main__':
     # 2. Check Y classes distribution.
     #       If there is a big class imbalance then you probably should perform some balancing of your data.
     #       The simplest methods are undersampling and oversampling: https://machinelearningmastery.com/data-sampling-methods-for-imbalanced-classification/
-    from common.numpy_utils import ndarray_info_str
+    from common.numpy_utils import ndarray_info
 
     print("Loaded labels:")
-    print(ndarray_info_str(labels))
+    print(ndarray_info(labels, bins=2))
     print("Loaded images:")
-    print(ndarray_info_str(images))
+    print(ndarray_info(images, bins=5))
 
     # We split our data for training and validation
     from sklearn.model_selection import train_test_split

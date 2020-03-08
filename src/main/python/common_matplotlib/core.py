@@ -32,7 +32,7 @@ def plot_image_tuples(image_tuples: Iterable[Tuple[np.ndarray, ...]], ncols: int
         # ax.set_title(str)
         ax.axis('off')
         image = image.squeeze()
-        if np.can_cast(image.dtype, float):
+        if np.issubdtype(image.dtype, np.inexact):
             vmin, vmax = (0, 1)
         else:
             vmin, vmax = (0, 255)

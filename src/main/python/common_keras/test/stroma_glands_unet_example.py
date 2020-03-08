@@ -16,7 +16,7 @@ if __name__ == '__main__':
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # Warning.
-    # Model-learning process is computationally heavy.
+    # Model-training process is computationally heavy.
     # We recommend you to run it on machine with powerful GPU.
     # This example runs in minutes on google-colab while on laptop it may take hours.
     #
@@ -33,8 +33,8 @@ if __name__ == '__main__':
     # patch_label - binary image as a result of labeling annotation regions on a slide.
     # patch_image - corresponding(geometrically) color image from slide.
     # After trained model will be saved you can then load it from main application and use it as an image filter.
-    # It means that in application you can specify keras model as a filter for annotation
-    # and it will perform segmentation(stroma/gldands) of region of this annotation on slide.
+    # It means that in main application you can specify keras model as a filter for annotation
+    # and it will perform segmentation(stroma/gldands) of region of this annotation on slide in real-time.
     import matplotlib.pyplot as plt
     import numpy as np
 
@@ -47,8 +47,9 @@ if __name__ == '__main__':
     # Define path to patches (both images and labels).
     # Example of generating and storing patches from slide images can be found in "slice_example".
     patches_path = root_path.joinpath("output/slice_example_results.hdf5")
-    # patches_path = r"C:\Users\User\GoogleDisk\slice_example1\slice_example_results2.hdf5"
 
+
+    # patches_path = r"C:\Users\User\GoogleDisk\slice_example1\slice_example_results2.hdf5"
 
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
     def load_patches():
@@ -60,15 +61,14 @@ if __name__ == '__main__':
 
     from ndarray_persist.ndarray_persist_utils import stack_ndarrays_from_hdf5
 
-    patch_size = (512, 512)
     # Images and labels were saved as named ndarrays in one file.
     # To load labels and images separately we can load them by name pattern.
+    patch_size = (512, 512)
     labels_name_pattern = f'.*/{patch_size[0]},{patch_size[1]}/label/.*'
     images_name_pattern = f'.*/{patch_size[0]},{patch_size[1]}/image/.*'
 
 
-    # Named ndarrays are convenience for storing.
-    # But now we need to prepare data for keras.
+    # We need to prepare data for keras so we define converter functions.
     def convert_label(ndarray: np.ndarray) -> np.ndarray:
         return np.atleast_3d(np.squeeze(ndarray // 255)).astype(np.float32)
 
@@ -80,7 +80,10 @@ if __name__ == '__main__':
     labels = stack_ndarrays_from_hdf5(str(patches_path), name_pattern=labels_name_pattern, ndarray_converter=convert_label)
     images = stack_ndarrays_from_hdf5(str(patches_path), name_pattern=images_name_pattern, ndarray_converter=convert_image)
 
-    # Always check your data.
+    # Recipe for training neural networks: http://karpathy.github.io/2019/04/25/recipe/
+    # states: "Become one with the data".
+    # It is absolutely necessary. So ALWAYS check your data.
+    # At least you should:
     # 1. Check shape, dtype, min, max
     # 2. Check Y classes distribution.
     #       If there is a big class imbalance then you probably should perform some balancing of your data.
@@ -90,6 +93,7 @@ if __name__ == '__main__':
     print_ndarray_info(labels)
     print_ndarray_info(images)
 
+    # We split our data for training and validation
     from sklearn.model_selection import train_test_split
 
     X, Y = images, labels
@@ -109,12 +113,12 @@ if __name__ == '__main__':
     assert_model_output(model, Y)
 
     # Define path where the model will be saved.
-    # You can load it afterwards in another script and use it for prediction.
+    # You can load it afterwards in another program and use it for prediction.
     model_path = root_path.joinpath('unet_model.h5')
 
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 
-    # We define callbacks to:
+    # We define callbacks to reduce
     callbacks = [
         ReduceLROnPlateau(factor=0.1, patience=5, min_lr=0.00001, verbose=1, monitor='val_loss'),
         ModelCheckpoint(str(model_path), verbose=1, monitor='val_loss', save_best_only=True, save_weights_only=False),

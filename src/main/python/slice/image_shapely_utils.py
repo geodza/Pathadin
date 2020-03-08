@@ -19,6 +19,7 @@ def get_slide_polygon_bbox_rgb_region(slide: openslide.AbstractSlide, polygon0: 
     :return: image_region with size = polygon_bbox_size if rescale_result_image=True else polygon_bbox_size / level_scale
     """
     pos = get_polygon_bbox_pos(polygon0)
+    level = min(level, slide.level_count - 1)
     level_scale = 1 / slide.level_downsamples[level]
     nrows, ncols = get_polygon_bbox_size(polygon0, level_scale)
     pilimg = slide.read_region(pos, level, (ncols, nrows))
@@ -37,6 +38,7 @@ def create_annotation_polygon_image(slide: openslide.AbstractSlide,
                                     zlayers_rtrees: List[STRtree], rescale_result_image=True) -> Ndimg:
     filter_level = annotation.filter_level if annotation.filter_level is not None else min(2, slide.level_count - 1)
     filter_level = int(filter_level)
+
     level_scale = 1 / slide.level_downsamples[filter_level]
 
     # TODO mask color - is filter too!?
@@ -70,6 +72,7 @@ def create_layer_polygon_image(slide: openslide.AbstractSlide, polygon0: Polygon
     intersecting_geoms_intersections0 = [geom.intersection(polygon0) for geom in intersecting_geoms0]
     intersection_area = sum([i.area for i in intersecting_geoms_intersections0])
 
+    level = min(level, slide.level_count - 1)
     level_scale = 1 / slide.level_downsamples[level]
     if intersection_area != polygon0.area:
         below_layer_polygon_img = create_layer_polygon_image(slide, polygon0, level, zlayers_rtrees[:-1], target_color_mode, rescale_result_image)

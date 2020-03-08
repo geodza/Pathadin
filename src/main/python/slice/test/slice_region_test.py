@@ -2,7 +2,7 @@ import pathlib
 
 from shapely.geometry import box
 
-from ndarray_persist.ndarray_persist_utils import save_named_ndarrays
+from ndarray_persist.save import save_named_ndarrays
 from slice.generator.image.config_patch_image_generator import ConfigPatchImageGenerator
 from slice.model.patch_image_config import PatchImageConfig
 from slice.patch_response_utils import patch_images_to_named_ndarrays

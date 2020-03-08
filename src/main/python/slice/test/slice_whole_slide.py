@@ -1,6 +1,6 @@
 import pathlib
 
-from ndarray_persist.ndarray_persist_utils import save_named_ndarrays
+from ndarray_persist.save import save_named_ndarrays
 from slice.generator.response.patch_response_generator import PatchResponseGenerator
 from slice.model.patch_image_source_config import PatchImageSourceConfig
 from slice.patch_response_utils import patch_responses_to_named_ndarrays

@@ -3,7 +3,7 @@ from typing import Tuple, Iterable
 import numpy as np
 
 from common.itertools_utils import map_inside_group, groupbyformat
-from ndarray_persist.ndarray_persist_utils import NamedNdarray
+from ndarray_persist.common import NamedNdarray
 from slice.model.patch_image import PatchImageIterable
 from slice.model.patch_response import PatchResponseIterable
 

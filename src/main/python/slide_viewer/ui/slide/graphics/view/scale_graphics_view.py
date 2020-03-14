@@ -19,7 +19,7 @@ from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProv
 class ScaleGraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=ABCQMeta):
     parent_: InitVar[Optional[QWidget]] = field(default=None)
     min_scale: float = 1
-    max_scale: float = 2.5
+    max_scale: float = 5
     scale_step_factor: float = 1.25
     max_items_per_screen: float = 1.5
     pan_strength_factor: float = 3
@@ -28,7 +28,6 @@ class ScaleGraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=
     mouse_move_timer: Optional[QTimer] = None
     scheduled_pan: Optional[QPoint] = None
     scaleChanged = pyqtSignal(float)
-    minScaleChanged = pyqtSignal(float)
 
     def __post_init__(self, parent_: Optional[QWidget]):
         super().__init__(parent_)
@@ -45,7 +44,6 @@ class ScaleGraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=
     def update_min_scale(self) -> None:
         fit_scale = self.get_scale_to_fit_rect(self.scene().sceneRect())
         self.min_scale = fit_scale / self.max_items_per_screen
-        self.minScaleChanged.emit(self.min_scale)
 
     def get_scale_to_fit_rect(self, rect: QRectF) -> float:
         vw, vh = self.width(), self.height()

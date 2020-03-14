@@ -4,20 +4,20 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import QObject, Qt, pyqtSignal, QEvent, QRectF
 from PyQt5.QtGui import QMouseEvent, QBrush
 from PyQt5.QtWidgets import QGraphicsView, QWidget, QGraphicsSceneDragDropEvent
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from common.debug_only_decorator import debug_only
-from slide_viewer.common.slide_helper import SlideHelper
 from common_qt.abcq_meta import ABCQMeta
+from common_qt.grid_graphics_item import GridGraphicsItem
 from common_qt.key_press_util import KeyPressEventUtil
 from common_qt.mime_utils import mime_data_is_url
+from slide_viewer.common.slide_helper import SlideHelper
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text
 from slide_viewer.ui.slide.graphics.item.debug.slide_graphics_debug_item_rect import SlideGraphicsDebugItemRect
 from slide_viewer.ui.slide.graphics.item.debug.slide_graphics_debug_view_scene_rect import \
     SlideGraphicsDebugViewSceneRect
 from slide_viewer.ui.slide.graphics.item.filter_graphics_item import FilterGraphicsItem
-from slide_viewer.ui.slide.graphics.item.grid_graphics_item import GridGraphicsItem
 from slide_viewer.ui.slide.graphics.item.slide_graphics_item import SlideGraphicsItem
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService
 from slide_viewer.ui.slide.graphics.view.scale_graphics_view import ScaleGraphicsView
@@ -28,13 +28,16 @@ from slide_viewer.ui.slide.widget.interface.annotation_service import Annotation
 @dataclass(repr=False)
 class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
     graphics_view_annotation_service: GraphicsViewAnnotationService = ...
-    slide_helper: Optional[SlideHelper] = None
-    slide_graphics_item: Optional[SlideGraphicsItem] = None
-    filter_graphics_item: Optional[FilterGraphicsItem] = None
-    slide_graphics_grid_item: Optional[GridGraphicsItem] = None
+    _grid_size: Tuple[int, int] = (512, 512)
+    _grid_size_is_in_pixels: bool = True
+    slide_helper: Optional[SlideHelper] = field(init=False, default=None)
+    slide_graphics_item: Optional[SlideGraphicsItem] = field(init=False, default=None)
+    filter_graphics_item: Optional[FilterGraphicsItem] = field(init=False, default=None)
+    slide_graphics_grid_item: Optional[GridGraphicsItem] = field(init=False, default=None)
 
     gridVisibleChanged = pyqtSignal(bool)
     gridSizeChanged = pyqtSignal(tuple)
+    gridSizeIsInPixelsChanged = pyqtSignal(bool)
     filePathChanged = pyqtSignal(str)
     filePathDropped = pyqtSignal(str)
     backgroundBrushChanged = pyqtSignal(QBrush)
@@ -53,6 +56,9 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
             self.setMouseTracking(b)
 
         self.graphics_view_annotation_service.signals.annotationIsInProgressChanged.connect(on_annotation_is_in_progress_changed)
+
+        self.gridSizeChanged.connect(self.update_grid_item)
+        self.gridSizeIsInPixelsChanged.connect(self.update_grid_item)
 
     @property
     def annotation_service(self) -> AnnotationService:
@@ -79,13 +85,18 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
         self.gridVisibleChanged.emit(visible)
 
     def get_grid_size(self) -> Tuple[int, int]:
-        return self.slide_graphics_grid_item.grid_size
+        return self._grid_size
 
     def set_grid_size(self, size: Tuple[int, int]) -> None:
-        self.slide_graphics_grid_item.grid_size = size
-        self.slide_graphics_grid_item.update_lines()
-        self.slide_graphics_grid_item.update()
+        self._grid_size = size
         self.gridSizeChanged.emit(size)
+
+    def get_grid_size_is_in_pixels(self) -> bool:
+        return self._grid_size_is_in_pixels
+
+    def set_grid_size_is_in_pixels(self, grid_size_is_in_pixels: bool) -> None:
+        self._grid_size_is_in_pixels = grid_size_is_in_pixels
+        self.gridSizeIsInPixelsChanged.emit(grid_size_is_in_pixels)
 
     def get_file_path(self) -> str:
         return self.slide_helper.slide_path
@@ -103,8 +114,8 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
         self.slide_graphics_item = SlideGraphicsItem(file_path)
         self.scene().addItem(self.slide_graphics_item)
 
-        self.slide_graphics_grid_item = GridGraphicsItem(bounding_rect=self.slide_graphics_item.boundingRect(),
-                                                         min_scale=self.min_scale, max_scale=self.max_scale)
+        self.slide_graphics_grid_item = GridGraphicsItem(bounding_rect=self.slide_graphics_item.boundingRect())
+        self.update_grid_item()
         self.scene().addItem(self.slide_graphics_grid_item)
 
         self.filter_graphics_item = FilterGraphicsItem(self.graphics_view_annotation_service.annotation_pixmap_provider, self.slide_helper)
@@ -112,6 +123,18 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
 
         self.filePathChanged.emit(file_path)
         self.update()
+
+    def update_grid_item(self):
+        if self.slide_helper and self.slide_graphics_grid_item:
+            if self.get_grid_size_is_in_pixels():
+                grid_size_in_pixels = self.get_grid_size()
+            else:
+                w = self.slide_helper.microns_to_pixels(self.get_grid_size()[0])
+                h = self.slide_helper.microns_to_pixels(self.get_grid_size()[1])
+                grid_size_in_pixels = (w, h)
+            self.slide_graphics_grid_item.grid_size = grid_size_in_pixels
+            self.slide_graphics_grid_item.update_lines()
+            self.slide_graphics_grid_item.update()
 
     def scene(self) -> GraphicsScene:
         return cast(GraphicsScene, super().scene())

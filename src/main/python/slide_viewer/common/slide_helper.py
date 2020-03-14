@@ -55,6 +55,9 @@ class SlideHelper:
     def pixels_to_microns(self, pixels: float) -> float:
         return pixels * self.microns_per_pixel
 
+    def microns_to_pixels(self, microns: float) -> float:
+        return microns / self.microns_per_pixel
+
     def downsample_to_zoom(self, downsample: int) -> float:
         return self.objective_power / downsample
 

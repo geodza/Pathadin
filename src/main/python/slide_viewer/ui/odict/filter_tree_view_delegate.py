@@ -57,6 +57,8 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
         if key == FilterData_.filter_type:
             dropdown = Dropdown(list(FilterType), value, parent)
             return commit_close_after_dropdown_select(self, dropdown)
+        elif key==FilterData_.realtime:
+            return super().createEditor(parent, option, index)
         elif isinstance(filter_data, ThresholdFilterData):
             if key == ThresholdFilterData_.threshold_type:
                 dropdown = Dropdown(list(ThresholdType), value, parent)
@@ -76,7 +78,8 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
                             # self.filterDataChanged.emit(new_filter_data)
 
                         editor = HSVRangeEditor(parent)
-                        editor.hsvRangeChanged.connect(on_threshold_range_change)
+                        if filter_data.realtime:
+                            editor.hsvRangeChanged.connect(on_threshold_range_change)
                         return editor
                     else:
                         raise ValueError(f"Unknown key {key} for filter {filter_data}")
@@ -88,7 +91,8 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
                                                             **{GrayManualThresholdFilterData_.gray_range: range_})
 
                         editor = GrayRangeEditor(parent)
-                        editor.grayRangeChanged.connect(on_threshold_range_change)
+                        if filter_data.realtime:
+                            editor.grayRangeChanged.connect(on_threshold_range_change)
                         return editor
                     else:
                         raise ValueError(f"Unknown key {key} for filter {filter_data}")

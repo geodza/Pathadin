@@ -13,7 +13,7 @@ from slide_viewer.ui.slide.action.simple_actions import SimpleActions
 from slide_viewer.ui.slide.action.sync_action_group import SyncActionGroup
 from slide_viewer.ui.slide.action.zoom_action_group import ZoomActionGroup
 from slide_viewer.ui.slide.action.zoom_editor import ZoomEditor
-from slide_viewer.ui.slide.widget.dynamic_command_widget import DynamicCommandWidget
+from common_qt.dynamic_command_widget import DynamicCommandWidget
 from slide_viewer.ui.slide.widget.icons import IconName
 from slide_viewer.ui.slide.widget.interface.icon_provider import IconProvider
 from slide_viewer.ui.slide.widget.main_window import MainWindow

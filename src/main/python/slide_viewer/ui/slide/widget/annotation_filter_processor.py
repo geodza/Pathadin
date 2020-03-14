@@ -27,7 +27,8 @@ from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
-from img.filter.base_filter import FilterData, ThresholdFilterResults, FilterResults2
+from img.filter.base_filter import FilterData, FilterResults2
+from img.filter.threshold_filter import ThresholdFilterResults
 from img.filter.keras_model import KerasModelFilterResults, KerasModelFilterData, KerasModelParams
 from img.filter.kmeans_filter import KMeansFilterData, KMeansFilterResults, KMeansParams
 from img.filter.manual_threshold import ManualThresholdFilterData, HSVManualThresholdFilterData, \

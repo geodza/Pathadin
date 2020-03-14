@@ -81,8 +81,8 @@ if __name__ == '__main__':
         slide_paths.append(SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\slide5_annotations.json"))
 
 
-    define_example_data()
-    # define_my_custom_data()
+    # define_example_data()
+    define_my_custom_data()
 
     # There are several use-cases for slicing slide-images.
     # 1) Generating patch_label_images together with generating patch_slide_images. Where

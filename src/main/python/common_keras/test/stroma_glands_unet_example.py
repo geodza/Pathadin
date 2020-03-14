@@ -52,6 +52,7 @@ if __name__ == '__main__':
     def load_example_patches():
         from common_urllib.core import load_gdrive_file
         load_gdrive_file("1q842Tv1DZ3vp7068465JNujcencLSZWS", str(patches_path))
+        # load_gdrive_file("1cOB9KXW2gBuNCmiNcoie3RewaIwwiS8r", str(patches_path))
 
 
     # load_example_patches()
@@ -81,7 +82,7 @@ if __name__ == '__main__':
 
     # Recipe for training neural networks: http://karpathy.github.io/2019/04/25/recipe/
     # states: "Become one with the data".
-    # It is absolutely necessary. So ALWAYS check your data.
+    # It is super important. So ALWAYS check your data.
     # At least you should:
     # 1. Check shape, dtype, min, max
     # 2. Check Y classes distribution.

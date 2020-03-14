@@ -169,3 +169,18 @@ if __name__ == '__main__':
     Y_test_predict = model.predict(X_test)
     print("Test data(image, true label, predicted label):")
     plot_image_tuples_by_batches(zip(X_test, Y_test, Y_test_predict), ncols=6, tuples_per_plot=8)
+
+    # To download trained model to your localhost you can download it as "Browser download file"
+    # or mount your google drive and copy file to it:
+    # https://colab.research.google.com/notebooks/io.ipynb
+    # Another option is to mount google drive in the beginning of example.
+    # and set model_path='some_directory_in_your_gdrive/my_model.h5'.
+    # You can also set patches_path='some_directory_in_your_gdrive/my_patches_dataset.h5'
+    # to load patches directly from your drive.
+    #
+    # We will mount gdrive and copy model file to gdrive root directory .
+    # from google.colab import drive
+    # drive.mount('/content/drive/My Drive')
+    # import shutil
+    # shutil.copy2(str(model_path), '/content/drive')
+

@@ -94,20 +94,20 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         # model_path2 = r"C:\Users\User\GoogleDisk\datasets\weights4.h5"
         model_path = None
         filters = OrderedDict({
-            '1': GrayManualThresholdFilterData('1', True, (150, 100)),
+            'GRAY': GrayManualThresholdFilterData('GRAY', True, (150, 100)),
             'HSV': HSVManualThresholdFilterData('HSV', True, ((165, 40, 0), (15, 255, 255))),
-            '2': KMeansFilterData('2'),
-            '3': NucleiFilterData('3'),
-            '4': SkimageMeanThresholdFilterData('4'),
-            '5': PositivePixelCountFilterData('5'),
-            '6': KerasModelFilterData('6', True, KerasModelParams(model_path)),
+            'KMEANS': KMeansFilterData('KMEANS'),
+            'NUCLEI': NucleiFilterData('NUCLEI'),
+            'SKIMAGE_MEAN': SkimageMeanThresholdFilterData('SKIMAGE_MEAN'),
+            'PIXEL_COUNT': PositivePixelCountFilterData('PIXEL_COUNT'),
+            'KERAS': KerasModelFilterData('KERAS', True, KerasModelParams(model_path)),
             # '7': KerasModelFilterData('7', KerasModelParams(model_path2)),
         })
 
         self.view_mdi = QMdiArea(self)
         self.setCentralWidget(self.view_mdi)
         # print(f"order {self.view_mdi.activationOrder()}")
-        filters_model = DeepableTreeModel(_root=filters)
+        filters_model = DeepableTreeModel(_root=filters, read_only_attr_pattern=".*\\.id")
         self.filters_tree_view = DeepableTreeView(self, model_=filters_model)
         self.filters_tree_view.setContextMenuPolicy(Qt.CustomContextMenu)
 

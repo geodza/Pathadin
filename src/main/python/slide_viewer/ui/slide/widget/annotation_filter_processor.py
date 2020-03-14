@@ -1,4 +1,5 @@
 from concurrent.futures import Future, ThreadPoolExecutor
+from math import ceil
 from typing import Tuple, Optional, Callable, Union, cast
 
 import cv2
@@ -11,11 +12,12 @@ from PyQt5.QtCore import QObject, pyqtSignal, QPoint, QSize
 from PyQt5.QtGui import QPixmapCache, QPixmap, QPolygon
 from cachetools.keys import hashkey
 from dataclasses import dataclass, asdict
-from itertools import product
-from math import ceil
 
 from common.debounce import debounce
 from common.dict_utils import remove_none_values
+from common.grid_utils import grid_pos_to_source_pos, grid_pos_range
+from common.points_utils import deshift_points, rescale_points
+from common_htk.nuclei import ndimg_to_nuclei_seg_mask
 from common_image.core.hist import ndimg_to_hist
 from common_image.core.hist_html import build_histogram_html
 from common_image.core.kmeans import ndimg_to_quantized_ndimg
@@ -28,7 +30,6 @@ from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from img.filter.base_filter import FilterData, FilterResults2
-from img.filter.threshold_filter import ThresholdFilterResults
 from img.filter.keras_model import KerasModelFilterResults, KerasModelFilterData, KerasModelParams
 from img.filter.kmeans_filter import KMeansFilterData, KMeansFilterResults, KMeansParams
 from img.filter.manual_threshold import ManualThresholdFilterData, HSVManualThresholdFilterData, \
@@ -38,10 +39,9 @@ from img.filter.positive_pixel_count import PositivePixelCountFilterResults, Pos
     positive_pixel_count2
 from img.filter.skimage_threshold import SkimageAutoThresholdFilterData, SkimageThresholdParams, \
     SkimageMinimumThresholdFilterData, SkimageMeanThresholdFilterData
+from img.filter.threshold_filter import ThresholdFilterResults
 from img.proc.mask import build_mask
-from common_htk.nuclei import ndimg_to_nuclei_seg_mask
 from img.proc.region import RegionData, read_region
-from common.points_utils import deshift_points, rescale_points
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
 from slide_viewer.common.slide_helper import SlideHelper
@@ -50,51 +50,6 @@ from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import An
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 from slide_viewer.ui.slide.widget.interface.filter_model_provider import FilterModelProvider
 from slide_viewer.ui.slide.widget.interface.slide_path_provider import SlidePathProvider
-
-
-# (row,col)->(x,y)
-def grid_pos_to_source_pos(grid_pos: Tuple[int, int], grid_length: int) -> Tuple[int, int]:
-    x = grid_pos[1] * grid_length
-    y = grid_pos[0] * grid_length
-    return x, y
-
-
-def grid_flat_pos_to_grid_pos(grid_flat_pos: int, grid_nrows: int) -> Tuple[int, int]:
-    row = grid_flat_pos // grid_nrows
-    # col = grid_flat_pos - row * grid_nrows
-    col = grid_flat_pos % grid_nrows
-    return (row, col)
-
-
-# row,col
-def grid_flat_pos_range(source_size: Tuple[int, int], grid_length: int):
-    sw, sh = source_size
-    gw, gh = grid_length, grid_length
-    cols = ceil(sw / gw)
-    rows = ceil(sh / gh)
-    return range(rows * cols)
-
-
-def pos_to_rect_coords(pos: Tuple[int, int], grid_length: int) -> Tuple[int, int, int, int]:
-    return pos[0], pos[1], pos[0] + grid_length, pos[1] + grid_length
-
-
-# row,col
-def grid_pos_range(source_size: Tuple[int, int], grid_length: int):
-    sw, sh = source_size
-    gw, gh = grid_length, grid_length
-    cols = ceil(sw / gw)
-    rows = ceil(sh / gh)
-    return product(range(rows), range(cols))
-
-
-# x,y
-def pos_range(source_size: Tuple[int, int], grid_length: int, x_offset: int = 0, y_offset: int = 0):
-    sw, sh = source_size
-    gw, gh = grid_length, grid_length
-    cols = ceil(sw / gw)
-    rows = ceil(sh / gh)
-    return ((x_offset + col * grid_length, y_offset + row * grid_length) for row in range(rows) for col in range(cols))
 
 
 def build_region_data(slide_path: str, model: AnnotationModel, filter_level: int) -> RegionData:

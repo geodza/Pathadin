@@ -9,7 +9,7 @@ from img.filter.base_filter import FilterData, FilterType, FilterResults2
 class KerasModelParams():
     model_path: str
     alpha_scale: float = 0.5
-    invert: bool = True
+    invert: bool = False
 
 
 @dataclass_fields

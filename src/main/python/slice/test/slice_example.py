@@ -19,11 +19,8 @@ if __name__ == '__main__':
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example1")
-    root_input_path = root_path.joinpath("input")
-    root_output_path = root_path.joinpath("output")
-    root_input_path.mkdir(parents=True, exist_ok=True)
-    root_output_path.mkdir(parents=True, exist_ok=True)
+    root_path = pathlib.Path.home().joinpath("temp/pathadin_examples/data")
+    root_path.mkdir(parents=True, exist_ok=True)
 
 
     # In this example we will show how to generate label/image patches from slide images.
@@ -58,10 +55,10 @@ if __name__ == '__main__':
         # Original mrxs slide is about 4gb memory.
         # To make example more reproducible and lightweight we cut a small region from it and interpret it as a real slide.
 
-        slide1_path = str(root_input_path.joinpath("slide1.jpeg").resolve())
-        slide1_annotations_path = str(root_input_path.joinpath("slide1_annotations.json").resolve())
-        slide2_path = str(root_input_path.joinpath("slide2.jpeg").resolve())
-        slide2_annotations_path = str(root_input_path.joinpath("slide2_annotations.json").resolve())
+        slide1_path = str(root_path.joinpath("slide1.jpeg").resolve())
+        slide1_annotations_path = str(root_path.joinpath("slide1_annotations.json").resolve())
+        slide2_path = str(root_path.joinpath("slide2.jpeg").resolve())
+        slide2_annotations_path = str(root_path.joinpath("slide2_annotations.json").resolve())
         slide_paths.append(SlidePath(slide1_path, slide1_annotations_path))
         slide_paths.append(SlidePath(slide2_path, slide2_annotations_path))
 
@@ -191,25 +188,25 @@ if __name__ == '__main__':
     # Single file with arrays is easier and faster to:
     # a) manage(delete, copy)
     # b) transfer and synchronize with remote storage (like google disk which can be used from google colab)
-    # c) use in processing later (for examplle training model with keras)
+    # c) use in processing later (for example training model with keras)
     # File system folder with image files is easier to:
     # a) explore
     # b) image-compression often is better than zip-compression for arrays
 
     from ndarray_persist.save import save_named_ndarrays
 
-    # data_path = root_output_path.joinpath("slice_example_results")
-    # data_path = root_output_path.joinpath("slice_example_results.zip")
-    data_path = root_output_path.joinpath("slice_example_results.hdf5")
-    save_named_ndarrays(named_ndarrays, str(data_path), delete_if_exists=True, verbosity=1)
+    # patches_path = root_output_path.joinpath("slice_example_results")
+    # patches_path = root_output_path.joinpath("slice_example_results.zip")
+    patches_path = root_path.joinpath("slice_patches.h5")
+    save_named_ndarrays(named_ndarrays, str(patches_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.
     # Now we can load both labels and images from data store as one data-flow.
     # But it is common case to load labels and images separately, so here is example.
     from ndarray_persist.load.ndarray_loader_factory import NdarrayLoaderFactory
 
-    labels_loader = NdarrayLoaderFactory.from_name_filter(str(data_path), name_pattern=f'.*/{patch_size[0]},{patch_size[1]}/label/.*')
-    images_loader = NdarrayLoaderFactory.from_name_filter(str(data_path), name_pattern=f'.*/{patch_size[0]},{patch_size[1]}/image/.*')
+    labels_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=f'.*/{patch_size[0]},{patch_size[1]}/label/.*')
+    images_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=f'.*/{patch_size[0]},{patch_size[1]}/image/.*')
     named_labels = list(labels_loader.load_named_ndarrays())
     named_images = list(images_loader.load_named_ndarrays())
     print("Loaded label patches:")
@@ -226,3 +223,17 @@ if __name__ == '__main__':
     image_tuples = zip(named_images, named_labels)
     print("Image-label pairs:")
     plot_named_ndarrays_tuples_by_batches(image_tuples, ncols=6, tuples_per_plot=12)
+
+    # To download file to localhost you can download it as "Browser download file"
+    # or mount your google drive and copy file to it:
+    # https://colab.research.google.com/notebooks/io.ipynb
+    # Another option is to mount google drive in the beginning of example
+    # and make all io in some directory of gdrive.
+    #
+    # We will mount gdrive and copy file to gdrive directory.
+    # from google.colab import drive
+    # drive.mount('/content/drive')
+    # gdrive_path = pathlib.Path('/content/drive/My Drive/pathadin_examples/data', patches_path.name)
+    # gdrive_path.parent.mkdir(parents=True, exist_ok=True)
+    # import shutil
+    # shutil.copy2(str(patches_path), gdrive_path)

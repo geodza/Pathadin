@@ -24,7 +24,7 @@ from img.filter.manual_threshold import GrayManualThresholdFilterData, HSVManual
 from img.filter.nuclei import NucleiFilterData
 from img.filter.positive_pixel_count import PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
-from slide_viewer.config import initial_main_window_size
+from slide_viewer.config import initial_main_window_size, model_path
 from slide_viewer.ui.odict.filter_tree_view_delegate import FilterTreeViewDelegate
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService
@@ -90,9 +90,6 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         # fd = QuantizationFilterData('1')
         # fd = KMeansFilterData('1')
         # fd = NucleiFilterData('1')
-        # model_path1 = r"C:\Users\User\GoogleDisk\datasets\weights.h5"
-        model_path = r"C:\Users\User\GoogleDisk\unet_model.h5"
-        # model_path = None
         filters = OrderedDict({
             'GRAY': GrayManualThresholdFilterData('GRAY', True, (150, 100)),
             'HSV': HSVManualThresholdFilterData('HSV', True, ((165, 40, 0), (15, 255, 255))),

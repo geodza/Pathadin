@@ -38,21 +38,19 @@ if __name__ == '__main__':
     import numpy as np
 
     # We define working root folder for convenience
-    root_path = pathlib.Path.home().joinpath("temp/slice_example1")
+    root_path = pathlib.Path.home().joinpath("temp/pathadin_examples/data")
     root_path.mkdir(parents=True, exist_ok=True)
 
     # Define path to patches (both images and labels).
     # Example of generating and storing patches from slide images can be found in "slice_example".
-    # patches_path = r"C:\Users\User\GoogleDisk\slice_example1\slice_example_results2.hdf5"
-    patches_path = root_path.joinpath("output/slice_example_results.hdf5")
+    patches_path = root_path.joinpath("slice_patches.h5")
     patches_path.parent.mkdir(parents=True, exist_ok=True)
 
 
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
     def load_example_patches():
         from common_urllib.core import load_gdrive_file
-        load_gdrive_file("1q842Tv1DZ3vp7068465JNujcencLSZWS", str(patches_path))
-        # load_gdrive_file("1cOB9KXW2gBuNCmiNcoie3RewaIwwiS8r", str(patches_path))
+        load_gdrive_file("1-8nFK5Q0QbR9pW3u_bB83MQRtHJl2qae", str(patches_path))
 
 
     # load_example_patches()
@@ -107,7 +105,8 @@ if __name__ == '__main__':
     from common_keras.unet import get_unet
 
     patch_shape = X.shape[-3:]
-    model = get_unet(patch_shape, n_filters=16)
+    n_filters = 8
+    model = get_unet(patch_shape, n_filters=n_filters)
     model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy'])
     # One more check. Ensure our data is compatible with model definition.
     # These statements asserts ndarrays shapes and dtypes.
@@ -116,12 +115,12 @@ if __name__ == '__main__':
 
     # Define path where the model will be saved.
     # You can load it afterwards in another program and use it for prediction.
-    model_path = root_path.joinpath('unet_model.h5')
+    model_path = root_path.joinpath('segmentation_model.h5')
 
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 
     callbacks = [
-        ReduceLROnPlateau(factor=0.1, patience=5, min_lr=0.00001, verbose=1, monitor='val_loss'),
+        ReduceLROnPlateau(factor=0.1, patience=5, min_lr=0.000001, verbose=1, monitor='val_loss'),
         ModelCheckpoint(str(model_path), verbose=1, monitor='val_loss', save_best_only=True, save_weights_only=False),
         EarlyStopping(patience=10, verbose=1, monitor='val_loss'),
     ]
@@ -133,7 +132,7 @@ if __name__ == '__main__':
     augment_kwargs = dict()
     data_generator = ImageDataGenerator(**augment_kwargs)
 
-    batch_size = 5
+    batch_size = 20
     epochs = 50
     steps_per_epoch = len(X_train) / batch_size
     samples = data_generator.flow(X_train, Y_train, batch_size=batch_size, shuffle=True)
@@ -170,17 +169,17 @@ if __name__ == '__main__':
     print("Test data(image, true label, predicted label):")
     plot_image_tuples_by_batches(zip(X_test, Y_test, Y_test_predict), ncols=6, tuples_per_plot=8)
 
-    # To download trained model to your localhost you can download it as "Browser download file"
+    # To download file to localhost you can download it as "Browser download file"
     # or mount your google drive and copy file to it:
     # https://colab.research.google.com/notebooks/io.ipynb
-    # Another option is to mount google drive in the beginning of example.
-    # and set model_path='some_directory_in_your_gdrive/my_model.h5'.
-    # You can also set patches_path='some_directory_in_your_gdrive/my_patches_dataset.h5'
-    # to load patches directly from your drive.
+    # Another option is to mount google drive in the beginning of example
+    # and make all io in some directory of gdrive.
     #
-    # We will mount gdrive and copy model file to gdrive root directory .
+    # We will mount gdrive and copy file to gdrive directory.
     # from google.colab import drive
-    # drive.mount('/content/drive/My Drive')
+    # drive.mount('/content/drive')
+    # gdrive_path = pathlib.Path('/content/drive/My Drive/pathadin_examples/data', model_path.name)
+    # gdrive_path.parent.mkdir(parents=True, exist_ok=True)
     # import shutil
-    # shutil.copy2(str(model_path), '/content/drive')
+    # shutil.copy2(str(model_path), gdrive_path)
 

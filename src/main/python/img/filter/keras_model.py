@@ -8,6 +8,8 @@ from img.filter.base_filter import FilterData, FilterType, FilterResults2
 @dataclass(frozen=True)
 class KerasModelParams():
     model_path: str
+    alpha_scale: float = 0.5
+    invert: bool = True
 
 
 @dataclass_fields

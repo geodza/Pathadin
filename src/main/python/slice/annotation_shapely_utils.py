@@ -11,7 +11,7 @@ from slide_viewer.ui.odict.deep.model import AnnotationModel, AnnotationTreeItem
 from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
 
 
-def annotation_geom_to_shapely_geom(geometry: AnnotationGeometry) -> BaseGeometry:
+def annotation_geom_to_shapely_geom(geometry: AnnotationGeometry) -> Polygon:
     shift = geometry.origin_point or (0, 0)
     if geometry.annotation_type == AnnotationType.POLYGON:
         return translate(Polygon(geometry.points), *shift)
@@ -26,7 +26,7 @@ def annotation_geom_to_shapely_geom(geometry: AnnotationGeometry) -> BaseGeometr
         pass
 
 
-def annotation_to_geom(annotation: AnnotationModel, prepare=False) -> BaseGeometry:
+def annotation_to_geom(annotation: AnnotationModel, prepare=False) -> Polygon:
     geom = annotation_geom_to_shapely_geom(annotation.geometry)
     if geom:
         if not geom.is_valid:

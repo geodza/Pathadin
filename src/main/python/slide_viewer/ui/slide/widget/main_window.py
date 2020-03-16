@@ -91,8 +91,8 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         # fd = KMeansFilterData('1')
         # fd = NucleiFilterData('1')
         # model_path1 = r"C:\Users\User\GoogleDisk\datasets\weights.h5"
-        # model_path2 = r"C:\Users\User\GoogleDisk\datasets\weights4.h5"
-        model_path = None
+        model_path = r"C:\Users\User\GoogleDisk\unet_model.h5"
+        # model_path = None
         filters = OrderedDict({
             'GRAY': GrayManualThresholdFilterData('GRAY', True, (150, 100)),
             'HSV': HSVManualThresholdFilterData('HSV', True, ((165, 40, 0), (15, 255, 255))),
@@ -252,7 +252,13 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
         annotation_service = DeepableAnnotationService(root=annotations_tree_model)
         slide_path_provider = lambda: view.slide_helper.slide_path
-        filter_model_provider = lambda filter_id: self.filters_tree_view.model()[filter_id]
+
+        def filter_model_provider(filter_id: str):
+            if filter_id in self.filters_tree_view.model():
+                return self.filters_tree_view.model()[filter_id]
+            else:
+                return None
+
         scene_provider = lambda: view.scene()
         # annotation_filter_processor = None
         annotation_filter_processor = AnnotationFilterProcessor(pool=self.pool,

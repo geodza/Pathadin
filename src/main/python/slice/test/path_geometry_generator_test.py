@@ -9,7 +9,7 @@ if __name__ == '__main__':
         bb_hooks=[BBGeometryProbablyContainsHook(ProbablyContainsChecker(512, 512, 1024, 1024))],
         patch_hooks=[]
     )
-    poss = PatchPosGenerator((1000, 1000), 256).create()
+    poss = PatchPosGenerator((1000, 1000), 256, 256).create()
     gen = roipg.create(poss)
     print(gen)
     for i in gen:

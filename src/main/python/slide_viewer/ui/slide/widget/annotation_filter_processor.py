@@ -193,7 +193,7 @@ def keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFi
 #     slide_path = r"D:\slide_cbir_47\temp\slides\slide-2019-09-19T18-08-52-R28-S3.mrxs"
 #     ds = r"."
 #     grid_length = 256
-#     model_path = r"D:\dieyepy\src\main\python\256\unet_model_19_01_2020.h5"
+#     model_path = r"D:\Pathadin\src\main\python\256\unet_model_19_01_2020.h5"
 #     rd = RegionData(slide_path, 0, (0, 0), ((41728, 63232), (42008, 63512)), AnnotationType.RECT)
 #     fr = keras_model_filter(rd, KerasModelParams(model_path))
 #     print(fr)

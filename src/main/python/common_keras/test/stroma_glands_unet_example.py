@@ -5,12 +5,12 @@ if __name__ == '__main__':
     # !ssh-keygen -R gitlab.com
     # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
     # Git clone will work without ssh after opening access
-    # !git clone git@gitlab.com:Digipathology/dieyepy.git
-    # !git -C dieyepy pull
+    # !git clone git@gitlab.com:Digipathology/Pathadin.git
+    # !git -C Pathadin pull
     #
     # We need to clone project and add it to sys.path (we haven't installable packages yet)
-    path_to_project = r'D:\projects\dieyepy\src\main\python'
-    # path_to_project = 'dieyepy/src/main/python'
+    path_to_project = r'D:\projects\Pathadin\src\main\python'
+    # path_to_project = 'Pathadin/src/main/python'
     import pathlib, sys
 
     sys.path.append(str(pathlib.Path(path_to_project).resolve()))

@@ -1,9 +1,9 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPen, QBrush, QColor
-from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsItem, QGraphicsView
+from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsView
 
 
-class SlideGraphicsDebugViewSceneRect(QGraphicsRectItem):
+class GraphicsViewDebugRect(QGraphicsRectItem):
 
     def __init__(self, view: QGraphicsView) -> None:
         super().__init__()

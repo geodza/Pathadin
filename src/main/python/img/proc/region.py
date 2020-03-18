@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPolygon
 
 from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from slide_viewer.cache_config import gcached
-from slide_viewer.ui.model.annotation_type import AnnotationType
+from slide_viewer.ui.common.annotation_type import AnnotationType
 
 ituple = Tuple[int, int]
 ituples = Tuple[ituple, ...]

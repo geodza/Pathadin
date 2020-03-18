@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, InitVar
 
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.almost_immediate_timer import AlmostImmediateTimer
-from common_qt.graphics_view_transform_notifier import GraphicsViewTransformNotifier
+from common_qt.graphics.graphics_view_transform_notifier import GraphicsViewTransformNotifier
 from slide_viewer.ui.common.timeline.pan_time_line import PanTimeLine, PanTimeLineData
 from slide_viewer.ui.common.timeline.scale_time_line import ScaleTimeLineData, ScaleTimeLine
 from slide_viewer.ui.slide.graphics.view.view_params import ViewParams

@@ -9,7 +9,7 @@ from common_image.core.object_convert import pilimg_to_ndimg
 from common_image.core.resize import resize_ndimg
 from common_image.model.ndimg import Ndimg
 from common_shapely.shapely_utils import locate, scale_at_origin, get_polygon_bbox_pos, get_polygon_bbox_size
-from slide_viewer.ui.odict.deep.model import AnnotationModel
+from slide_viewer.ui.common.model import AnnotationModel
 
 
 def get_slide_polygon_bbox_rgb_region(slide: openslide.AbstractSlide, polygon0: Polygon, level: int,

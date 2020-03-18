@@ -11,8 +11,8 @@ from PyQt5.QtGui import QVector2D
 #         area += (pj.x() + pi.x()) * (pj.y() - pi.y())
 #     return abs(area) / 2
 from common_qt.qobjects_convert_util import ituples_to_qpoints
-from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
-from slide_viewer.ui.model.annotation_type import AnnotationType
+from slide_viewer.ui.common.model import AnnotationGeometry
+from slide_viewer.ui.common.annotation_type import AnnotationType
 
 
 def calc_polygon_area(points: typing.List[QPoint]) -> float:

@@ -8,8 +8,8 @@ import attr
 from dataclasses import fields, is_dataclass, asdict, Field
 from pydantic import BaseModel
 
-from slide_viewer.ui.model.annotation_type import AnnotationType
-from slide_viewer.ui.odict.deep.model import TreeViewConfig
+from slide_viewer.ui.common.annotation_type import AnnotationType
+from slide_viewer.ui.common.model import TreeViewConfig
 
 DataClass = Any
 Deepable = Union[OrderedDict, DataClass]

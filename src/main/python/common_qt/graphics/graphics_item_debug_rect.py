@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPen, QBrush, QColor
 from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsItem
 
 
-class SlideGraphicsDebugItemRect(QGraphicsRectItem):
+class GraphicsItemDebugRect(QGraphicsRectItem):
 
     def __init__(self, parent: QGraphicsItem) -> None:
         super().__init__(parent)

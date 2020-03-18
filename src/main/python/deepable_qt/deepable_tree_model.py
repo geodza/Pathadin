@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from deepable.core import deep_keys, deep_get, Deepable, is_deepable
 from deepable_qt.pyqabstract_item_model import PyQAbstractItemModel
-from slide_viewer.ui.odict.deep.model import TreeViewConfig
+from slide_viewer.ui.common.model import TreeViewConfig
 
 
 @dataclass

@@ -7,8 +7,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPathItem, QGraphicsItem, QStyleOptionGraphicsItem, QWidget
 from dataclasses import dataclass, InitVar, field
 
-from slide_viewer.ui.model.annotation_type import AnnotationType
-from slide_viewer.ui.slide.graphics.item.annotation.model import are_points_distinguishable
+from slide_viewer.ui.common.annotation_type import AnnotationType
+from slide_viewer.ui.common.model import are_points_distinguishable
 from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProvider
 
 

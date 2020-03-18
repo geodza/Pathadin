@@ -1,11 +1,10 @@
 from typing import Tuple, Iterable
 
-import cv2
 import numpy as np
 
 from common_image.core.draw import draw_ellipse, draw_rect, draw_polygon, draw_line
 from slide_viewer.cache_config import gcached
-from slide_viewer.ui.model.annotation_type import AnnotationType
+from slide_viewer.ui.common.annotation_type import AnnotationType
 
 ituple = Tuple[int, int]
 

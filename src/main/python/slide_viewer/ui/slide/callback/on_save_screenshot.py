@@ -2,9 +2,9 @@ from datetime import datetime
 
 from PyQt5.QtCore import QFileInfo, QFile
 
-from common_qt.screenshot_builders import build_screenshot_image_from_view
+from common_qt.graphics.screenshot_builders import build_screenshot_image_from_view
 from common_qt.select_image_file_action import SelectImageFileAction
-from slide_viewer.common.img_formats import saveable_mime_types
+from slide_viewer.common.img_formats import saveable_image_mime_types
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 
@@ -19,5 +19,5 @@ def on_save_screenshot(view: GraphicsView) -> None:
         slide_name = QFileInfo(QFile(view.slide_helper.slide_path)).baseName()
         default_file_name = f"{slide_name}_screen_{now_str}"
         select_image_file_action = SelectImageFileAction("internal", view, on_select_image_file,
-                                                         saveable_mime_types, default_file_name)
+                                                         saveable_image_mime_types, default_file_name)
         select_image_file_action.trigger()

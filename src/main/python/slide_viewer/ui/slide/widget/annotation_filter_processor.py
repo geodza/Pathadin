@@ -51,8 +51,7 @@ from slice.image_shapely_utils import get_slide_polygon_bbox_rgb_region
 from slide_viewer.cache_config import cache_lock, cache_key_func, pixmap_cache_lock, cache_, gcached, add_to_global_pending, get_from_global_pending, \
     is_in_global_pending, remove_from_global_pending, closure_nonhashable
 from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.ui.odict.deep.model import AnnotationModel
-from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
+from slide_viewer.ui.common.model import AnnotationModel, AnnotationGeometry
 from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import AnnotationItemPixmapProvider
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 from slide_viewer.ui.slide.widget.interface.filter_model_provider import FilterModelProvider

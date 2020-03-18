@@ -1,4 +1,4 @@
-import typing
+from typing import Optional
 
 from PyQt5.QtWidgets import QToolButton, QWidget
 from dataclasses import dataclass, InitVar
@@ -8,10 +8,10 @@ from slide_viewer.ui.slide.widget.menu.sync_menu import SyncMenu
 
 @dataclass
 class SyncToolButton(QToolButton):
-    parent_: InitVar[typing.Optional[QWidget]]
+    parent_: InitVar[Optional[QWidget]]
     sync_menu: InitVar[SyncMenu]
 
-    def __post_init__(self, parent_: typing.Optional[QWidget], sync_menu: SyncMenu):
+    def __post_init__(self, parent_: Optional[QWidget], sync_menu: SyncMenu):
         super().__init__(parent_)
         sync_tool_button = self
         sync_tool_button.setMenu(sync_menu)

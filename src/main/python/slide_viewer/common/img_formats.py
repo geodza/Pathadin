@@ -1,4 +1,4 @@
-saveable_mime_types = [
+saveable_image_mime_types = [
     "image/jpeg",
     "image/tiff",
     "image/bmp",

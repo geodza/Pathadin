@@ -12,8 +12,7 @@ from img.filter.keras_model import KerasModelFilterResults
 from img.filter.kmeans_filter import KMeansFilterResults
 from img.filter.nuclei import NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults
-from slide_viewer.ui.odict.deep.model import AnnotationModel
-from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationStats
+from slide_viewer.ui.common.model import AnnotationModel, AnnotationStats
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 
 ituple = Tuple[int, int]

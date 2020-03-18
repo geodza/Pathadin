@@ -8,15 +8,15 @@ from dataclasses import dataclass, field
 
 from common.debug_only_decorator import debug_only
 from common_qt.abcq_meta import ABCQMeta
+from common_qt.graphics.graphics_item_debug_rect import GraphicsItemDebugRect
+from common_qt.graphics.graphics_view_debug_rect import \
+    GraphicsViewDebugRect
 from common_qt.grid_graphics_item import GridGraphicsItem
 from common_qt.key_press_util import KeyPressEventUtil
 from common_qt.mime_utils import mime_data_is_url
 from slide_viewer.common.slide_helper import SlideHelper
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text
-from slide_viewer.ui.slide.graphics.item.debug.slide_graphics_debug_item_rect import SlideGraphicsDebugItemRect
-from slide_viewer.ui.slide.graphics.item.debug.slide_graphics_debug_view_scene_rect import \
-    SlideGraphicsDebugViewSceneRect
 from slide_viewer.ui.slide.graphics.item.filter_graphics_item import FilterGraphicsItem
 from slide_viewer.ui.slide.graphics.item.slide_graphics_item import SlideGraphicsItem
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService
@@ -45,7 +45,7 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
     def __post_init__(self, parent_: Optional[QWidget]):
         ScaleGraphicsView.__post_init__(self, parent_)
         self.id = None  # debug purpose
-        scene = GraphicsScene(scale_provider=self, parent_=self)
+        scene = GraphicsScene(parent_=self)
         self.setScene(scene)
         self.scene().installEventFilter(self)
         self.scene().sceneRectChanged.connect(self.update_min_scale)
@@ -204,9 +204,9 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
 
     @debug_only()
     def init_debug_scene_view_rect(self) -> None:
-        self.filePathChanged.connect(lambda: self.scene().addItem(SlideGraphicsDebugViewSceneRect(self.view)))
+        self.filePathChanged.connect(lambda: self.scene().addItem(GraphicsViewDebugRect(self.view)))
 
     @debug_only()
     def init_debug_item_rect(self) -> None:
         self.filePathChanged.connect(
-            lambda: self.scene().addItem(SlideGraphicsDebugItemRect(self.slide_graphics_item)))
+            lambda: self.scene().addItem(GraphicsItemDebugRect(self.slide_graphics_item)))

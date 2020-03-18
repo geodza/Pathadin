@@ -7,12 +7,10 @@ from dataclasses import dataclass, field
 
 from common_qt.abcq_meta import ABCQMeta
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_graphics_item import AnnotationGraphicsItem
-from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProvider
 
 
 @dataclass
 class GraphicsScene(QGraphicsScene, metaclass=ABCQMeta):
-    scale_provider: ScaleProvider
     parent_: QObject = field(default=None)
     annotations: Dict[str, AnnotationGraphicsItem] = field(default_factory=OrderedDict)
     annotationModelsSelected = pyqtSignal(list)

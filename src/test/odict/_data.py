@@ -2,9 +2,8 @@ from collections import OrderedDict
 
 from slide_viewer.ui.dict_tree_view_model.standard_attr_key import StandardAttrKey
 from slide_viewer.ui.odict.odict import ODictModel
-from slide_viewer.ui.odict.deep.model import TreeViewConfig, AnnotationModel
-from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
-from slide_viewer.ui.model.annotation_type import AnnotationType
+from slide_viewer.ui.common.model import TreeViewConfig, AnnotationModel, AnnotationGeometry
+from slide_viewer.ui.common.annotation_type import AnnotationType
 
 odict1 = OrderedDict({
     "odict1": OrderedDict({

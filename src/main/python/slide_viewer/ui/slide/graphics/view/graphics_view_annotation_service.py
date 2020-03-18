@@ -7,11 +7,10 @@ from dataclasses import dataclass, field
 from common_qt.debounce_signal import debounce_two_arg_slot_wrap
 from common_qt.qobjects_convert_util import qpoint_to_ituple, ituple_to_qpoint
 from common_qt.slot_disconnected_utils import slot_disconnected
-from slide_viewer.ui.model.annotation_type import AnnotationType
-from slide_viewer.ui.odict.deep.model import TreeViewConfig, AnnotationModel
+from slide_viewer.ui.common.annotation_type import AnnotationType
+from slide_viewer.ui.common.model import TreeViewConfig, AnnotationModel, AnnotationGeometry
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_graphics_item import AnnotationGraphicsItem
-from slide_viewer.ui.slide.graphics.item.annotation.model import AnnotationGeometry
 from slide_viewer.ui.slide.graphics.view.graphics_annotation_utils import build_annotation_graphics_model
 from slide_viewer.ui.slide.slide_stats_provider import SlideStatsProvider
 from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor

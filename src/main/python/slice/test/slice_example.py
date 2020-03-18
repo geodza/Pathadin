@@ -180,7 +180,7 @@ if __name__ == '__main__':
     # We often want to store results of generating patches.
     # It is convenient to store data hierarchically.
     # 3 hierarchial data storages are supported:
-    # 1) hdf5 (patches are stored as arrays in a single file)
+    # 1) hdf5 (patches are stored as arrays in a single file)(you can view them with HDFView)
     # 2) zip archive (patches are stored as arrays in a single file)
     # 3) file system folders (patches are stored as image files in folders)
     #

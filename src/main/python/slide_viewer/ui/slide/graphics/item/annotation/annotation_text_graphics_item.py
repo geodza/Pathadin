@@ -1,13 +1,10 @@
 from typing import Optional
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QMarginsF
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QGraphicsSimpleTextItem, QGraphicsItem, QGraphicsRectItem, QGraphicsItemGroup, \
-    QGraphicsTextItem
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsRectItem, QGraphicsItemGroup, \
+    QGraphicsTextItem, QApplication
 from dataclasses import dataclass, InitVar
-
-from slide_viewer.ui.slide.graphics.item.annotation.annotation_utls import create_annotation_text_font, \
-    create_annotation_text_margins
 
 
 @dataclass
@@ -45,5 +42,11 @@ class AnnotationTextGraphicsItem(QGraphicsItemGroup):
         if model.text != self.text_item.toHtml():
             self.prepareGeometryChange()
             self.text_item.setHtml(model.text)
-            self.background.setRect(self.text_item.boundingRect() + create_annotation_text_margins())
+            self.background.setRect(self.text_item.boundingRect() + QMarginsF(4, 4, 4, 4))
         self.update()
+
+
+def create_annotation_text_font():
+    f = QApplication.font()
+    f.setPointSize(int(f.pointSize() * 1.2))
+    return f

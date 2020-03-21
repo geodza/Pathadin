@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QItemEditorFactory, \
 
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.editor.custom_item_editor_factory import CustomItemEditorFactory
+from common_qt.mdi_subwindow_sync_utils import sync_about_to_activate, sync_close
 from common_qt.persistent_settings.settings_utils import write_settings, read_settings
 from common_qt.slot_disconnected_utils import slot_disconnected
-from common_qt.mdi_subwindow_sync_utils import sync_about_to_activate, sync_close
 from deepable.core import toplevel_keys
 from deepable_qt.context_menu_factory2 import context_menu_factory2
 from deepable_qt.deepable_tree_model import DeepableTreeModel
@@ -27,7 +27,7 @@ from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
 from slide_viewer.config import initial_main_window_size, model_path
 from slide_viewer.ui.common.filter_tree_view_delegate import FilterTreeViewDelegate
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
-from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService
+from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 import GraphicsViewAnnotationService2
 from slide_viewer.ui.slide.widget.annotation_filter_processor import AnnotationFilterProcessor
 from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
 from slide_viewer.ui.slide.widget.deepable_annotation_service import DeepableAnnotationService
@@ -38,11 +38,15 @@ from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveVi
 from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService, SyncOption
 from slide_viewer.ui.slide.widget.main_window_view_sync import setup_sync
 from slide_viewer.ui.slide.widget.mdi_sub_window import MdiSubWindow
+from slide_viewer.ui.slide.widget.menubar import Menubar
 
 
 class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvider, SubWindowService,
                  metaclass=ABCQMeta):
     __sub_window_slide_path_changed = pyqtSignal(str)
+
+    def menuBar(self) -> Menubar:
+        return typing.cast(Menubar, super().menuBar())
 
     def get_sync_state(self, option: SyncOption) -> bool:
         return bool(self.sync_states.get(option))
@@ -157,7 +161,9 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         annotations_tree_sub_window = self.annotations_tree_mdi.addSubWindow(annotation_tree_view_sub_window)
         annotations_tree_sub_window.show()
 
-        annotation_service = DeepableAnnotationService(root=annotations_tree_model)
+        microns_per_pixel_provider = lambda: view.get_microns_per_pixel()
+        annotation_stats_processor = AnnotationStatsProcessor(microns_per_pixel_provider=microns_per_pixel_provider)
+        annotation_service = DeepableAnnotationService(root=annotations_tree_model, stats_processor=annotation_stats_processor)
         slide_path_provider = lambda: view.slide_helper.slide_path
 
         def filter_model_provider(filter_id: str):
@@ -167,19 +173,19 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
                 return None
 
         scene_provider = lambda: view.scene()
+
         # annotation_filter_processor = None
         annotation_filter_processor = AnnotationFilterProcessor(pool=self.pool,
                                                                 slide_path_provider=slide_path_provider,
                                                                 annotation_service=annotation_service,
                                                                 filter_model_provider=filter_model_provider)
-        annotation_stats_processor = AnnotationStatsProcessor(slide_stats_provider=None)
-        graphics_view_annotation_service = GraphicsViewAnnotationService(scene_provider=scene_provider,
-                                                                         annotation_service=annotation_service,
-                                                                         annotation_pixmap_provider=annotation_filter_processor,
-                                                                         annotation_stats_processor=annotation_stats_processor,
-                                                                         scale_provider=None,
-                                                                         slide_stats_provider=None)
-        view = GraphicsView(parent_=self, graphics_view_annotation_service=graphics_view_annotation_service)
+        graphics_view_annotation_service = GraphicsViewAnnotationService2(scene_provider=scene_provider,
+                                                                          annotation_service=annotation_service,
+                                                                          scale_provider=None)
+
+        view = GraphicsView(parent_=self,
+                            graphics_view_annotation_service=graphics_view_annotation_service,
+                            annotation_pixmap_provider=annotation_filter_processor)
         annotation_stats_processor.slide_stats_provider = view
         graphics_view_annotation_service.slide_stats_provider = view
         graphics_view_annotation_service.scale_provider = view
@@ -220,8 +226,8 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
         sync_about_to_activate(view_sub_window, annotation_tree_view_sub_window)
         sync_close(view_sub_window, annotation_tree_view_sub_window)
-        view_sub_window.widget().filePathChanged.connect(on_file_path_changed)
-        view_sub_window.widget().filePathDropped.connect(on_file_path_dropped)
+        view.filePathChanged.connect(on_file_path_changed)
+        view.filePathDropped.connect(on_file_path_dropped)
         view.scene().annotationModelsSelected.connect(on_scene_annotations_selected)
         annotations_tree_view.objectsSelected.connect(on_tree_objects_selected)
         self.filters_tree_view.model().objectsChanged.connect(tree_filter_models_changed)

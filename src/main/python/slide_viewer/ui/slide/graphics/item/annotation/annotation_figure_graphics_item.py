@@ -26,7 +26,7 @@ class AnnotationFigureGraphicsItemSignals(QObject):
         super().__init__(parent)
 
 
-def build_path(annotation_type: AnnotationType, points: List[QPoint]):
+def build_painter_path(annotation_type: AnnotationType, points: List[QPoint]) -> QPainterPath:
     if are_points_distinguishable(points):
         path = QPainterPath()
         if annotation_type in (AnnotationType.RECT, AnnotationType.ELLIPSE, AnnotationType.LINE):
@@ -59,6 +59,7 @@ class AnnotationFigureGraphicsItem(QGraphicsItemGroup):
     def __post_init__(self, model: Optional[AnnotationFigureGraphicsModel]):
         QGraphicsItemGroup.__init__(self)
         self.shape_item = QGraphicsPathItem(self)
+        self.shape_item.setAcceptHoverEvents(False)
         self.shape_item.setAcceptedMouseButtons(Qt.NoButton)
         self.setFlag(QGraphicsItem.ItemIsSelectable)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
@@ -71,7 +72,7 @@ class AnnotationFigureGraphicsItem(QGraphicsItemGroup):
 
     def __set_model(self, model: AnnotationFigureGraphicsModel):
         self.prepareGeometryChange()
-        path = build_path(model.annotation_type, model.points)
+        path = build_painter_path(model.annotation_type, model.points)
         self.shape_item.setPath(path)
         pen = self.shape_item.pen()
         pen.setColor(QColor(model.color))

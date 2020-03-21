@@ -20,14 +20,18 @@ from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text
 from slide_viewer.ui.slide.graphics.item.filter_graphics_item import FilterGraphicsItem
 from slide_viewer.ui.slide.graphics.item.slide_graphics_item import SlideGraphicsItem
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService
+from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 import GraphicsViewAnnotationService2
 from slide_viewer.ui.slide.graphics.view.scale_graphics_view import ScaleGraphicsView
-from slide_viewer.ui.slide.slide_stats_provider import SlideStatsProvider
+from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import AnnotationItemPixmapProvider
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
+from slide_viewer.ui.slide.widget.interface.slide_stats_provider import SlideStatsProvider
 
 
 @dataclass(repr=False)
 class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
-    graphics_view_annotation_service: GraphicsViewAnnotationService = ...
+    # graphics_view_annotation_service: GraphicsViewAnnotationService = ...
+    graphics_view_annotation_service: GraphicsViewAnnotationService2 = ...
+    annotation_pixmap_provider: AnnotationItemPixmapProvider = ...
     _grid_size: Tuple[int, int] = (512, 512)
     _grid_size_is_in_pixels: bool = True
     slide_helper: Optional[SlideHelper] = field(init=False, default=None)
@@ -103,7 +107,7 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
 
     def set_file_path(self, file_path: str) -> None:
         self.slide_helper = SlideHelper(file_path)
-        self.graphics_view_annotation_service.on_off_annotation()
+        self.graphics_view_annotation_service.cancel_annotation_if_any()
         self.scene().clear()
         self.scene().setSceneRect(self.slide_helper.get_rect_for_level(0))
         unlimited_rect = QRectF(-2 ** 31, -2 ** 31, 2 ** 32, 2 ** 32)
@@ -118,7 +122,7 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
         self.update_grid_item()
         self.scene().addItem(self.slide_graphics_grid_item)
 
-        self.filter_graphics_item = FilterGraphicsItem(self.graphics_view_annotation_service.annotation_pixmap_provider, self.slide_helper)
+        self.filter_graphics_item = FilterGraphicsItem(self.annotation_pixmap_provider, self.slide_helper)
         self.scene().addItem(self.filter_graphics_item)
 
         self.filePathChanged.emit(file_path)
@@ -139,25 +143,11 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
     def scene(self) -> GraphicsScene:
         return cast(GraphicsScene, super().scene())
 
-    def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
-        super().mouseMoveEvent(event)
-        if self.graphics_view_annotation_service.is_in_progress():
-            self.graphics_view_annotation_service.mouse_move(self.mapToScene(event.pos()).toPoint())
-            event.accept()
-
-    def on_mouse_click(self, event: QMouseEvent) -> bool:
-        if event.button() == Qt.LeftButton:
-            return self.on_left_mouse_click(event)
-        else:
-            return False
-
-    def on_left_mouse_click(self, event: QMouseEvent) -> bool:
-        if self.graphics_view_annotation_service.is_active():
-            return self.graphics_view_annotation_service.mouse_click(self.mapToScene(event.pos()).toPoint())
-        else:
-            return True
-
     def eventFilter(self, source: QObject, event: QEvent) -> bool:
+        print(self.hasMouseTracking())
+        res=self.graphics_view_annotation_service.eventFilter(source, event)
+        if res:
+            return True
         if isinstance(event, QGraphicsSceneDragDropEvent):
             drag_events = [QEvent.GraphicsSceneDragEnter, QEvent.GraphicsSceneDragMove]
             drop_events = [QEvent.GraphicsSceneDrop]
@@ -172,31 +162,9 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
                 return True
             else:
                 return False
-        elif KeyPressEventUtil.is_enter(event):
-            self.on_enter_press()
-            event.accept()
-            return True
-        elif KeyPressEventUtil.is_esc(event):
-            self.on_esc_press()
-            event.accept()
-            return True
-        elif KeyPressEventUtil.is_delete(event):
-            self.on_delete_press()
-            event.accept()
-            return True
         else:
+            # print("super", event)
             return super().eventFilter(source, event)
-
-    def on_enter_press(self) -> None:
-        if self.graphics_view_annotation_service.is_active():
-            self.graphics_view_annotation_service.on_enter_press()
-
-    def on_esc_press(self):
-        if self.graphics_view_annotation_service.is_active():
-            self.graphics_view_annotation_service.on_esc_press()
-
-    def on_delete_press(self):
-        self.graphics_view_annotation_service.on_delete_press()
 
     def log_state(self) -> None:
         print("scene_rect: {} view_scene_rect: {} scale: {}".format(self.scene().sceneRect(), self.sceneRect(),

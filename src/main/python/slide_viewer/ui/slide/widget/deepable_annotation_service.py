@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 from PyQt5.QtCore import QObject, pyqtBoundSignal, pyqtSignal
 
@@ -7,12 +7,13 @@ from common_qt.abcq_meta import ABCQMeta
 from deepable.core import toplevel_keys
 from deepable_qt.deepable_tree_model import DeepableTreeModel
 from img.filter.base_filter import FilterResults2
-from img.filter.threshold_filter import ThresholdFilterResults
 from img.filter.keras_model import KerasModelFilterResults
 from img.filter.kmeans_filter import KMeansFilterResults
 from img.filter.nuclei import NucleiFilterResults
 from img.filter.positive_pixel_count import PositivePixelCountFilterResults
+from img.filter.threshold_filter import ThresholdFilterResults
 from slide_viewer.ui.common.model import AnnotationModel, AnnotationStats
+from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 
 ituple = Tuple[int, int]
@@ -49,8 +50,9 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
     deleted = pyqtSignal(list)
     selected = pyqtSignal(list)
 
-    def __init__(self, root: DeepableTreeModel) -> None:
+    def __init__(self, root: DeepableTreeModel, stats_processor: Optional[AnnotationStatsProcessor] = None) -> None:
         self.root = root
+        self.stats_processor = stats_processor
         self.annotation_label_template: str = 'annotation_{}'
         self.root.objectsRemoved.connect(self.__on_removed)
         self.root.objectsChanged.connect(self.__on_changed)
@@ -124,11 +126,18 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
             # self.root[id_] = model
 
     def edit_stats(self, id_: str, stats: AnnotationStats) -> None:
-        if str(self.get(id_).stats) != str(stats):
-            # model = self.get(id_).copy(deep=True)
-            # model.stats = stats
-            self.root[f'{id_}.stats'] = stats
-            # self.root[id_] = model
+        # stats = self.stats_processor.calc_stats(model)
+        # stats_dict = stats.dict()
+        # old_stats_dict = model.stats.dict() if model.stats else None
+        # if stats_dict == old_stats_dict:
+        #     self.edited_signal().emit(toplevel_key, self.get(toplevel_key))
+        # else:
+        #     self.edit_stats(toplevel_key, stats)
+        # if str(self.get(id_).stats) != str(stats):
+        # model = self.get(id_).copy(deep=True)
+        # model.stats = stats
+        self.root[f'{id_}.stats'] = stats
+        # self.root[id_] = model
 
     def get(self, id_: str) -> AnnotationModel:
         return self.root[id_]
@@ -191,5 +200,19 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
 
     def __on_changed(self, keys: List[str]):
         for toplevel_key in toplevel_keys(keys):
+            id_ = toplevel_key
             # print(f"keys: {keys} top_level_key: {toplevel_key} onChanged")
-            self.edited_signal().emit(toplevel_key, self.get(toplevel_key))
+            model = self.get(id_)
+            if self.stats_processor:
+                stats = self.stats_processor.calc_stats(model)
+                stats_dict = stats.dict() if stats else None
+                old_stats_dict = model.stats.dict() if model.stats else None
+                stats = self.stats_processor.calc_stats(model)
+                if stats_dict == old_stats_dict:
+                    self.edited_signal().emit(id_, model)
+                else:
+                    self.root[f'{id_}.stats'] = stats
+                    # self.edit_stats(id_, stats)
+                    # self.add_or_edit(toplevel_key, model)
+            else:
+                self.edited_signal().emit(id_, model)

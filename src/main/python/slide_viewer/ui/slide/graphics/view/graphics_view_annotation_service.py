@@ -12,7 +12,7 @@ from slide_viewer.ui.common.model import TreeViewConfig, AnnotationModel, Annota
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_graphics_item import AnnotationGraphicsItem
 from slide_viewer.ui.slide.graphics.view.graphics_annotation_utils import build_annotation_graphics_model
-from slide_viewer.ui.slide.slide_stats_provider import SlideStatsProvider
+from slide_viewer.ui.slide.widget.interface.slide_stats_provider import SlideStatsProvider
 from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
 from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import AnnotationItemPixmapProvider
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService

@@ -154,15 +154,12 @@ class ScaleGraphicsView(GraphicsViewTransformNotifier, ScaleProvider, metaclass=
             self.mouse_move_timer.stop()
             self.launch_pan_time_line(self.scheduled_pan * self.pan_strength_factor)
             event.accept()
-            return
-        if not self.current.mouse_move_between_press_and_release:
-            res = self.on_mouse_click(event)
-            if res:
-                event.accept()
-                return
+        elif not self.current.mouse_move_between_press_and_release:
+            if event.button() == Qt.LeftButton:
+                self.on_left_mouse_click(event)
 
-    def on_mouse_click(self, event: QMouseEvent) -> bool:
-        return False
+    def on_left_mouse_click(self, event: QMouseEvent) -> None:
+        pass
 
     def launch_pan_time_line(self, pan: QPoint) -> None:
         timeline = PanTimeLine(parent=self, pan=pan,

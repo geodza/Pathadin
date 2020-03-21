@@ -9,7 +9,6 @@ from slide_viewer.ui.slide.graphics.item.annotation.annotation_figure_graphics_i
     AnnotationFigureGraphicsModel
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_text_graphics_item import AnnotationTextGraphicsItem, \
     AnnotationTextGraphicsModel
-from slide_viewer.ui.slide.slide_stats_provider import SlideStatsProvider
 from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProvider
 
 
@@ -36,7 +35,6 @@ class AnnotationGraphicsItem(QGraphicsItemGroup):
     scale_provider: ScaleProvider
     model: InitVar[Optional[AnnotationGraphicsModel]]
     is_in_progress: bool
-    slide_stats_provider: SlideStatsProvider
     # removed_from_scene_callback: Callable[[str], None]
     figure: AnnotationFigureGraphicsItem = None
     text: AnnotationTextGraphicsItem = None
@@ -73,8 +71,8 @@ class AnnotationGraphicsItem(QGraphicsItemGroup):
         self.setFlag(QGraphicsItem.ItemIsMovable, not self.is_in_progress)
         self.setFlag(QGraphicsItem.ItemIsSelectable, not self.is_in_progress)
         # self.setCursor(Qt.ClosedHandCursor if not self.is_in_progress else Qt.ArrowCursor)
-        self.text.update(rect)
-        self.figure.update(rect)
+        self.text.update()
+        self.figure.update()
         super().update(rect)
 
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value: Any) -> Any:

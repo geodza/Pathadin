@@ -1,21 +1,22 @@
+from typing import Callable
+
 from PyQt5.QtCore import QObject
 from dataclasses import dataclass
 
 from common_qt.qobjects_convert_util import ituples_to_qpoints
 from slide_viewer.ui.common.metrics import calc_length, calc_geometry_area
 from slide_viewer.ui.common.model import AnnotationModel, AnnotationStats
-from slide_viewer.ui.slide.slide_stats_provider import SlideStatsProvider
 
 
 @dataclass
 class AnnotationStatsProcessor(QObject):
-    slide_stats_provider: SlideStatsProvider
+    microns_per_pixel_provider: Callable[[], float]
 
     def __post_init__(self):
         QObject.__init__(self)
 
     def calc_stats(self, model: AnnotationModel) -> AnnotationStats:
-        microns_per_pixel = self.slide_stats_provider.get_microns_per_pixel()
+        microns_per_pixel = self.microns_per_pixel_provider()
         # edit annotation model through tree deepable model interface
         # or make a copy and emit signal about changing annotation model
         if model.geometry.is_distinguishable_from_point():

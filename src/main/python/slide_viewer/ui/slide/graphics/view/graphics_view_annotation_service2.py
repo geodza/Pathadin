@@ -16,11 +16,9 @@ from slide_viewer.ui.slide.graphics.item.annotation.annotation_graphics_item imp
 from slide_viewer.ui.slide.graphics.view.graphics_annotation_utils import build_annotation_graphics_model
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 from slide_viewer.ui.slide.widget.interface.scale_view_provider import ScaleProvider
-from slide_viewer.ui.slide.widget.interface.slide_stats_provider import SlideStatsProvider
 
 
 class GraphicsViewAnnotationServiceSignals(QObject):
-    annotationIsInProgressChanged = pyqtSignal(bool)
     annotationRemovedFromScene = pyqtSignal(str)
 
     def __init__(self, parent: Optional[QObject] = None) -> None:

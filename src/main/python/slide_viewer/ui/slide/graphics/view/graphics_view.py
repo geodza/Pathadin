@@ -55,12 +55,6 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
         self.scene().sceneRectChanged.connect(self.update_min_scale)
         self.scene().addText(empty_view_help_text)
         self.setDisabled(True)
-
-        def on_annotation_is_in_progress_changed(b: bool):
-            self.setMouseTracking(b)
-
-        self.graphics_view_annotation_service.signals.annotationIsInProgressChanged.connect(on_annotation_is_in_progress_changed)
-
         self.gridSizeChanged.connect(self.update_grid_item)
         self.gridSizeIsInPixelsChanged.connect(self.update_grid_item)
 

@@ -129,6 +129,11 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         self.resizeDocks([annotations_dock_widget, filters_dock_widget], [500, 500], Qt.Vertical)
 
         # self.setup_editor_factory()
+
+        def on_activated(w):
+            print("on_activated", w)
+
+        self.view_mdi.subWindowActivated.connect(on_activated)
         self.view_mdi.subWindowActivated.connect(self.on_init_sync)
         self.isSyncChanged.connect(self.on_init_sync)
 
@@ -140,13 +145,13 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
     def __del__(self):
         self.pool.shutdown(False)
 
-    def on_init_sync(self):
+    def on_init_sync(self, except_view: GraphicsView):
         if self.cleanup:
             self.cleanup()
             self.cleanup = None
         if self.active_view:
             view = self.active_view
-            sub_views_except_active = [sw for sw in self.sub_views if sw is not view]
+            sub_views_except_active = [sw for sw in self.sub_views if sw is not view and sw is not except_view]
             sync_states = dict(self.sync_states)
             # print(f"active view: {view.id}")
             self.cleanup = setup_sync(view, sub_views_except_active, sync_states)
@@ -224,8 +229,13 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
             if view and view.filter_graphics_item:
                 view.filter_graphics_item.update()
 
+        def on_about_to_close():
+            print("on_about_to_close", view_sub_window)
+            self.on_init_sync(view)
+
         sync_about_to_activate(view_sub_window, annotation_tree_view_sub_window)
         sync_close(view_sub_window, annotation_tree_view_sub_window)
+        view_sub_window.aboutToClose.connect(on_about_to_close)
         view.filePathChanged.connect(on_file_path_changed)
         view.filePathDropped.connect(on_file_path_dropped)
         view.scene().annotationModelsSelected.connect(on_scene_annotations_selected)

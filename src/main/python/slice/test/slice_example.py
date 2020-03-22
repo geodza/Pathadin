@@ -76,6 +76,9 @@ if __name__ == '__main__':
         # Original big-size slides.
         slide_paths.append(SlidePath(r"D:\temp\slides\slide1.mrxs", r"D:\temp\slides\slide1_annotations.json"))
         slide_paths.append(SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\slide5_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide3.mrxs", r"D:\temp\slides\slide3_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide4.mrxs", r"D:\temp\slides\slide4_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide6.mrxs", r"D:\temp\slides\slide6_annotations.json"))
 
 
     # define_example_data()
@@ -197,7 +200,7 @@ if __name__ == '__main__':
 
     # patches_path = root_output_path.joinpath("slice_example_results")
     # patches_path = root_output_path.joinpath("slice_example_results.zip")
-    patches_path = root_path.joinpath("slice_patches.h5")
+    patches_path = root_path.joinpath("slice_patches_5.h5")
     save_named_ndarrays(named_ndarrays, str(patches_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.

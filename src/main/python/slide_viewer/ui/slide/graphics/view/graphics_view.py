@@ -1,8 +1,7 @@
 from typing import Optional, Tuple, cast
 
-from PyQt5 import QtGui
-from PyQt5.QtCore import QObject, Qt, pyqtSignal, QEvent, QRectF
-from PyQt5.QtGui import QMouseEvent, QBrush
+from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QRectF
+from PyQt5.QtGui import QBrush
 from PyQt5.QtWidgets import QGraphicsView, QWidget, QGraphicsSceneDragDropEvent
 from dataclasses import dataclass, field
 
@@ -12,14 +11,12 @@ from common_qt.graphics.graphics_item_debug_rect import GraphicsItemDebugRect
 from common_qt.graphics.graphics_view_debug_rect import \
     GraphicsViewDebugRect
 from common_qt.grid_graphics_item import GridGraphicsItem
-from common_qt.key_press_util import KeyPressEventUtil
 from common_qt.mime_utils import mime_data_is_url
 from slide_viewer.common.slide_helper import SlideHelper
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text
 from slide_viewer.ui.slide.graphics.item.filter_graphics_item import FilterGraphicsItem
 from slide_viewer.ui.slide.graphics.item.slide_graphics_item import SlideGraphicsItem
-from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service import GraphicsViewAnnotationService
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 import GraphicsViewAnnotationService2
 from slide_viewer.ui.slide.graphics.view.scale_graphics_view import ScaleGraphicsView
 from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import AnnotationItemPixmapProvider
@@ -138,8 +135,7 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
         return cast(GraphicsScene, super().scene())
 
     def eventFilter(self, source: QObject, event: QEvent) -> bool:
-        print(self.hasMouseTracking())
-        res=self.graphics_view_annotation_service.eventFilter(source, event)
+        res = self.graphics_view_annotation_service.eventFilter(source, event)
         if res:
             return True
         if isinstance(event, QGraphicsSceneDragDropEvent):

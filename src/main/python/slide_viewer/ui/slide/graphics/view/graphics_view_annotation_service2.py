@@ -35,9 +35,6 @@ class GraphicsViewAnnotationService2:
     ongoing_annotation: Optional[AnnotationGraphicsItem] = None
     signals: GraphicsViewAnnotationServiceSignals = field(default_factory=GraphicsViewAnnotationServiceSignals)
 
-    def scene(self) -> GraphicsScene:
-        return self.scene_provider()
-
     def __post_init__(self):
         self.on_pos_changed = debounce_two_arg_slot_wrap(0.1)(self.on_pos_changed)
         self.annotation_service.added_signal().connect(self.on_model_added)
@@ -45,6 +42,9 @@ class GraphicsViewAnnotationService2:
         self.annotation_service.deleted_signal().connect(self.on_models_deleted)
         self.signals.annotationRemovedFromScene.connect(self.__on_removed_from_scene)
         # self.scene().annotationModelsSelected.connect(self.on_scene_annotations_selected)
+
+    def scene(self) -> GraphicsScene:
+        return self.scene_provider()
 
     def on_pos_changed(self, id_: str, p: QPoint):
         self.annotation_service.edit_origin_point(id_, qpoint_to_ituple(p))
@@ -62,23 +62,28 @@ class GraphicsViewAnnotationService2:
     def on_models_deleted(self, ids: List[str]):
         with slot_disconnected(self.signals.annotationRemovedFromScene, self.__on_removed_from_scene):
             self.scene().remove_annotations(ids)
+            if self.ongoing_annotation and self.ongoing_annotation.id in ids:
+                self.cancel_annotation_if_any()
 
     def __on_removed_from_scene(self, id_: str):
         with slot_disconnected(self.annotation_service.deleted_signal(), self.on_models_deleted):
             self.annotation_service.delete([id_])
+            if self.ongoing_annotation and self.ongoing_annotation.id == id_:
+                self.cancel_annotation_if_any()
 
     def create_item_from_model(self, annotation_model: AnnotationModel) -> AnnotationGraphicsItem:
-        annotation = AnnotationGraphicsItem(id=annotation_model.id,
-                                            scale_provider=self.scale_provider,
-                                            model=build_annotation_graphics_model(annotation_model),
-                                            is_in_progress=False)
+        graphics_model = build_annotation_graphics_model(annotation_model)
+        graphics_item = AnnotationGraphicsItem(id=annotation_model.id,
+                                               scale_provider=self.scale_provider,
+                                               model=graphics_model,
+                                               is_in_progress=False)
 
         def __on_removed_from_scene(id_: str):
             self.signals.annotationRemovedFromScene.emit(id_)
 
-        annotation.signals.posChanged.connect(self.on_pos_changed)
-        annotation.signals.removedFromScene.connect(__on_removed_from_scene)
-        return annotation
+        graphics_item.signals.posChanged.connect(self.on_pos_changed)
+        graphics_item.signals.removedFromScene.connect(__on_removed_from_scene)
+        return graphics_item
 
     def start_annotation(self, p: QPoint) -> None:
         start_point = qpoint_to_ituple(p)
@@ -100,27 +105,30 @@ class GraphicsViewAnnotationService2:
 
     def cancel_annotation_if_any(self) -> None:
         if self.ongoing_annotation:
-            self.scene().remove_annotations([self.ongoing_annotation.id])
+            id_ = self.ongoing_annotation.id
             self.ongoing_annotation = None
+            self.scene().remove_annotations([id_])
 
     def finish_annotation(self) -> None:
         annotation_model = self.annotation_service.get(self.ongoing_annotation.id)
         if not annotation_model.geometry.is_distinguishable_from_point():
-            self.scene().remove_annotations([self.ongoing_annotation.id])
-            # self.scene().removeItem(self.annotation)
-        elif self.annotation_type == AnnotationType.POLYGON:
-            self.close_polygon()
-
-        self.ongoing_annotation.is_in_progress = False
-        self.ongoing_annotation.update()
-        self.ongoing_annotation = None
+            id_ = self.ongoing_annotation.id
+            self.ongoing_annotation = None
+            # be careful with signals so we set None before removing
+            self.scene().remove_annotations([id_])
+        else:
+            if self.annotation_type == AnnotationType.POLYGON:
+                self.close_polygon()
+            self.ongoing_annotation.is_in_progress = False
+            self.ongoing_annotation.update()
+            self.ongoing_annotation = None
 
     def edit_last_point(self, p: QPoint) -> None:
         if self.annotation_type == AnnotationType.POLYGON and self.is_polygon_about_to_be_closed(p):
             p = ituple_to_qpoint(self.annotation_service.get_first_point(self.ongoing_annotation.id))
         self.annotation_service.edit_last_point(self.ongoing_annotation.id, qpoint_to_ituple(p))
 
-    def add_point_or_close_figure(self, p: QPoint) -> None:
+    def add_point_or_finish(self, p: QPoint) -> None:
         if self.annotation_type == AnnotationType.POLYGON:
             if self.is_polygon_about_to_be_closed(p):
                 self.finish_annotation()
@@ -191,7 +199,7 @@ class GraphicsViewAnnotationService2:
                     if self.is_in_creation_mode():
                         p = event.scenePos()
                         if self.ongoing_annotation:
-                            self.add_point_or_close_figure(p)
+                            self.add_point_or_finish(p)
                         else:
                             self.start_annotation(p)
                         event.accept()

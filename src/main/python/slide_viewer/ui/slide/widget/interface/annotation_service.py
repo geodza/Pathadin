@@ -27,7 +27,7 @@ class AnnotationService(ABC):
         pass
 
     @abstractmethod
-    def add_copy(self, model: AnnotationModel) -> AnnotationModel:
+    def add_copy_or_edit_with_copy(self, model: AnnotationModel) -> AnnotationModel:
         pass
 
     @abstractmethod

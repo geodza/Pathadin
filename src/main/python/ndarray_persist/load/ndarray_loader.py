@@ -8,7 +8,7 @@ from ndarray_persist.common import stack_ndarrays, NamedNdarray
 
 class NdarrayLoader(ABC):
     def __init__(self, ndarray_converter: Callable[[np.ndarray], np.ndarray] = None):
-        self.ndarray_converter=ndarray_converter
+        self.ndarray_converter = ndarray_converter
 
     @abstractmethod
     def load_names(self) -> Iterable[str]:

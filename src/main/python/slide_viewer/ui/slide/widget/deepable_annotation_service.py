@@ -67,7 +67,21 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
         model.geometry.points.append(p)
         self.root[id_] = model
 
-    # add or update
+    def add(self, model: AnnotationModel) -> AnnotationModel:
+        model.id = self.get_next_id()
+        model.label = self.annotation_label_template.format(model.id)
+        self.root[model.id] = model
+        return model
+
+    def add_copy_or_edit_with_copy(self, model: AnnotationModel) -> AnnotationModel:
+        # When syncing annotations between views and active view creates
+        # annotation with id new for active view but already existing for another views
+        # this new annotation will overwrite annotations with its id in another views.
+        # Another option is to maintain global self.get_next_id() like some global sequence.
+        model_copy = model.copy(deep=True)
+        self.root[model_copy.id] = model_copy
+        return model_copy
+
     def add_or_edit(self, id_: str, model: AnnotationModel) -> AnnotationModel:
         self.root[id_] = model
         return self.get(id_)
@@ -160,17 +174,6 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
     def delete_all(self) -> None:
         self.root.clear()
 
-    def add(self, model: AnnotationModel) -> AnnotationModel:
-        model.id = self.get_next_id()
-        model.label = self.annotation_label_template.format(model.id)
-        self.root[model.id] = model
-        return model
-
-    def add_copy(self, model: AnnotationModel) -> AnnotationModel:
-        model_copy = model.copy(deep=True)
-        self.root[model_copy.id] = model_copy
-        return model_copy
-
     def added_signal(self) -> pyqtBoundSignal(AnnotationModel):
         return self.added
 
@@ -203,7 +206,7 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
             id_ = toplevel_key
             # print(f"keys: {keys} top_level_key: {toplevel_key} onChanged")
             model = self.get(id_)
-            if self.stats_processor:
+            if self.stats_processor and False:
                 stats = self.stats_processor.calc_stats(model)
                 stats_dict = stats.dict() if stats else None
                 old_stats_dict = model.stats.dict() if model.stats else None

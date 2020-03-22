@@ -27,7 +27,7 @@ def setup_sync(view: GraphicsView, sub_views_except_active: List[GraphicsView], 
             if sync_states.get(SyncOption.background_brush):
                 view.backgroundBrushChanged.disconnect(sub_view.set_background_brush)
             if sync_states.get(SyncOption.annotations):
-                view.annotation_service.added_signal().disconnect(sub_view.annotation_service.add_copy)
+                view.annotation_service.added_signal().disconnect(sub_view.annotation_service.add_copy_or_edit_with_copy)
                 view.annotation_service.deleted_signal().disconnect(sub_view.annotation_service.delete_if_exist)
                 view.scene().annotationModelsSelected.disconnect(sub_view.scene().select_annotations)
                 # try:
@@ -37,6 +37,7 @@ def setup_sync(view: GraphicsView, sub_views_except_active: List[GraphicsView], 
                     view.annotation_service.edited_signal().disconnect(sub_view.annotation_service.add_or_edit_with_copy_without_filter)
                 # except:
                 #     pass
+
 
     for sub_view in sub_views_except_active:
         if sync_states.get(SyncOption.view_transform):
@@ -56,7 +57,7 @@ def setup_sync(view: GraphicsView, sub_views_except_active: List[GraphicsView], 
             view.backgroundBrushChanged.connect(sub_view.set_background_brush)
         if sync_states.get(SyncOption.annotations):
             # view.annotation_service.added_signal().connect(sub_view.annotation_service.add_copy, type=Qt.QueuedConnection)
-            view.annotation_service.added_signal().connect(sub_view.annotation_service.add_copy)
+            view.annotation_service.added_signal().connect(sub_view.annotation_service.add_copy_or_edit_with_copy)
             view.annotation_service.deleted_signal().connect(sub_view.annotation_service.delete_if_exist)
             view.scene().annotationModelsSelected.connect(sub_view.scene().select_annotations)
             if sync_states.get(SyncOption.annotation_filter):

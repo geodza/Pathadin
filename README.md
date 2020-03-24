@@ -1,7 +1,7 @@
 # Pathadin
 
 * Getting started: http://www.pathadin.eu/
-* 
+
 * Stroma and gland seprataion:
 * Dataset: link
 * Trained model: link

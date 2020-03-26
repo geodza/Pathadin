@@ -1,6 +1,8 @@
 # Pathadin
 
-* Getting started: http://www.pathadin.eu/
+**Getting started**
+* http://www.pathadin.eu/
+* GitLab [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home)
 
 *** Stroma and gland seprataion:**
 * Dataset: link

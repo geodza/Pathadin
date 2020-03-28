@@ -7,6 +7,6 @@
 **Stroma and gland seprataion:**
 * Dataset: link
 * Trained model: link
-[* Segmentation_example](https://colab.research.google.com/drive/1kc9mKy1ldCQCFXIzy8l_tqGC2FGLcqOd)
+* [Segmentation_example](https://colab.research.google.com/drive/1kc9mKy1ldCQCFXIzy8l_tqGC2FGLcqOd)
 * [Slice_example](https://drive.google.com/file/d/107Pyqbz2FIkyQTAAXsebK-nkWh0O5BQN/view?usp=sharing)
 * Full-size examples (.mrxs): [H&E(2 GB)](https://www.pathadin.eu/pathadin/Hem. Eosin.zip) ,[Ki67(2.2 GB)](https://www.pathadin.eu/pathadin/Ki67.zip)

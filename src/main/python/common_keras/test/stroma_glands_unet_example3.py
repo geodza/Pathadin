@@ -1,5 +1,4 @@
 
-
 if __name__ == '__main__':
     # %tensorflow_version 1.x
     # !git clone https://gitlab.com/Digipathology/Pathadin.git
@@ -70,17 +69,20 @@ if __name__ == '__main__':
     from keras_preprocessing.image import ImageDataGenerator
 
     augment_kwargs = dict()
-    target_size=(512,512)
-    batch_size = 20
+    target_size = (512, 512)
+    batch_size = 10
     seed = 1
 
     labels_name_pattern = f'.*/label/.*'
     images_name_pattern = f'.*/image/.*'
 
+    from collections import defaultdict
+    from ndarray_persist.load.ndarray_loader_factory import NdarrayLoaderFactory
+
     named_labels = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=labels_name_pattern).load_named_ndarrays()
     named_images = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=images_name_pattern).load_named_ndarrays()
     solid_uniques = defaultdict(list)
-    mixed_label_image_names=[]
+    mixed_label_image_names = []
     for named_label, named_image in zip(named_labels, named_images):
         u = np.unique(named_label[1])
         if len(u) == 1:
@@ -88,32 +90,35 @@ if __name__ == '__main__':
             solid_uniques[u[0]].append((named_label[0], named_image[0]))
         else:
             mixed_label_image_names.append((named_label[0], named_image[0]))
-    print(solid_uniques)
 
-    min_count=len(next(iter(solid_uniques.values())))
+    min_count = len(next(iter(solid_uniques.values())))
     for color, names in solid_uniques.items():
-        n=len(names)
-        if n<min_count:
-            min_count=n
+        n = len(names)
+        if n < min_count:
+            min_count = n
 
+    print(len(mixed_label_image_names), min_count)
+
+    # min_count=100
     import random
-    random.seed=seed
-    label_image_names=[]
+
+    random.seed = seed
+    label_image_names = []
     for color in solid_uniques:
         random.shuffle(solid_uniques[color])
         label_image_names.extend(solid_uniques[color][:min_count])
     label_image_names.extend(mixed_label_image_names)
-    label_names=[n[0] for n in label_image_names]
-    image_names=[n[1] for n in label_image_names]
-
+    label_names = [n[0] for n in label_image_names]
+    image_names = [n[1] for n in label_image_names]
 
     import pandas
-    imagedf=pandas.DataFrame(image_names, columns=['filename'])
-    labeldf=pandas.DataFrame(label_names, columns=['filename'])
-    image_generator = ImageDataGenerator(rescale=1./255,**augment_kwargs) \
+
+    imagedf = pandas.DataFrame(image_names, columns=['filename'])
+    labeldf = pandas.DataFrame(label_names, columns=['filename'])
+    image_generator = ImageDataGenerator(rescale=1. / 255, **augment_kwargs) \
         .flow_from_dataframe(imagedf, str(patches_path.joinpath('patches')), target_size=target_size,
                              color_mode='rgb', class_mode=None, batch_size=batch_size, seed=seed)
-    label_generator = ImageDataGenerator(rescale=1./255, **augment_kwargs) \
+    label_generator = ImageDataGenerator(rescale=1. / 255, **augment_kwargs) \
         .flow_from_dataframe(labeldf, str(patches_path.joinpath('patches')), target_size=target_size,
                              color_mode='grayscale', class_mode=None, batch_size=batch_size, seed=seed)
     # image_generator = ImageDataGenerator(**augment_kwargs)\
@@ -122,14 +127,15 @@ if __name__ == '__main__':
     # label_generator = ImageDataGenerator(**augment_kwargs)\
     #     .flow_from_directory(str(patches_path.joinpath('patches/train_label')),target_size=target_size,
     #                          color_mode='grayscale', class_mode=None, batch_size=batch_size,seed=seed)
-    sample_generator = zip(image_generator,label_generator)
+    sample_generator = zip(image_generator, label_generator)
 
+    from common.itertools_utils import peek
 
-    first_sample_batch, samples_train=peek(sample_generator)
-    first_sample_batch=list(first_sample_batch)
+    first_sample_batch, samples_train = peek(sample_generator)
+    first_sample_batch = list(first_sample_batch)
     # patch_shape = X.shape[-3:]
     patch_shape = first_sample_batch[0].shape[-3:]
-    n_filters = 8
+    n_filters = 16
     model = get_unet(patch_shape, n_filters=n_filters)
     model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy'])
     # One more check. Ensure our data is compatible with model definition.
@@ -139,17 +145,17 @@ if __name__ == '__main__':
 
     # Define path where the model will be saved.
     # You can load it afterwards in another program and use it for prediction.
-    model_path = root_path.joinpath('segmentation_model.h5')
+    model_path = root_path.joinpath('segmentation_model_5_27_16.h5')
 
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 
     callbacks = [
-        ReduceLROnPlateau(factor=0.1, patience=5, min_lr=0.000001, verbose=1, monitor='val_loss'),
-        ModelCheckpoint(str(model_path), verbose=1, monitor='val_loss', save_best_only=True, save_weights_only=False),
-        EarlyStopping(patience=10, verbose=1, monitor='val_loss'),
+        ReduceLROnPlateau(factor=0.1, patience=5, min_lr=0.000001, verbose=1, monitor='loss'),
+        ModelCheckpoint(str(model_path), verbose=1, monitor='loss', save_best_only=True, save_weights_only=False),
+        EarlyStopping(patience=10, verbose=1, monitor='loss'),
     ]
 
-    epochs = 50
+    epochs = 70
     steps_per_epoch = len(label_image_names) / batch_size
     # samples = data_generator.flow(X_train, Y_train, batch_size=batch_size, shuffle=True)
     history = model.fit_generator(samples_train, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=callbacks)
@@ -164,7 +170,7 @@ if __name__ == '__main__':
     from common_matplotlib.core import plot_image_tuples_by_batches
 
     plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
+    # plt.plot(history.history['val_loss'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')

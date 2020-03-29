@@ -160,7 +160,7 @@ if __name__ == '__main__':
     # We select name format convenient for saving/loading to/from disk.
     from slice.patch_response_utils import patch_responses_to_named_ndarrays
 
-    format_str = r"{cfg.metadata[name]}/{cfg.metadata[name]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}.jpg"
+    format_str = r"{cfg.metadata[name]}/{cfg.metadata[name]}/{cfg.slide_path}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}.jpg"
     named_ndarrays = patch_responses_to_named_ndarrays(patch_responses, format_str)
 
     # We often want to store results of generating patches.

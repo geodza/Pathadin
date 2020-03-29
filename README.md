@@ -1,2 +1,12 @@
 # Pathadin
 
+**Getting started**
+* http://www.pathadin.eu/
+* Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
+
+**Stroma and gland seprataion:**
+* Dataset: link
+* [Trained model](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
+* [Segmentation example](https://colab.research.google.com/drive/1kc9mKy1ldCQCFXIzy8l_tqGC2FGLcqOd)
+* [Generating dataset](https://colab.research.google.com/drive/107Pyqbz2FIkyQTAAXsebK-nkWh0O5BQN)
+* Full-size examples (.mrxs): [H&E(2 GB)](https://www.pathadin.eu/pathadin/HemEosin.zip), [Ki67(2.2 GB)](https://www.pathadin.eu/pathadin/Ki67.zip), [Masson`s trichrome (1.8 GB)](https://www.pathadin.eu/pathadin/Massons.zip).

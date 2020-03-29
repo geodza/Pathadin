@@ -3,15 +3,9 @@ if __name__ == '__main__':
     # !apt-get install openslide-tools
     # !pip install scikit-image opencv-python shapely h5py openslide-python dataclasses pydantic
     #
-    # !ssh-keygen -t rsa -b 4096 -C gitlab1
-    # !cat ~/.ssh/id_rsa.pub
-    # !ssh-keygen -R gitlab.com
-    # !ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-    # Git clone will work without ssh after opening access
-    # !git clone git@gitlab.com:Digipathology/Pathadin.git
-    # !git -C Pathadin pull
-    #
     # We need to clone project and add it to sys.path (we haven't installable packages yet)
+    # !git clone https://gitlab.com/Digipathology/Pathadin.git
+    #
     path_to_project = r'D:\projects\Pathadin\src\main\python'
     # path_to_project = 'Pathadin/src/main/python'
     import pathlib, sys
@@ -41,20 +35,18 @@ if __name__ == '__main__':
         display(img)
 
 
-    show_app_slide1_annotations_screenshot()
+    # show_app_slide1_annotations_screenshot()
 
     # Lets begin our example itself.
     # Define paths to slides and annotations.
     # Choose one method below to use your data or example data.
     from slice.slide_path import SlidePath
 
-    slide_paths = []
-
 
     def define_example_data():
         # Original mrxs slide is about 4gb memory.
         # To make example more reproducible and lightweight we cut a small region from it and interpret it as a real slide.
-
+        slide_paths = []
         slide1_path = str(root_path.joinpath("slide1.jpeg").resolve())
         slide1_annotations_path = str(root_path.joinpath("slide1_annotations.json").resolve())
         slide2_path = str(root_path.joinpath("slide2.jpeg").resolve())
@@ -70,19 +62,22 @@ if __name__ == '__main__':
             load_gdrive_file('1itDFGs83HiGuSGLNV-G1BVJUOuv1LPtO', slide2_annotations_path)
 
         load_images_and_annotations()
+        return slide_paths
 
 
     def define_my_custom_data():
         # Original big-size slides.
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide1.mrxs", r"D:\temp\slides\slide1_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\slide5_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide3.mrxs", r"D:\temp\slides\slide3_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide4.mrxs", r"D:\temp\slides\slide4_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide6.mrxs", r"D:\temp\slides\slide6_annotations.json"))
+        slide_paths = []
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide1.mrxs", r"D:\temp\slides\annotations2\slide1_annotations.json"))
+        # slide_paths.append(SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\annotations2\slide5_annotations.json"))
+        # slide_paths.append(SlidePath(r"D:\temp\slides\slide3.mrxs", r"D:\temp\slides\annotations2\slide3_annotations.json"))
+        # slide_paths.append(SlidePath(r"D:\temp\slides\slide4.mrxs", r"D:\temp\slides\annotations2\slide4_annotations.json"))
+        # slide_paths.append(SlidePath(r"D:\temp\slides\slide6.mrxs", r"D:\temp\slides\annotations2\slide6_annotations.json"))
+        return slide_paths
 
 
-    # define_example_data()
-    define_my_custom_data()
+    # slide_paths = define_example_data()
+    slide_paths = define_my_custom_data()
 
     # There are several use-cases for slicing slide-images.
     # 1) Generating patch_label_images together with generating patch_slide_images. Where
@@ -120,17 +115,12 @@ if __name__ == '__main__':
     # of generating patch_label_images. This dependence is represented with attribute
     # "dependents" in PatchImageSourceConfig.
     #
-    # The configs defined below specify to:
-    # generate patch_label_images from slide1 based on slide1_annotations
-    # generate corresponding(geometrically) patch_slide_images from slide1
-    # generate patch_label_images from slide2 based on slide2_annotations
-    # generate corresponding(geometrically) patch_slide_images from slide2
-
-    # patch size in pixels. Resulting patches will have this size
+    # Lets define parameters for configs.
+    # Patch size in pixels. Resulting patches will have this size.
     patch_size = (512, 512)
-    # level of slide. Can be interpreted as level of detail(resolution) with the best detail at 0-level.
+    # Level of slide. Can be interpreted as level of detail(resolution) with the best detail at 0-level.
     level = 2
-    # stride of slicer - distance between subsequent patches
+    # Stride of slicer - distance between subsequent patches.
     stride_x, stride_y = patch_size[0], patch_size[1]
 
     from slice.model.patch_image_config import PatchImageConfig
@@ -170,37 +160,14 @@ if __name__ == '__main__':
     # We select name format convenient for saving/loading to/from disk.
     from slice.patch_response_utils import patch_responses_to_named_ndarrays
 
-    format_str = r"{cfg.slide_path}/{cfg.patch_size[0]},{cfg.patch_size[1]}/{cfg.metadata[name]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}"
+    format_str = r"{cfg.metadata[name]}/{cfg.metadata[name]}/{pos[1]},{pos[0]}_{cfg.level}_{cfg.metadata[name]}.jpg"
     named_ndarrays = patch_responses_to_named_ndarrays(patch_responses, format_str)
 
-    from common.numpy_utils import named_ndarrays_info
-
-    # Lets collect data-flow to list and print some info
-    named_ndarrays = list(named_ndarrays)
-    print("Generated patches:")
-    print(named_ndarrays_info(named_ndarrays))
-
     # We often want to store results of generating patches.
-    # It is convenient to store data hierarchically.
-    # 3 hierarchial data storages are supported:
-    # 1) hdf5 (patches are stored as arrays in a single file)(you can view them with HDFView)
-    # 2) zip archive (patches are stored as arrays in a single file)
-    # 3) file system folders (patches are stored as image files in folders)
-    #
-    # Single file with arrays VS folders with image files.
-    # Single file with arrays is easier and faster to:
-    # a) manage(delete, copy)
-    # b) transfer and synchronize with remote storage (like google disk which can be used from google colab)
-    # c) use in processing later (for example training model with keras)
-    # File system folder with image files is easier to:
-    # a) explore
-    # b) image-compression often is better than zip-compression for arrays
-
+    # We will save arrays as image files inside zip archive.
     from ndarray_persist.save import save_named_ndarrays
 
-    # patches_path = root_output_path.joinpath("slice_example_results")
-    # patches_path = root_output_path.joinpath("slice_example_results.zip")
-    patches_path = root_path.joinpath("slice_patches_5.h5")
+    patches_path = root_path.joinpath("slice_patches.zip")
     save_named_ndarrays(named_ndarrays, str(patches_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.
@@ -208,22 +175,22 @@ if __name__ == '__main__':
     # But it is common case to load labels and images separately, so here is example.
     from ndarray_persist.load.ndarray_loader_factory import NdarrayLoaderFactory
 
-    labels_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=f'.*/{patch_size[0]},{patch_size[1]}/label/.*')
-    images_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=f'.*/{patch_size[0]},{patch_size[1]}/image/.*')
-    named_labels = list(labels_loader.load_named_ndarrays())
-    named_images = list(images_loader.load_named_ndarrays())
-    print("Loaded label patches:")
-    print(named_ndarrays_info(named_labels))
-    print("Loaded image patches:")
-    print(named_ndarrays_info(named_images))
+    labels_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=f'.*label.*')
+    images_loader = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=f'.*image.*')
+    labels_names = list(labels_loader.load_names())
+    images_names = list(images_loader.load_names())
+    print(f"label patches: {len(labels_names)}, image patches: {len(images_names)}")
 
     # Lets plot (patch_image, patch_label) pairs
     import matplotlib.pyplot as plt
+    import itertools
     from common_matplotlib.core import plot_named_ndarrays_tuples_by_batches
 
     plt.rcParams['figure.figsize'] = (10, 5)
-
+    named_images = images_loader.load_named_ndarrays()
+    named_labels = labels_loader.load_named_ndarrays()
     image_tuples = zip(named_images, named_labels)
+    image_tuples = itertools.islice(image_tuples, 300)
     print("Image-label pairs:")
     plot_named_ndarrays_tuples_by_batches(image_tuples, ncols=6, tuples_per_plot=12)
 

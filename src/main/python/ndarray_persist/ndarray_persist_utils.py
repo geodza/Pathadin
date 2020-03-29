@@ -1,10 +1,10 @@
 import pathlib
 from typing import Callable, Optional, List
 
-from ndarray_persist.common import HDF5_EXTENSIONS, ARCHIVE_EXTENSIONS
+from ndarray_persist.common import HDF5_EXTENSIONS, ZIP_EXTENSIONS
 from ndarray_persist.load.folder_ndarray_loader import load_names_from_folder
 from ndarray_persist.load.hdf5_ndarray_loader import load_names_from_hdf5
-from ndarray_persist.load.zip_ndarray_loader import load_names_from_zip
+from ndarray_persist.load.npz_ndarray_loader import load_names_from_npz
 
 #
 # def load_names(path: str,

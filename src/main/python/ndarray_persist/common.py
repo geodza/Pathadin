@@ -10,8 +10,12 @@ from common_image.core.resize import resize_ndarray
 
 NamedNdarray = Tuple[str, np.ndarray]
 HDF5_EXTENSIONS = ('.h5', '.hdf5')
-ARCHIVE_EXTENSIONS = ('.npz', '.zip')
+NPY_EXTENSIONS = ('.npy')
+NPZ_EXTENSIONS = ('.npz')
+ZIP_EXTENSIONS = ('.zip')
 DEFAULT_IMAGE_EXTENSION = '.png'
+PNG_EXTENSIONS = ('.png')
+JPEG_EXTENSIONS = ('.jpeg', '.jpg')
 
 
 def stack_ndarrays(ndarrays: Iterable[np.ndarray],
@@ -32,7 +36,7 @@ def stack_ndarrays(ndarrays: Iterable[np.ndarray],
 
 def load_ndarray_from_filesystem(path: str) -> np.ndarray:
     path = pathlib.Path(path)
-    if path.suffix in ('.npy', *ARCHIVE_EXTENSIONS):
+    if path.suffix in NPY_EXTENSIONS:
         return np.load(str(path))
     else:
         return io.imread(str(path))

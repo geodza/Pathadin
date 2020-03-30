@@ -5,7 +5,7 @@
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
 
 **Stroma and gland seprataion:**
-* Dataset: link
+* [Dataset](https://www.pathadin.eu/pathadin/slice_example_patches.zip)
 * [Trained model](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
 * [Segmentation example](https://colab.research.google.com/drive/1kc9mKy1ldCQCFXIzy8l_tqGC2FGLcqOd)
 * [Generating dataset](https://colab.research.google.com/drive/107Pyqbz2FIkyQTAAXsebK-nkWh0O5BQN)

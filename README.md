@@ -3,6 +3,7 @@
 **Getting started**
 * http://www.pathadin.eu/
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
+[* Latest release (29.03.2020)](https://www.pathadin.eu/pathadin/Pathadin.rar)
 
 **Stroma and gland seprataion:**
 * [Dataset](https://www.pathadin.eu/pathadin/slice_example_patches.zip)

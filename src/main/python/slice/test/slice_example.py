@@ -68,11 +68,11 @@ if __name__ == '__main__':
     def define_my_custom_data():
         # Original big-size slides.
         slide_paths = []
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide1.mrxs", r"D:\temp\slides\annotations2\slide1_annotations.json"))
-        # slide_paths.append(SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\annotations2\slide5_annotations.json"))
-        # slide_paths.append(SlidePath(r"D:\temp\slides\slide3.mrxs", r"D:\temp\slides\annotations2\slide3_annotations.json"))
-        # slide_paths.append(SlidePath(r"D:\temp\slides\slide4.mrxs", r"D:\temp\slides\annotations2\slide4_annotations.json"))
-        # slide_paths.append(SlidePath(r"D:\temp\slides\slide6.mrxs", r"D:\temp\slides\annotations2\slide6_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide1.mrxs", r"D:\temp\slides\annotations3\slide1_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\annotations3\slide5_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide3.mrxs", r"D:\temp\slides\annotations3\slide3_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide4.mrxs", r"D:\temp\slides\annotations3\slide4_annotations.json"))
+        slide_paths.append(SlidePath(r"D:\temp\slides\slide6.mrxs", r"D:\temp\slides\annotations3\slide6_annotations.json"))
         return slide_paths
 
 
@@ -167,8 +167,8 @@ if __name__ == '__main__':
     # We will save arrays as image files inside zip archive.
     from ndarray_persist.save import save_named_ndarrays
 
-    patches_path = root_path.joinpath("slice_patches.zip")
-    save_named_ndarrays(named_ndarrays, str(patches_path), delete_if_exists=True, verbosity=1)
+    patches_path = root_path.joinpath("slice_example_patches2.zip")
+    # save_named_ndarrays(named_ndarrays, str(patches_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.
     # Now we can load both labels and images from data store as one data-flow.

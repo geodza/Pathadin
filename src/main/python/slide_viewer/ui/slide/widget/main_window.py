@@ -26,6 +26,7 @@ from img.filter.positive_pixel_count import PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
 from slide_viewer.config import initial_main_window_size, model_path
 from slide_viewer.ui.common.filter_tree_view_delegate import FilterTreeViewDelegate
+from slide_viewer.ui.common.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 import GraphicsViewAnnotationService2
 from slide_viewer.ui.slide.widget.annotation_filter_processor import AnnotationFilterProcessor
@@ -130,10 +131,10 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
         # self.setup_editor_factory()
 
-        def on_activated(w):
-            print("on_activated", w)
+        # def on_activated(w):
+        #     print("on_activated", w)
 
-        self.view_mdi.subWindowActivated.connect(on_activated)
+        # self.view_mdi.subWindowActivated.connect(on_activated)
         self.view_mdi.subWindowActivated.connect(self.on_init_sync)
         self.isSyncChanged.connect(self.on_init_sync)
 
@@ -191,7 +192,6 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         view = GraphicsView(parent_=self,
                             graphics_view_annotation_service=graphics_view_annotation_service,
                             annotation_pixmap_provider=annotation_filter_processor)
-        annotation_stats_processor.slide_stats_provider = view
         graphics_view_annotation_service.slide_stats_provider = view
         graphics_view_annotation_service.scale_provider = view
         view.set_background_brush(QBrush(QColor("#A088BDBC")))
@@ -241,6 +241,13 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         view.scene().annotationModelsSelected.connect(on_scene_annotations_selected)
         annotations_tree_view.objectsSelected.connect(on_tree_objects_selected)
         self.filters_tree_view.model().objectsChanged.connect(tree_filter_models_changed)
+
+        def on_annotation_model_edited(id_: str, model: AnnotationModel):
+            with slot_disconnected(annotation_service.edited_signal(), on_annotation_model_edited):
+                stats = annotation_stats_processor.calc_stats(model)
+                annotation_service.edit_stats(id_, stats)
+
+        annotation_service.edited_signal().connect(on_annotation_model_edited)
 
         return view_sub_window
 

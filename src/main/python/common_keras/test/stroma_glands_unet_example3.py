@@ -1,4 +1,3 @@
-
 if __name__ == '__main__':
     # %tensorflow_version 1.x
     # !git clone https://gitlab.com/Digipathology/Pathadin.git
@@ -12,7 +11,7 @@ if __name__ == '__main__':
     # Warning.
     # Model-training process is computationally heavy.
     # We recommend you to run it on machine with powerful GPU.
-    # This example runs in 15 minutes on google-colab while on laptop it may take hours.
+    # This example runs in minutes on google-colab while on laptop it may take hours.
     #
     # Warning.
     # Our goal is not to investigate (research) some problem with some deep-learning method.
@@ -37,41 +36,27 @@ if __name__ == '__main__':
 
     # Define path to patches (both images and labels).
     # Example of generating and storing patches from slide images can be found in "slice_example".
-    # patches_path = root_path.joinpath("slice_patches.h5")
-    patches_path = root_path.joinpath("slice_patches")
+    patches_path = root_path.joinpath("slice_example_patches")
     patches_path.parent.mkdir(parents=True, exist_ok=True)
 
 
     # In case you haven't results from "slice_example" we have some predefined patches that you can load.
     def load_example_patches():
         from common_urllib.core import load_gdrive_file
-        load_gdrive_file("1-8nFK5Q0QbR9pW3u_bB83MQRtHJl2qae", str(patches_path))
+        # load_gdrive_file("1H9mqpakrb4rxMz-wBre33V8RefJ4Epfc", str(patches_path)+".zip",force=True)
+        load_gdrive_file("1KHdk87kTcnC0n-oTlcWPJDRQhTw83zn0", str(patches_path) + ".zip", force=True)
+        import zipfile
+        with zipfile.ZipFile(str(patches_path) + ".zip", "r") as zip_ref:
+            zip_ref.extractall(str(patches_path))
 
 
-    # load_example_patches()
+    load_example_patches()
 
-    from common.itertools_utils import peek
-    # Recipe for training neural networks: http://karpathy.github.io/2019/04/25/recipe/
-    # states: "Become one with the data".
-    # It is super important. So ALWAYS check your data.
-    # At least you should:
-    # 1. Check shape, dtype, min, max
-    # 2. Check Y classes distribution.
-    #       If there is a big class imbalance then you probably should perform some balancing of your data.
-    #       The simplest methods are undersampling and oversampling: https://machinelearningmastery.com/data-sampling-methods-for-imbalanced-classification/
-    # We prepare our example to be augmentation-ready (using ImageDataGenerator).
-    # But for simplicity we do not use augmentation here.
-
+    # Recipe for training neural networks is very useful: http://karpathy.github.io/2019/04/25/recipe/
     # Now we define u-net model with quite common settings.
     from keras.optimizers import Adam
-    from common_keras.assert_utils import assert_model_input, assert_model_output
     from common_keras.unet import get_unet
     from keras_preprocessing.image import ImageDataGenerator
-
-    augment_kwargs = dict()
-    target_size = (512, 512)
-    batch_size = 10
-    seed = 1
 
     labels_name_pattern = f'.*/label/.*'
     images_name_pattern = f'.*/image/.*'
@@ -79,73 +64,66 @@ if __name__ == '__main__':
     from collections import defaultdict
     from ndarray_persist.load.ndarray_loader_factory import NdarrayLoaderFactory
 
-    named_labels = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=labels_name_pattern).load_named_ndarrays()
-    named_images = NdarrayLoaderFactory.from_name_filter(str(patches_path), name_pattern=images_name_pattern).load_named_ndarrays()
-    solid_uniques = defaultdict(list)
+    # Load label and image names
+    named_labels = NdarrayLoaderFactory.from_name_filter(str(patches_path) + '.zip', name_pattern=labels_name_pattern).load_named_ndarrays()
+    named_images = NdarrayLoaderFactory.from_name_filter(str(patches_path) + '.zip', name_pattern=images_name_pattern).load_named_ndarrays()
+    # If there is a class imbalance then you probably should perform some balancing of your data.
+    # The simplest methods are undersampling and oversampling: https://machinelearningmastery.com/data-sampling-methods-for-imbalanced-classification/
+    # We will count solid-color(fully black or fully white) patches.
+    solid_label_image_names = defaultdict(list)
     mixed_label_image_names = []
     for named_label, named_image in zip(named_labels, named_images):
         u = np.unique(named_label[1])
         if len(u) == 1:
-            # uniques[u[0]] = uniques.get(u[0], 0) + 1
-            solid_uniques[u[0]].append((named_label[0], named_image[0]))
+            solid_label_image_names[u[0]].append((named_label[0], named_image[0]))
         else:
             mixed_label_image_names.append((named_label[0], named_image[0]))
-
-    min_count = len(next(iter(solid_uniques.values())))
-    for color, names in solid_uniques.items():
-        n = len(names)
-        if n < min_count:
-            min_count = n
-
-    print(len(mixed_label_image_names), min_count)
+    solid_counts = {color: len(names) for color, names in solid_label_image_names.items()}
+    print(f"Solid patches(color:count) {solid_counts}")
+    # Like some kind of class balancing we will take equal amount of fully black and fully white patches.
+    min_solid_count = min(solid_counts.values())
+    print(len(mixed_label_image_names), min_solid_count)
 
     # min_count=100
     import random
 
+    # We prepare our example to be augmentation-ready (using ImageDataGenerator).
+    # But for simplicity we do not use augmentation here.
+    augment_kwargs = dict()
+    seed = 1
     random.seed = seed
     label_image_names = []
-    for color in solid_uniques:
-        random.shuffle(solid_uniques[color])
-        label_image_names.extend(solid_uniques[color][:min_count])
+    for color in solid_label_image_names:
+        random.shuffle(solid_label_image_names[color])
+        label_image_names.extend(solid_label_image_names[color][:min_solid_count])
     label_image_names.extend(mixed_label_image_names)
     label_names = [n[0] for n in label_image_names]
     image_names = [n[1] for n in label_image_names]
 
     import pandas
 
+    # flow_from_dataframe is friendly for RAM - it will load images by batches in iterable style.
     imagedf = pandas.DataFrame(image_names, columns=['filename'])
     labeldf = pandas.DataFrame(label_names, columns=['filename'])
-    image_generator = ImageDataGenerator(rescale=1. / 255, **augment_kwargs) \
-        .flow_from_dataframe(imagedf, str(patches_path.joinpath('patches')), target_size=target_size,
+    target_size = (512, 512)
+    patch_shape = (512, 512, 3)
+    batch_size = 10
+    image_batch_generator = ImageDataGenerator(rescale=1. / 255, **augment_kwargs) \
+        .flow_from_dataframe(imagedf, str(patches_path), target_size=target_size,
                              color_mode='rgb', class_mode=None, batch_size=batch_size, seed=seed)
-    label_generator = ImageDataGenerator(rescale=1. / 255, **augment_kwargs) \
-        .flow_from_dataframe(labeldf, str(patches_path.joinpath('patches')), target_size=target_size,
+    label_batch_generator = ImageDataGenerator(rescale=1. / 255, **augment_kwargs) \
+        .flow_from_dataframe(labeldf, str(patches_path), target_size=target_size,
                              color_mode='grayscale', class_mode=None, batch_size=batch_size, seed=seed)
-    # image_generator = ImageDataGenerator(**augment_kwargs)\
-    #     .flow_from_directory(str(patches_path.joinpath('patches/train_image')),target_size=target_size,
-    #                          color_mode='rgb', class_mode=None, batch_size=batch_size,seed=seed)
-    # label_generator = ImageDataGenerator(**augment_kwargs)\
-    #     .flow_from_directory(str(patches_path.joinpath('patches/train_label')),target_size=target_size,
-    #                          color_mode='grayscale', class_mode=None, batch_size=batch_size,seed=seed)
-    sample_generator = zip(image_generator, label_generator)
+    # sample is an (image, label) pair
+    sample_batch_generator = zip(image_batch_generator, label_batch_generator)
 
-    from common.itertools_utils import peek
-
-    first_sample_batch, samples_train = peek(sample_generator)
-    first_sample_batch = list(first_sample_batch)
-    # patch_shape = X.shape[-3:]
-    patch_shape = first_sample_batch[0].shape[-3:]
-    n_filters = 16
+    n_filters = 8
     model = get_unet(patch_shape, n_filters=n_filters)
     model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy'])
-    # One more check. Ensure our data is compatible with model definition.
-    # These statements asserts ndarrays shapes and dtypes.
-    # assert_model_input(model, X)
-    # assert_model_output(model, Y)
 
     # Define path where the model will be saved.
     # You can load it afterwards in another program and use it for prediction.
-    model_path = root_path.joinpath('segmentation_model_5_27_16.h5')
+    model_path = root_path.joinpath('segmentation_example_model.h5')
 
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 
@@ -157,38 +135,36 @@ if __name__ == '__main__':
 
     epochs = 70
     steps_per_epoch = len(label_image_names) / batch_size
-    # samples = data_generator.flow(X_train, Y_train, batch_size=batch_size, shuffle=True)
-    history = model.fit_generator(samples_train, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=callbacks)
+    history = model.fit_generator(sample_batch_generator, steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=callbacks)
 
     # Plot learning process.
     # We dont seek for excellent results.
-    # We just want to check some basic indicators of doing things right like:
-    # 1) Train and test losses should decrease
-    # 2) Train and test losses should not too diverge
-    # 3) Train and test losses should not be too similar
+    # We just want to check some basic indicators of doing things right.
     import matplotlib.pyplot as plt
-    from common_matplotlib.core import plot_image_tuples_by_batches
+
+    plt.rcParams['figure.figsize'] = (10, 5)
 
     plt.plot(history.history['loss'])
-    # plt.plot(history.history['val_loss'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
+    plt.legend(['train'], loc='upper left')
     plt.show()
 
     # And finally we will check results visually.
-    # Let's visualize predictions on train data
-    plt.rcParams['figure.figsize'] = (10, 5)
+    # Let's visualize predictions on some samples.
 
-    # Y_tain_predict = model.predict(X_train)
-    # print("Training data(image, true label, predicted label):")
-    # plot_image_tuples_by_batches(zip(X_train, Y_train, Y_tain_predict), ncols=6, tuples_per_plot=8)
-    #
-    # # Let's visualize predictions on test data
-    # Y_test_predict = model.predict(X_test)
-    # print("Test data(image, true label, predicted label):")
-    # plot_image_tuples_by_batches(zip(X_test, Y_test, Y_test_predict), ncols=6, tuples_per_plot=8)
+    import itertools
+
+    X = itertools.chain.from_iterable(image_batch_generator)
+    Y = itertools.chain.from_iterable(label_batch_generator)
+    X = np.asarray(list(itertools.islice(X, 100)))
+    Y = np.asarray(list(itertools.islice(Y, 100)))
+    Y_predict = model.predict(X)
+    print("image, true label, predicted label:")
+    from common_matplotlib.core import plot_image_tuples_by_batches
+
+    plot_image_tuples_by_batches(zip(X, Y, Y_predict), ncols=6, tuples_per_plot=8)
 
     # To download file to localhost you can download it as "Browser download file"
     # or mount your google drive and copy file to it:
@@ -203,4 +179,3 @@ if __name__ == '__main__':
     # gdrive_path.parent.mkdir(parents=True, exist_ok=True)
     # import shutil
     # shutil.copy2(str(model_path), gdrive_path)
-

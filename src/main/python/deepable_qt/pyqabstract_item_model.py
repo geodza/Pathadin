@@ -37,10 +37,12 @@ class PyQAbstractItemModel(QAbstractItemModel):
         if parent.isValid():
             parent_path, p = parent.internalPointer()
             parent_odict = deep_get(self.get_root(), parent_path)
-            key_ = list(deep_keys(parent_odict))[row]
+            keys = list(deep_keys(parent_odict))
+            key_ = keys[row]
             index_path = parent_path + '.' + key_
         else:
-            key_ = deep_keys(self.get_root())[row]
+            keys = list(deep_keys(self.get_root()))
+            key_ = keys[row]
             index_path = key_
         self.pyqt_bug_weak_ref_dict.setdefault(index_path, [index_path, parent])
         index_path_list = self.pyqt_bug_weak_ref_dict[index_path]

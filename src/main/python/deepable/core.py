@@ -126,12 +126,28 @@ def deep_len(obj: Deepable) -> int:
 	return len(deep_keys(obj))
 
 
-def deep_key_order(obj: Deepable, key: str) -> int:
+def deep_key_index(obj: Deepable, key: str) -> int:
 	*parent_path, child_key = key.split('.')
 	parent_key = '.'.join(parent_path)
 	parent_object: Deepable = deep_get(obj, parent_key) if parent_key else obj
-	key_order = deep_keys(parent_object).index(child_key)
-	return key_order
+	key_index = deep_keys(parent_object).index(child_key)
+	return key_index
+
+
+def deep_index_key(obj: Deepable, index: int) -> str:
+	keys = list(deep_keys(obj))
+	key = keys[index]
+	return key
+
+
+def deep_new_key_index(obj: Deepable, key: str) -> int:
+	*parent_path, child_key = key.split('.')
+	parent_key = '.'.join(parent_path)
+	parent_object: Deepable = deep_get(obj, parent_key) if parent_key else obj
+	if isinstance(parent_object, dict):
+		return len(parent_object)
+	else:
+		raise ValueError(f"Deepable object of type: {type(parent_object)} doesnt support new keys")
 
 
 def deep_keys_deep(obj: Deepable) -> list:
@@ -173,11 +189,10 @@ class DeepDiffChanges:
 	changed: Dict[str, DeepDiffChange]
 
 
-
-def deep_diff(obj1: Deepable, obj2: Deepable) -> DeepDiffChanges:
+def deep_diff(obj1: Optional[Deepable], obj2: Optional[Deepable]) -> DeepDiffChanges:
 	# if is_immutable(obj1) and is_immutable(obj2) and obj1!=
-	keys1 = set(deep_keys_deep(obj1))
-	keys2 = set(deep_keys_deep(obj2))
+	keys1 = set(deep_keys_deep(obj1)) if obj1 else set()
+	keys2 = set(deep_keys_deep(obj2)) if obj2 else set()
 	keys1_only = keys1 - keys2
 	keys2_only = keys2 - keys1
 	keys_both = keys1.intersection(keys2)
@@ -194,8 +209,10 @@ def deep_diff(obj1: Deepable, obj2: Deepable) -> DeepDiffChanges:
 			changes[key] = DeepDiffChange(old_value=value1, new_value=value2)
 	return DeepDiffChanges(keys1_only, added, changes)
 
-def is_immutable(obj:Any)->bool:
+
+def is_immutable(obj: Any) -> bool:
 	return hasattr(obj, "__hash__")
+
 
 # if (hasattr(old_value, "__hash__") or hasattr(value, "__hash__")) and old_value!=value:
 

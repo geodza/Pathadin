@@ -7,7 +7,8 @@ from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal
 from dataclasses import dataclass, InitVar, FrozenInstanceError
 
 from deepable.core import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable, deep_diff, deep_get_default, \
-	deep_key_order, deep_contains, deep_iter, deep_len, is_immutable
+	deep_key_index, deep_contains, deep_iter, deep_len, is_immutable, deep_new_key_index, DeepDiffChanges, \
+	deep_index_key
 
 
 @dataclass
@@ -16,14 +17,11 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	# Main principles:
 	#   has Deepable root
 	# 	key-value nature (2 columns) (with possible nesting)
+	# 	get, set, delete through dict-like interface methods
 	# 	operates on root only through deepable functions
-	# 	operates on root by keys: get, edit, delete
 	#   transforms rows signals to keys signals
 
-	# modelAboutToBeReset
 	parent_: InitVar[typing.Optional[QObject]] = None
-
-	__modelAboutToBeResetCopy: typing.Optional[Deepable] = None
 
 	keysChanged = pyqtSignal(list)
 	keysRemoved = pyqtSignal(list)
@@ -41,10 +39,10 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		# 2) we can store object in it, but we need to keep reference to this object because qt will not
 		self.pyqt_bug_weak_ref_dict = {}
 
-		self.dataChanged.connect(self.__on_data_changed)
-		self.rowsInserted.connect(self.__on_rows_inserted)
-		# rowsAboutToBeRemoved and not rowsRemoved because after rowsRemoved keys for corresponding rows will be already removed from root
-		self.rowsAboutToBeRemoved.connect(self.__on_rows_about_to_be_removed)
+	# self.dataChanged.connect(self.__on_data_changed)
+	# self.rowsInserted.connect(self.__on_rows_inserted)
+	# # rowsAboutToBeRemoved and not rowsRemoved because after rowsRemoved keys for corresponding rows will be already removed from root
+	# self.rowsAboutToBeRemoved.connect(self.__on_rows_about_to_be_removed)
 
 	def get_root(self) -> Deepable:
 		raise NotImplementedError
@@ -55,14 +53,10 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	def index(self, row: int, column: int, parent: QModelIndex = QModelIndex()) -> QModelIndex:
 		if parent.isValid():
 			parent_path, p = parent.internalPointer()
-			parent_odict = deep_get(self.get_root(), parent_path)
-			keys = list(deep_keys(parent_odict))
-			key_ = keys[row]
-			index_path = parent_path + '.' + key_
+			parent_object = deep_get(self.get_root(), parent_path)
+			index_path = parent_path + '.' + deep_index_key(parent_object, row)
 		else:
-			keys = list(deep_keys(self.get_root()))
-			key_ = keys[row]
-			index_path = key_
+			index_path = deep_index_key(self.get_root(), row)
 		self.pyqt_bug_weak_ref_dict.setdefault(index_path, [index_path, parent])
 		index_path_list = self.pyqt_bug_weak_ref_dict[index_path]
 		# print(f'{row}, {column} {index_path_list}')
@@ -113,7 +107,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
 			return self.get_root()
 
 	def key_to_row(self, key: str) -> int:
-		return deep_key_order(self.get_root(), key)
+		return deep_key_index(self.get_root(), key)
 
 	def key_to_parent_index(self, key: str) -> QModelIndex:
 		path = key.split('.')
@@ -121,7 +115,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		parent = QModelIndex()
 		for key_ in path[:-1]:
 			# row = list(deep_keys(parent_obj)).index(key_)
-			row = deep_key_order(parent_obj, key_)
+			row = deep_key_index(parent_obj, key_)
 			parent = self.index(row, 0, parent)
 			parent_obj = deep_get(parent_obj, key_)
 		return parent
@@ -147,39 +141,60 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		return deep_contains(self.get_root(), key)
 
 	def __setitem__(self, key: str, value: typing.Any) -> None:
-		# parent_index = self.key_to_parent_index(key)
-		# parent_obj = self.value(parent_index)
-		root = self.get_root()
 		try:
-			old_value = deep_get(root, key)
+			old_value = deep_get(self.get_root(), key)
 		except (KeyError, AttributeError):
-			parent_index = self.key_to_parent_index(key)
-			new_row = self.rowCount(parent_index)
-			self.beginInsertRows(parent_index, new_row, new_row)
-			deep_set(self.get_root(), key, value)
-			self.endInsertRows()
+			self.__insert_new_key(key, value)
 		else:
-			# if (is_immutable(old_value) or is_immutable(value)) and old_value!=value:
-			# 	row = self.key_to_row(key)
-			# 	parent_index = self.key_to_parent_index(key)
-			# 	deep_set(parent_obj, key, value)
-			# 	self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
-			# el
-			if is_deepable(old_value) and is_deepable(value):
+			if is_deepable(old_value) or is_deepable(value):
 				self.__edit_deepable(key, old_value, value)
-			elif type(old_value) is type(value):
-				row = self.key_to_row(key)
-				parent_index = self.key_to_parent_index(key)
-				deep_set(root, key, value)
-				self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
 			else:
+				self.__edit_not_deepable(key, value)
+
+	def __edit_not_deepable(self, key: str, value: typing.Any):
+		row = self.key_to_row(key)
+		parent_index = self.key_to_parent_index(key)
+		deep_set(self.get_root(), key, value)
+		self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
+		self.keysChanged.emit([key])
+
+	def __insert_new_key(self, key: str, value: typing.Any) -> None:
+		parent_index = self.key_to_parent_index(key)
+		new_row = deep_new_key_index(self.get_root(), key)
+		self.beginInsertRows(parent_index, new_row, new_row)
+		deep_set(self.get_root(), key, value)
+		self.endInsertRows()
+		self.keysInserted.emit([key])
+
+	def __edit_deepable(self, key: str, old_value: Deepable, value: Deepable):
+		if self.__can_be_edited_by_parts(old_value, value):
+			self.__edit_by_parts(key, old_value, value)
+		else:
+			df = deep_diff(old_value, value)
+			if self.__can_be_edited_without_insert_remove_signals(df):
+				self.__edit_without_insert_remove_signals(key, value, df)
+			else:
+				# We need signals about what indexes need to be removed and what indexes need to be inserted (for nested objects).
+				# But we cant update immutable object so we need to delete and add it.
 				self.__delete_then_add(key, value)
 
-	def __edit_deepable(self, key: str, old_value: typing.Any, value: typing.Any):
-		parent_obj = self.get_root()
-		if (is_immutable(old_value) or is_immutable(value)) and old_value != value:
-			self.__delete_then_add(key, value)
-			return
+	def __can_be_edited_without_insert_remove_signals(self, df: DeepDiffChanges) -> bool:
+		return not df.added and not df.removed
+
+	def __edit_without_insert_remove_signals(self, key: str, value: Deepable, df: DeepDiffChanges):
+		deep_set(self.get_root(), key, value)
+		# edit by key as one big edit but for indexes it is many dataChanged signals
+		for changed_key, diff_change in df.changed.items():
+			changed_key_root = key + "." + changed_key
+			row = self.key_to_row(changed_key_root)
+			parent_index = self.key_to_parent_index(changed_key_root)
+			self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
+		self.keysChanged.emit([key])
+
+	def __can_be_edited_by_parts(self, old_value: Deepable, value: Deepable) -> bool:
+		return type(old_value) == type(value) and not is_immutable(old_value)
+
+	def __edit_by_parts(self, key: str, old_value: Deepable, value: Deepable):
 		df = deep_diff(old_value, value)
 		try:
 			for removed_key in df.removed:
@@ -187,43 +202,29 @@ class PyQAbstractItemModel(QAbstractItemModel):
 				row = self.key_to_row(removed_key_root)
 				parent_index = self.key_to_parent_index(removed_key_root)
 				self.beginRemoveRows(parent_index, row, row)
-				# try:
-				deep_del(parent_obj, removed_key_root)
-				# except FrozenInstanceError:
-				# 	self.endRemoveRows()
-				# 	self.__delete_then_add(key, value)
-				# else:
+				deep_del(self.get_root(), removed_key_root)
 				self.endRemoveRows()
+				self.keysRemoved.emit([removed_key_root])
 			for added_key, added_value in df.added.items():
 				added_key_root = key + "." + added_key
 				parent_index = self.key_to_parent_index(added_key_root)
-				# TODO we can add only to the end?
-				# *leading_keys, last_key = added_key_root.split('.')
-				new_row = self.rowCount(parent_index)
-				# new_row_parent_key = '.'.join(leading_keys)
-				# new_row_parent_index = self.key_to_parent_index(new_row_parent_key)
+				new_row = deep_new_key_index(self.get_root(), key)
 				self.beginInsertRows(parent_index, new_row, new_row)
-				deep_set(parent_obj, added_key_root, added_value)
+				deep_set(self.get_root(), added_key_root, added_value)
 				self.endInsertRows()
+				self.keysInserted.emit([added_key_root])
 			for changed_key, diff_change in df.changed.items():
 				changed_key_root = key + "." + changed_key
 				row = self.key_to_row(changed_key_root)
 				parent_index = self.key_to_parent_index(changed_key_root)
-				deep_set(parent_obj, changed_key_root, diff_change.new_value)
+				deep_set(self.get_root(), changed_key_root, diff_change.new_value)
 				self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
-		except FrozenInstanceError:
-			if not df.added and not df.removed:
-				root = self.get_root()
-				deep_set(root, key, value)
-				for changed_key, diff_change in df.changed.items():
-					changed_key_root = key + "." + changed_key
-					row = self.key_to_row(changed_key_root)
-					parent_index = self.key_to_parent_index(changed_key_root)
-					self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
-			else:
-				# We need signals about what indexes need to be removed and what indexes need to be inserted (for nested objects).
-				# Deepable object update by parts has failed so instead of add/delete nested(child) indexes we will delete index itself and add it again(with new value).
-				self.__delete_then_add(key, value)
+				self.keysChanged.emit([changed_key_root])
+		except FrozenInstanceError as e:
+			# TODO
+			raise ValueError(
+				f"Deepable object {old_value} cant be edited. Attempted to modify immutable(frozen) object. deep_diff method must not dig into immutable objects.",
+				e)
 
 	def __delete_then_add(self, key: str, value: typing.Any):
 		root = self.get_root()
@@ -270,27 +271,27 @@ class PyQAbstractItemModel(QAbstractItemModel):
 			self.beginRemoveRows(parent_index, 0, n_rows - 1)
 			self.get_root().clear()
 			self.endRemoveRows()
-
-	def __on_data_changed(self, top_left: QModelIndex, bottom_right: QModelIndex):
-		parent, first, last = top_left.parent(), top_left.row(), bottom_right.row()
-		keys = self.key_range(parent, first, last)
-		self.keysChanged.emit(keys)
-
-	def __on_rows_about_to_be_removed(self, parent: QModelIndex, first: int, last: int) -> None:
-		keys = self.key_range(parent, first, last)
-		self.keysRemoved.emit(keys)
-
-	def __on_rows_inserted(self, parent: QModelIndex, first: int, last: int) -> None:
-		keys = self.key_range(parent, first, last)
-		self.keysInserted.emit(keys)
-
-	def key_range(self, parent: QModelIndex, first: int, last: int) -> list:
-		if parent.isValid():
-			children = [parent.child(row, 0) for row in range(first, last + 1)]
-		else:
-			children = [self.index(row, 0, QModelIndex()) for row in range(first, last + 1)]
-		keys = self.indexes_to_keys(children)
-		return keys
+#
+# def __on_data_changed(self, top_left: QModelIndex, bottom_right: QModelIndex):
+# 	parent, first, last = top_left.parent(), top_left.row(), bottom_right.row()
+# 	keys = self.key_range(parent, first, last)
+# 	self.keysChanged.emit(keys)
+#
+# def __on_rows_about_to_be_removed(self, parent: QModelIndex, first: int, last: int) -> None:
+# 	keys = self.key_range(parent, first, last)
+# 	self.keysRemoved.emit(keys)
+#
+# def __on_rows_inserted(self, parent: QModelIndex, first: int, last: int) -> None:
+# 	keys = self.key_range(parent, first, last)
+# 	self.keysInserted.emit(keys)
+#
+# def key_range(self, parent: QModelIndex, first: int, last: int) -> list:
+# 	if parent.isValid():
+# 		children = [parent.child(row, 0) for row in range(first, last + 1)]
+# 	else:
+# 		children = [self.index(row, 0, QModelIndex()) for row in range(first, last + 1)]
+# 	keys = self.indexes_to_keys(children)
+# 	return keys
 
 # def is_top_level(self, index: QModelIndex):
 #     return not index.parent().isValid()

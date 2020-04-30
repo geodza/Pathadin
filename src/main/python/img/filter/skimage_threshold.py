@@ -27,6 +27,11 @@ class SkimageMinimumThresholdParams:
     max_iter: int = 10000
 
 
+@dataclass_fields
+class SkimageMinimumThresholdParams_(SkimageMinimumThresholdParams):
+    pass
+
+
 @dataclass(frozen=True)
 class SkimageAutoThresholdFilterData(ThresholdFilterData):
     threshold_type: ThresholdType = field(default=ThresholdType.SKIMAGE_AUTO, init=False)

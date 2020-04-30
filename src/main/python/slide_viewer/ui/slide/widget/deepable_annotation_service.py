@@ -54,9 +54,9 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
         self.root = root
         self.stats_processor = stats_processor
         self.annotation_label_template: str = 'annotation_{}'
-        self.root.objectsRemoved.connect(self.__on_removed)
-        self.root.objectsChanged.connect(self.__on_changed)
-        self.root.objectsInserted.connect(self.__on_added)
+        self.root.keysRemoved.connect(self.__on_removed)
+        self.root.keysChanged.connect(self.__on_changed)
+        self.root.keysInserted.connect(self.__on_added)
         super().__init__()
 
     def get_first_point(self, id_: str) -> ituple:

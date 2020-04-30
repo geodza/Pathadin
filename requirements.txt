@@ -19,5 +19,6 @@ tensorflow==1.14.0
 Keras==2.3.1
 keras-unet==0.0.7
 Shapely==1.7.0
+matplotlib
 #PyQt5-stubs = "==5.13.0.1"
 #histomicstk = {editable = true,path = "./../HistomicsTK"}

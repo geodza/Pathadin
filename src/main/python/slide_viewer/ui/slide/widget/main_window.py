@@ -240,7 +240,7 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
         view.filePathDropped.connect(on_file_path_dropped)
         view.scene().annotationModelsSelected.connect(on_scene_annotations_selected)
         annotations_tree_view.objectsSelected.connect(on_tree_objects_selected)
-        self.filters_tree_view.model().objectsChanged.connect(tree_filter_models_changed)
+        self.filters_tree_view.model().keysChanged.connect(tree_filter_models_changed)
 
         def on_annotation_model_edited(id_: str, model: AnnotationModel):
             with slot_disconnected(annotation_service.edited_signal(), on_annotation_model_edited):

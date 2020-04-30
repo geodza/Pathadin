@@ -172,7 +172,8 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
                 del self.root[id_]
 
     def delete_all(self) -> None:
-        self.root.clear()
+        for key in self.root:
+            del self.root[key]
 
     def added_signal(self) -> pyqtBoundSignal(AnnotationModel):
         return self.added

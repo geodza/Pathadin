@@ -140,6 +140,14 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	def __contains__(self, key: str):
 		return deep_contains(self.get_root(), key)
 
+	def __delitem__(self, key: str) -> None:
+		row = self.key_to_row(key)
+		parent_index = self.key_to_parent_index(key)
+		self.beginRemoveRows(parent_index, row, row)
+		deep_del(self.get_root(), key)
+		self.endRemoveRows()
+		self.keysRemoved.emit([key])
+
 	def __setitem__(self, key: str, value: typing.Any) -> None:
 		try:
 			old_value = deep_get(self.get_root(), key)
@@ -245,43 +253,3 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		deep_set(self.get_root(), key, value)
 		self.endResetModel()
 		self.keysChanged.emit([key])
-
-	def __delitem__(self, key: str) -> None:
-		row = self.key_to_row(key)
-		parent_index = self.key_to_parent_index(key)
-		self.beginRemoveRows(parent_index, row, row)
-		deep_del(self.get_root(), key)
-		self.endRemoveRows()
-		self.keysRemoved.emit([key])
-
-	def clear(self) -> None:
-		parent_index = QModelIndex()
-		n_rows = len(self)
-		if n_rows:
-			self.beginRemoveRows(parent_index, 0, n_rows - 1)
-			self.get_root().clear()
-			self.endRemoveRows()
-#
-# def __on_data_changed(self, top_left: QModelIndex, bottom_right: QModelIndex):
-# 	parent, first, last = top_left.parent(), top_left.row(), bottom_right.row()
-# 	keys = self.key_range(parent, first, last)
-# 	self.keysChanged.emit(keys)
-#
-# def __on_rows_about_to_be_removed(self, parent: QModelIndex, first: int, last: int) -> None:
-# 	keys = self.key_range(parent, first, last)
-# 	self.keysRemoved.emit(keys)
-#
-# def __on_rows_inserted(self, parent: QModelIndex, first: int, last: int) -> None:
-# 	keys = self.key_range(parent, first, last)
-# 	self.keysInserted.emit(keys)
-#
-# def key_range(self, parent: QModelIndex, first: int, last: int) -> list:
-# 	if parent.isValid():
-# 		children = [parent.child(row, 0) for row in range(first, last + 1)]
-# 	else:
-# 		children = [self.index(row, 0, QModelIndex()) for row in range(first, last + 1)]
-# 	keys = self.indexes_to_keys(children)
-# 	return keys
-
-# def is_top_level(self, index: QModelIndex):
-#     return not index.parent().isValid()

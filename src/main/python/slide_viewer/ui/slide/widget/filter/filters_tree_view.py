@@ -39,6 +39,9 @@ def create_filters_tree_view_context_menu(view: DeepableTreeView):
 			return not index.parent().isValid()
 
 		if all(is_top_level(i) or deep_supports_key_add(factory.model.value(i.parent())) for i in factory.indexes):
+			actions.append(factory.delete())
+
+		if all(is_top_level(i) or deep_supports_key_add(factory.model.value(i.parent())) for i in factory.indexes):
 			actions.append(factory.duplicate())
 
 		menu = QMenu()

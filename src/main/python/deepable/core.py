@@ -164,6 +164,7 @@ def deep_index_key(obj: Deepable, index: int) -> str:
 
 def deep_new_key_index(obj: Deepable, key: str) -> int:
 	*parent_path, child_key = key.split('.')
+	# print(key, parent_path, child_key)
 	parent_key = '.'.join(parent_path)
 	parent_object: Deepable = deep_get(obj, parent_key) if parent_key else obj
 	if isinstance(parent_object, dict):

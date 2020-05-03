@@ -201,6 +201,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		self.keysRemoved.emit([key])
 
 	def __setitem__(self, key: str, value: typing.Any) -> None:
+		# print(f"__setitem__({key}, {value})")
 		try:
 			old_value = deep_get(self.get_root(), key)
 		except (KeyError, AttributeError, IndexError):
@@ -227,10 +228,25 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		self.keysChanged.emit([key])
 
 	def __edit_deepable(self, key: str, old_value: Deepable, value: Deepable):
-		if self.__can_be_edited_by_parts(old_value, value):
+		if old_value is None:
+			key_index = self.key_to_index(key, 0)
+			nrows = deep_len(value)
+			self.beginInsertRows(key_index, 0, nrows - 1)
+			deep_set(self.root, key, value)
+			self.endInsertRows()
+			self.keysChanged.emit([key])
+		elif value is None:
+			key_index = self.key_to_index(key, 0)
+			nrows = deep_len(value)
+			self.beginRemoveRows(key_index, 0, nrows - 1)
+			deep_set(self.root, key, value)
+			self.endRemoveRows()
+			self.keysChanged.emit([key])
+		elif self.__can_be_edited_by_parts(old_value, value):
 			self.__edit_by_parts(key, old_value, value)
 		else:
 			df = deep_diff(old_value, value)
+			# print(f"key: {key}, df: {df} old_value: {old_value} value: {value}")
 			if self.__can_be_edited_without_insert_remove_signals(df):
 				self.__edit_without_insert_remove_signals(key, value, df)
 			else:
@@ -252,10 +268,11 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		self.keysChanged.emit([key])
 
 	def __can_be_edited_by_parts(self, old_value: Deepable, value: Deepable) -> bool:
-		return type(old_value) == type(value) and not is_immutable(old_value)
+		return not is_immutable(value) and not is_immutable(old_value) and type(old_value) == type(value)
 
 	def __edit_by_parts(self, key: str, old_value: Deepable, value: Deepable):
 		df = deep_diff(old_value, value)
+		# print(f"edit by parts for key: {key}", df)
 		try:
 			for removed_key in df.removed:
 				removed_key_root = key + "." + removed_key
@@ -268,7 +285,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
 			for added_key, added_value in df.added.items():
 				added_key_root = key + "." + added_key
 				parent_index = self.key_to_parent_index(added_key_root)
-				new_row = deep_new_key_index(self.get_root(), key)
+				new_row = deep_new_key_index(self.get_root(), added_key_root)
 				self.beginInsertRows(parent_index, new_row, new_row)
 				deep_set(self.get_root(), added_key_root, added_value)
 				self.endInsertRows()
@@ -301,6 +318,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	# 	self.keysChanged.emit([key])
 
 	def __edit_by_reset(self, key: str, value: typing.Any) -> None:
+		# print(f"edit by reset for key: {key}", value)
 		self.beginResetModel()
 		deep_set(self.get_root(), key, value)
 		self.endResetModel()

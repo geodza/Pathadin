@@ -127,10 +127,10 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
 	#         QTimer.singleShot(100, f)
 
 	def edit_last_point(self, id_: str, p: ituple) -> None:
-		# print("edit last point")
-		model = self.get(id_).copy(deep=True)
-		model.geometry.points[-1] = p
-		self.root[id_] = model
+		model = self.get(id_)
+		model_copy = model.copy(deep=True)
+		model_copy.geometry.points[-1] = p
+		self.root[id_] = model_copy
 
 	def edit_filter_results(self, id_: str, filter_results: FilterResults2) -> None:
 		text_filter_results = build_text_filter_results(filter_results)
@@ -138,7 +138,8 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
 			# model = self.get(id_).copy(deep=True)
 			# model.filter_results = text_filter_results
 			self.root[f'{id_}.filter_results'] = text_filter_results
-			# self.root[id_] = model
+
+	# self.root[id_] = model
 
 	def edit_stats(self, id_: str, stats: AnnotationStats) -> None:
 		# stats = self.stats_processor.calc_stats(model)
@@ -152,7 +153,8 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
 		# model = self.get(id_).copy(deep=True)
 		# model.stats = stats
 		self.root[f'{id_}.stats'] = stats
-		# self.root[id_] = model
+
+	# self.root[id_] = model
 
 	def get(self, id_: str) -> AnnotationModel:
 		return self.root[id_]
@@ -208,16 +210,16 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
 			id_ = toplevel_key
 			# print(f"keys: {keys} top_level_key: {toplevel_key} onChanged")
 			model = self.get(id_)
-			if self.stats_processor and False:
-				stats = self.stats_processor.calc_stats(model)
-				stats_dict = stats.dict() if stats else None
-				old_stats_dict = model.stats.dict() if model.stats else None
-				stats = self.stats_processor.calc_stats(model)
-				if stats_dict == old_stats_dict:
-					self.edited_signal().emit(id_, model)
-				else:
-					self.root[f'{id_}.stats'] = stats
-					# self.edit_stats(id_, stats)
-					# self.add_or_edit(toplevel_key, model)
-			else:
-				self.edited_signal().emit(id_, model)
+			# if self.stats_processor and False:
+			# 	stats = self.stats_processor.calc_stats(model)
+			# 	stats_dict = stats.dict() if stats else None
+			# 	old_stats_dict = model.stats.dict() if model.stats else None
+			# 	stats = self.stats_processor.calc_stats(model)
+			# 	if stats_dict == old_stats_dict:
+			# 		self.edited_signal().emit(id_, model)
+			# 	else:
+			# 		self.root[f'{id_}.stats'] = stats
+			# 		# self.edit_stats(id_, stats)
+			# 		# self.add_or_edit(toplevel_key, model)
+			# else:
+			self.edited_signal().emit(id_, model)

@@ -182,7 +182,7 @@ class GraphicsViewAnnotationService2:
         elif isinstance(event, QGraphicsSceneMouseEvent):
             if event.type() == QEvent.GraphicsSceneMouseMove and not event.button():
                 if self.ongoing_annotation:
-                    self.edit_last_point(event.scenePos())
+                    self.edit_last_point(event.scenePos().toPoint())
                     event.accept()
                     return True
                 else:
@@ -197,7 +197,7 @@ class GraphicsViewAnnotationService2:
             elif event.type() == QEvent.GraphicsSceneMouseRelease:
                 if event.scenePos() == event.buttonDownScenePos(Qt.LeftButton):
                     if self.is_in_creation_mode():
-                        p = event.scenePos()
+                        p = event.scenePos().toPoint()
                         if self.ongoing_annotation:
                             self.add_point_or_finish(p)
                         else:

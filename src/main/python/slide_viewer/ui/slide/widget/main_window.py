@@ -17,6 +17,7 @@ from common_qt.slot_disconnected_utils import slot_disconnected
 from deepable.core import toplevel_keys
 from deepable_qt.deepable_tree_model import DeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
+from img.filter.base_filter import FilterData
 from img.filter.keras_model import KerasModelFilterData, KerasModelParams
 from img.filter.kmeans_filter import KMeansFilterData
 from img.filter.manual_threshold import GrayManualThresholdFilterData, HSVManualThresholdFilterData
@@ -171,7 +172,11 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
 		def filter_model_provider(filter_id: str):
 			if filter_id in self.filters_tree_view.model():
-				return self.filters_tree_view.model()[filter_id]
+				for key in self.filters_tree_view.model():
+					fd: FilterData = self.filters_tree_view.model()[key]
+					if fd.id == filter_id:
+						return fd
+			# return self.filters_tree_view.model()[filter_id]
 			else:
 				return None
 

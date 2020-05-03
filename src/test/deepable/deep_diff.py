@@ -25,3 +25,9 @@ class DeepDiffTest(unittest.TestCase):
 		df = deep_diff(d1, d2)
 		print(df)
 		self.assertEqual(df, DeepDiffChanges({"a.f"}, {"a.e": 3}, {"a.b.c": DeepDiffChange(1, 2)}))
+
+	def test_list_deep_diff(self):
+		d1 = [{"a": 10}, {"b": 20}, {"c": 30}]
+		d2 = [{"a": 10}, {"b": 22}, {"d": 40}]
+		df = deep_diff(d1, d2)
+		self.assertEqual(df, DeepDiffChanges({"2.c"}, {"2.d": 40}, {"1.b": DeepDiffChange(20, 22)}))

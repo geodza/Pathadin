@@ -5,17 +5,17 @@ from PyQt5.QtCore import QItemSelection, QModelIndex, pyqtSignal, QItemSelection
 from PyQt5.QtWidgets import QTreeView, QWidget, QAbstractItemView, QHeaderView
 from dataclasses import dataclass, InitVar
 
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.deepable_tree_model import PyQAbstractItemModel
 
 
 @dataclass
 class DeepableTreeView(QTreeView):
 	parent_: InitVar[typing.Optional[QWidget]] = None
-	model_: InitVar[DeepableTreeModel] = DeepableTreeModel(_root=OrderedDict())
+	model_: InitVar[PyQAbstractItemModel] = PyQAbstractItemModel(_root=OrderedDict())
 
 	objectsSelected = pyqtSignal(list)
 
-	def __post_init__(self, parent_: typing.Optional[QWidget], model_: DeepableTreeModel):
+	def __post_init__(self, parent_: typing.Optional[QWidget], model_: PyQAbstractItemModel):
 		super().__init__(parent_)
 		self.setSelectionMode(QAbstractItemView.ExtendedSelection)
 		self.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -29,8 +29,8 @@ class DeepableTreeView(QTreeView):
 		# self.delegate = ODictsTreeViewDelegate()
 		# self.setItemDelegate(self.delegate)
 
-	def model(self) -> DeepableTreeModel:
-		return typing.cast(DeepableTreeModel, super().model())
+	def model(self) -> PyQAbstractItemModel:
+		return typing.cast(PyQAbstractItemModel, super().model())
 
 	def rowsInserted(self, parent: QModelIndex, start: int, end: int) -> None:
 		super().rowsInserted(parent, start, end)
@@ -42,7 +42,7 @@ class DeepableTreeView(QTreeView):
 		keys = self.model().indexes_to_keys(self.selectionModel().selection().indexes())
 		self.objectsSelected.emit(keys)
 
-	def setModel(self, model: DeepableTreeModel) -> None:
+	def setModel(self, model: PyQAbstractItemModel) -> None:
 		super().setModel(model)
 		self.span_first_column()
 

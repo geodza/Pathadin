@@ -20,6 +20,7 @@ initial_scene_background_color = "#A088BDBC"
 # slide_path=r"D:\temp\slides_more\hsv_hue_sat.png"
 slide_path=None
 model_path=None
+slide_path = r"C:\Users\Public\Pictures\Sample Pictures\Lighthouse.jpg"
 # slide_path = r"D:\temp\slides\slide1.mrxs"
 # model_path=r"C:\Users\User\GoogleDisk\pathadin_examples\data\segmentation_model.h5"
 # slide_annotations_path = r'D:\slide_cbir_47\temp\slides\slide-43\slide-2019-08-12T14-43-33-R1-S6_annotations.json'

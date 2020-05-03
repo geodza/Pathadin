@@ -3,10 +3,10 @@ import copy
 import typing
 from typing import Iterator
 
-from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal
+from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal, Qt, QVariant
 from dataclasses import dataclass, InitVar, FrozenInstanceError
 
-from deepable.core import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable, deep_diff, deep_get_default, \
+from deepable.core import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable, deep_diff, \
 	deep_key_index, deep_contains, deep_iter, deep_len, is_immutable, deep_new_key_index, DeepDiffChanges, \
 	deep_index_key
 
@@ -22,6 +22,8 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	#   transforms rows signals to keys signals
 
 	parent_: InitVar[typing.Optional[QObject]] = None
+
+	_root: Deepable = None
 
 	keysChanged = pyqtSignal(list)
 	keysRemoved = pyqtSignal(list)
@@ -44,11 +46,61 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	# # rowsAboutToBeRemoved and not rowsRemoved because after rowsRemoved keys for corresponding rows will be already removed from root
 	# self.rowsAboutToBeRemoved.connect(self.__on_rows_about_to_be_removed)
 
+	@property
+	def root(self) -> Deepable:
+		return self._root
+
+	@root.setter
+	def root(self, root: Deepable) -> None:
+		self.beginResetModel()
+		self._root = root
+		self.endResetModel()
+
+	# def set_root(self, root: Deepable) -> None:
+	#     self.beginResetModel()
+	#     self.root = root
+	#     self.endResetModel()
+
 	def get_root(self) -> Deepable:
-		raise NotImplementedError
+		return self.root
 
 	def set_root(self, root: Deepable) -> None:
-		raise NotImplementedError
+		self.root = root
+
+	def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> typing.Any:
+		if index.column() == 0:
+			key = self.key(index).split('.')[-1]
+			return self.data_plain_value(key, role)
+		elif index.column() == 1:
+			obj = self.value(index)
+			if is_deepable(obj):
+				return QVariant()
+			else:
+				return self.data_plain_value(obj, role)
+
+	def data_plain_value(self, value: object, role: int = Qt.DisplayRole):
+		if role == Qt.DisplayRole:
+			return str(value)
+		elif role == Qt.EditRole:
+			return value
+		return QVariant()
+
+	def setData(self, index: QModelIndex, value: typing.Any, role: int = Qt.DisplayRole) -> bool:
+		self[self.key(index)] = value
+		return True
+
+	def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+		flags = super().flags(index)
+		flags |= Qt.ItemIsEditable
+		if self.is_index_readonly(index):
+			flags &= ~ Qt.ItemIsEditable
+		return flags
+
+	def is_index_readonly(self, index: QModelIndex) -> bool:
+		is_readonly = False
+		is_readonly |= index.column() == 0
+		# is_readonly |= is_deepable(self.value(index))
+		return is_readonly
 
 	def index(self, row: int, column: int, parent: QModelIndex = QModelIndex()) -> QModelIndex:
 		if parent.isValid():
@@ -151,7 +203,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	def __setitem__(self, key: str, value: typing.Any) -> None:
 		try:
 			old_value = deep_get(self.get_root(), key)
-		except (KeyError, AttributeError):
+		except (KeyError, AttributeError, IndexError):
 			self.__insert_new_key(key, value)
 		else:
 			if is_deepable(old_value) or is_deepable(value):
@@ -234,19 +286,19 @@ class PyQAbstractItemModel(QAbstractItemModel):
 				f"Deepable object {old_value} cant be edited. Attempted to modify immutable(frozen) object. deep_diff method must not dig into immutable objects.",
 				e)
 
-	def __delete_then_add(self, key: str, value: typing.Any) -> None:
-		# TODO bad practice. When delete key from OrderedDict and then add it will be in the end. If deep_del(list,0) and then deep_set(list,0,value) then set is not insert!
-		row = self.key_to_row(key)
-		parent_index = self.key_to_parent_index(key)
-		# if parent_index.isValid():
-		self.beginRemoveRows(parent_index, row, row)
-		deep_del(self.get_root(), key)
-		self.endRemoveRows()
-		row = deep_new_key_index(self.get_root(), key)
-		self.beginInsertRows(parent_index, row, row)
-		deep_set(self.get_root(), key, value)
-		self.endInsertRows()
-		self.keysChanged.emit([key])
+	# def __delete_then_add(self, key: str, value: typing.Any) -> None:
+	# 	# TODO bad practice. When delete key from OrderedDict and then add it will be in the end. If deep_del(list,0) and then deep_set(list,0,value) then set is not insert!
+	# 	row = self.key_to_row(key)
+	# 	parent_index = self.key_to_parent_index(key)
+	# 	# if parent_index.isValid():
+	# 	self.beginRemoveRows(parent_index, row, row)
+	# 	deep_del(self.get_root(), key)
+	# 	self.endRemoveRows()
+	# 	row = deep_new_key_index(self.get_root(), key)
+	# 	self.beginInsertRows(parent_index, row, row)
+	# 	deep_set(self.get_root(), key, value)
+	# 	self.endInsertRows()
+	# 	self.keysChanged.emit([key])
 
 	def __edit_by_reset(self, key: str, value: typing.Any) -> None:
 		self.beginResetModel()

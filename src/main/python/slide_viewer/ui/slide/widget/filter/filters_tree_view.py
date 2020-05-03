@@ -1,9 +1,20 @@
-from PyQt5.QtCore import QPoint, QModelIndex
-from PyQt5.QtWidgets import QMenu
+import typing
+from PyQt5.QtCore import Qt, QPoint, QModelIndex
+from PyQt5.QtWidgets import QWidget, QMenu
 
 from common_qt.my_action import MyAction
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
 from img.filter.manual_threshold import GrayManualThresholdFilterData
+from slide_viewer.ui.slide.widget.filter.filter_tree_view_delegate import FilterTreeViewDelegate
+
+
+def create_filters_tree_view(parent_: typing.Optional[QWidget], model: DeepableTreeModel) -> DeepableTreeView:
+	filters_tree_view = DeepableTreeView(parent_, model_=model)
+	filters_tree_view.setContextMenuPolicy(Qt.CustomContextMenu)
+	filters_tree_view.customContextMenuRequested.connect(create_filters_tree_view_context_menu(filters_tree_view))
+	filters_tree_view.setItemDelegate(FilterTreeViewDelegate(model))
+	return filters_tree_view
 
 
 def create_filters_tree_view_context_menu(view: DeepableTreeView):

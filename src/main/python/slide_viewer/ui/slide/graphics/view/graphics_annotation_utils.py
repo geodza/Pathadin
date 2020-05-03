@@ -15,8 +15,8 @@ def build_annotation_figure_graphics_model(m: AnnotationModel) -> AnnotationFigu
 
 
 def build_annotation_text_graphics_model(m: AnnotationModel) -> AnnotationTextGraphicsModel:
-	present_keys = [key for key in m.text_graphics_view_config.display_attrs if deep_contains(m, key)]
-	text_display_values = [deep_get(m, key) for key in present_keys]
+	display_patterns = m.text_graphics_view_config.display_pattern.split("\\n")
+	text_display_values = [display_pattern.format_map(m.dict()) for display_pattern in display_patterns]
 	if m.stats:
 		text_display_values.extend([v for v in [m.stats.area_text, m.stats.length_text] if v])
 	if m.filter_results:

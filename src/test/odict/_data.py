@@ -7,7 +7,7 @@ from slide_viewer.ui.common.annotation_type import AnnotationType
 
 odict1 = OrderedDict({
     "odict1": OrderedDict({
-        TreeViewConfig.snake_case_name: TreeViewConfig(display_attrs=["annotation.name", "color_prop"],
+        TreeViewConfig.snake_case_name: TreeViewConfig(display_pattern=["annotation.name", "color_prop"],
                                                        decoration_attr="color_prop"),
         "annotation": OrderedDict({
             StandardAttrKey.name.name: "annotation1",
@@ -21,7 +21,7 @@ odict1 = OrderedDict({
             StandardAttrKey.pixel_hist.name: "?",
             StandardAttrKey.pen_color.name: "red",
             StandardAttrKey.text_background_color.name: "green",
-            TreeViewConfig.snake_case_name: TreeViewConfig(display_attrs=["name", "length"],
+            TreeViewConfig.snake_case_name: TreeViewConfig(display_pattern=["name", "length"],
                                                            decoration_attr='pen_color'),
         }),
         "name_prop": "name1",
@@ -80,7 +80,7 @@ odict1 = OrderedDict({
         "checked_prop": True,
     }),
     'annotation47': AnnotationModel(
-        tree_view_config=TreeViewConfig(display_attrs=['id', 'figure_graphics_view_config.color'],
+        tree_view_config=TreeViewConfig(display_pattern=['id', 'figure_graphics_view_config.color'],
                                         decoration_attr='figure_graphics_view_config.color'),
         geometry=AnnotationGeometry(annotation_type=AnnotationType.LINE, origin_point=(0, 0),
                                     points=[(0, 0), (500, 500)]),
@@ -88,7 +88,7 @@ odict1 = OrderedDict({
         label="annotation47"
     ),
     'annotation48': AnnotationModel(
-        tree_view_config=TreeViewConfig(display_attrs=['label'], decoration_attr='figure_graphics_view_config.color'),
+        tree_view_config=TreeViewConfig(display_pattern=['label'], decoration_attr='figure_graphics_view_config.color'),
         geometry=AnnotationGeometry(annotation_type=AnnotationType.LINE, origin_point=(0, 0),
                                     points=[(0, 0), (200, 200)]),
         id='2',

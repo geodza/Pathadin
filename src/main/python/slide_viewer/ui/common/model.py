@@ -10,17 +10,13 @@ from slide_viewer.ui.common.annotation_type import AnnotationType
 
 class TreeViewConfig(BaseModel):
 	snake_case_name: ClassVar = 'tree_view_config'
-	display_attrs: Optional[list]
+	display_pattern: Optional[str]
 	decoration_attr: Optional[str]
-
-
-def default_tree_view_config_factory():
-	return TreeViewConfig(display_attrs=['name'], decoration_attr='annotation_graphics_view_config.figure_color')
 
 
 class TextGraphicsViewConfig(BaseModel):
 	snake_case_name: ClassVar = 'text_graphics_view_config'
-	display_attrs: List[str] = ['label']
+	display_pattern: str = '{label}'
 	hidden: bool = False
 	background_color: str = '#32cd32'
 
@@ -71,6 +67,7 @@ class AnnotationModel(BaseModel):
 	filter_results: OrderedDict = None
 	user_attrs: OrderedDict = OrderedDict()
 
+
 class AnnotationTreeItems(BaseModel):
 	annotations: typing.Dict[str, AnnotationModel]
 
@@ -78,6 +75,9 @@ class AnnotationTreeItems(BaseModel):
 if __name__ == '__main__':
 	m = AnnotationModel(geometry=AnnotationGeometry(annotation_type=AnnotationType.RECT, origin_point=(0, 0),
 													points=[(0, 0), (10, 10)]), id="1")
+	d = m.dict()
+	s = "annotation_{id}_{geometry[annotation_type]}_{geometry[points][0][0]}".format_map(m.dict())
+	print(s)
 	print(hasattr(m, '__hash__'))
 	print(isinstance(m, collections.Hashable))
 	print(hash(m))

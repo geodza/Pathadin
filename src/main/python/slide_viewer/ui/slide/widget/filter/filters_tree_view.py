@@ -3,6 +3,8 @@ from PyQt5.QtCore import Qt, QPoint, QModelIndex
 from PyQt5.QtWidgets import QWidget, QMenu
 
 from common_qt.my_action import MyAction
+from deepable.core import deep_supports_key_add
+from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
 from deepable_qt.deepable_tree_model import DeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
 from img.filter.manual_threshold import GrayManualThresholdFilterData
@@ -18,25 +20,32 @@ def create_filters_tree_view(parent_: typing.Optional[QWidget], model: DeepableT
 
 
 def create_filters_tree_view_context_menu(view: DeepableTreeView):
-    def on_filter_context_menu(position: QPoint):
-        if not view.model().rowCount():
-            return
-        if not view.indexAt(position).isValid():
-            view.setCurrentIndex(QModelIndex())
+	def on_filter_context_menu(position: QPoint):
+		if not view.model().rowCount():
+			return
+		if not view.indexAt(position).isValid():
+			view.setCurrentIndex(QModelIndex())
 
-        def on_add():
-            last_filted_id = len(view.model())
-            new_filter_id = str(last_filted_id + 1)
-            view.model()[new_filter_id] = GrayManualThresholdFilterData(new_filter_id)
+		def on_add():
+			last_filted_id = len(view.model())
+			new_filter_id = str(last_filted_id + 1)
+			view.model()[new_filter_id] = GrayManualThresholdFilterData(new_filter_id)
 
-        def on_reset():
-            view.model().beginResetModel()
-            view.model().endResetModel()
+		actions = []
+		actions.append(MyAction("Add filter", action_func=on_add))
+		factory = DeepableTreeViewActionsFactory(view)
 
-        menu = QMenu()
-        MyAction("Add filter", menu, on_add)
-        MyAction(f"Reset model", menu, on_reset)
+		def is_top_level(index: QModelIndex) -> bool:
+			return not index.parent().isValid()
 
-        menu.exec_(view.viewport().mapToGlobal(position))
+		if all(is_top_level(i) or deep_supports_key_add(factory.model.value(i.parent())) for i in factory.indexes):
+			actions.append(factory.duplicate())
 
-    return on_filter_context_menu
+		menu = QMenu()
+		for a in actions:
+			a.setParent(menu)
+			menu.addAction(a)
+
+		menu.exec_(view.viewport().mapToGlobal(position))
+
+	return on_filter_context_menu

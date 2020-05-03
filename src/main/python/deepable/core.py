@@ -1,7 +1,7 @@
 import collections
 import typing
 import attr
-from dataclasses import fields, is_dataclass, dataclass
+from dataclasses import fields, is_dataclass, dataclass, asdict
 from pydantic import BaseModel
 
 from typing import Any, Union, List, Dict, Set, Optional
@@ -93,6 +93,8 @@ def deep_set(obj: Deepable, key: str, value: Any) -> None:
 	# child_obj[int(last_key)] = value
 	else:
 		setattr(child_obj, last_key, value)
+
+
 
 
 def deep_del(obj: Deepable, key: str) -> None:
@@ -204,6 +206,21 @@ def deep_keys_deep(obj: Deepable) -> list:
 
 def deep_items(obj: Deepable) -> list:
 	return [(key, deep_get(obj, key)) for key in deep_keys(obj)]
+
+def deep_to_dict(obj: Deepable) -> dict:
+	if isinstance(obj, dict):
+		return obj
+	elif is_dataclass(obj):
+		return asdict(obj)
+	elif attr.has(type(obj)):
+		return attr.asdict(obj)
+	elif isinstance(obj, BaseModel):
+		return obj.dict()
+	elif isnamedtupleinstance(obj):
+		return obj._asdict()
+	else:
+		raise ValueError(f"Cant convert object {obj} to dict")
+
 
 
 def toplevel_key(key: str) -> str:

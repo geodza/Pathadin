@@ -86,6 +86,7 @@ class DeepableTreeViewActionsFactory:
 				new_value = new_attr_value_factory()
 				model[new_attr_key] = new_value
 
+
 		return MyAction(f"Add new attr to {mode}", action_func=f)
 
 	def duplicate(self, copy_key_pattern: str = "{key}_{index}",

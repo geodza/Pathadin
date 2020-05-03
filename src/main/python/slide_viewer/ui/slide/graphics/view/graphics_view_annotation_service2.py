@@ -89,8 +89,8 @@ class GraphicsViewAnnotationService2:
         start_point = qpoint_to_ituple(p)
         geometry = AnnotationGeometry(annotation_type=self.annotation_type, origin_point=(0, 0),
                                       points=[start_point, start_point])
-        tree_view_config = TreeViewConfig(display_attrs=['label'],
-                                          decoration_attr='figure_graphics_view_config.color')
+        tree_view_config = TreeViewConfig(display_pattern='{label}',
+										  decoration_attr='figure_graphics_view_config.color')
         # annotation_id = self.scene().get_next_annotation_id()
         # annotation_label = self.annotation_label_template.format(annotation_id)
         annotation_model = AnnotationModel(geometry=geometry, id="", label="",

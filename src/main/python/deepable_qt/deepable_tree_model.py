@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt, QObject, QModelIndex, QVariant
 from PyQt5.QtGui import QColor
 from dataclasses import dataclass
 
-from deepable.core import deep_keys, deep_get, Deepable, is_deepable, deep_contains
+from deepable.core import deep_keys, deep_get, Deepable, is_deepable, deep_contains, deep_to_dict
 from deepable_qt.pyqabstract_item_model import PyQAbstractItemModel
 from slide_viewer.ui.common.model import TreeViewConfig
 
@@ -16,13 +16,13 @@ class DeepableTreeModel(PyQAbstractItemModel):
 	read_only_attrs: Tuple = ()
 	read_only_attr_pattern: str = None
 
-
 	def __post_init__(self, parent_: Optional[QObject]):
 		super().__post_init__(parent_)
-		# def dasd( self, read_only_attrs=(), parent: typing.Optional[QObject] = None) -> None:
-		# super().__init__(self, parent)
-		# HeaderAbstractItemModel.__init__(self, parent)
-		# PyQAbstractItemModel.__init__(self, parent)
+
+	# def dasd( self, read_only_attrs=(), parent: typing.Optional[QObject] = None) -> None:
+	# super().__init__(self, parent)
+	# HeaderAbstractItemModel.__init__(self, parent)
+	# PyQAbstractItemModel.__init__(self, parent)
 
 	def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Any:
 		if index.column() == 0:
@@ -51,11 +51,11 @@ class DeepableTreeModel(PyQAbstractItemModel):
 
 	def data_view_config(self, parent_path: str, view_config: TreeViewConfig, role: int = Qt.DisplayRole):
 		if role == Qt.DisplayRole:
-			attr_key_names = view_config.display_attrs or []
-			present_keys = [key for key in attr_key_names if deep_contains(self.root, parent_path + '.' + key)]
-			values = list(map(lambda k: deep_get(self.root, parent_path + '.' + k), present_keys))
-			values_str = "\n".join(map(str, values))
-			return values_str
+			parent_obj = deep_get(self.root, parent_path)
+			return view_config.display_pattern.format_map(deep_to_dict(parent_obj))
+			# values = list(map(lambda k: deep_get(self.root, parent_path + '.' + k), present_keys))
+			# values_str = "\n".join(map(str, values))
+			# return values_str
 		elif role == Qt.DecorationRole:
 			attr_key = view_config.decoration_attr
 			if attr_key:
@@ -63,4 +63,3 @@ class DeepableTreeModel(PyQAbstractItemModel):
 				return QColor(color_str)
 		else:
 			return QVariant()
-

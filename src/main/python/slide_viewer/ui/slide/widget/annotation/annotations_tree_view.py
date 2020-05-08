@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QWidget, QMenu
 from common_qt.my_action import MyAction
 from deepable.core import deep_supports_key_add, is_immutable, is_deepable, deep_contains, deep_local_key, \
 	deep_local_path
-from deepable.json import DeepableJSONEncoder
+from deepable.convert import DeepableJSONEncoder
 from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
 from deepable_qt.deepable_tree_model import DeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView

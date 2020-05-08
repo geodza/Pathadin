@@ -5,4 +5,4 @@ from enum import unique, Enum
 class ColorMode(Enum):
     L = 1
     HSV = 2
-    RGB = 3
+    # RGB = 3

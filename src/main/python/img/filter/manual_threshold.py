@@ -38,3 +38,6 @@ class HSVManualThresholdFilterData(ManualThresholdFilterData):
 @dataclass_fields
 class HSVManualThresholdFilterData_(HSVManualThresholdFilterData):
 	pass
+
+
+color_mode_to_filter_type = {ColorMode.L: GrayManualThresholdFilterData, ColorMode.HSV: HSVManualThresholdFilterData}

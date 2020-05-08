@@ -7,12 +7,13 @@ from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
 from dataclasses import dataclass, InitVar, replace
 
 from common_image.model.color_mode import ColorMode
+from deepable.convert import deep_to_dict, deep_from_dict
 from img.filter.base_filter import FilterData, FilterData_, FilterType
 from img.filter.keras_model import KerasModelFilterData, KerasModelParams, KerasModelParams_
 from img.filter.kmeans_filter import KMeansFilterData, KMeansInitType, KMeansParams_
 from img.filter.manual_threshold import ManualThresholdFilterData, ManualThresholdFilterData_, \
 	GrayManualThresholdFilterData, GrayManualThresholdFilterData_, HSVManualThresholdFilterData, \
-	HSVManualThresholdFilterData_
+	HSVManualThresholdFilterData_, color_mode_to_filter_type
 from img.filter.nuclei import NucleiFilterData, NucleiParams
 from img.filter.positive_pixel_count import PositivePixelCountFilterData, PositivePixelCountParams
 from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresholdFilterData, \
@@ -26,7 +27,7 @@ from common_qt.editor.file_path_editor import FilePathEditor
 from common_qt.editor.list_editor import SelectListEditor
 from common_qt.editor.range.gray_range_editor import GrayRangeEditor
 from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
-from deepable.core import toplevel_key, deep_set, deep_keys
+from deepable.core import toplevel_key, deep_set, deep_keys, deep_get
 from deepable_qt.deepable_tree_model import DeepableTreeModel
 
 
@@ -67,7 +68,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 				return commit_close_after_dropdown_select(self, dropdown)
 			elif isinstance(filter_data, ManualThresholdFilterData):
 				if key == ManualThresholdFilterData_.color_mode:
-					color_modes = set(ColorMode) - {ColorMode.RGB}
+					color_modes = set(ColorMode)  # - {ColorMode.RGB}
 					dropdown = Dropdown(list(color_modes), value, parent)
 					return commit_close_after_dropdown_select(self, dropdown)
 				elif isinstance(filter_data, HSVManualThresholdFilterData):
@@ -98,7 +99,8 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 							editor.grayRangeChanged.connect(on_threshold_range_change)
 						return editor
 					else:
-						raise ValueError(f"Unknown key {key} for filter {filter_data}")
+						return  super().createEditor(parent, option, index)
+						# raise ValueError(f"Unknown key {key} for filter {filter_data}")
 				else:
 					raise ValueError(f"Unknown key {key} for filter {filter_data}")
 			elif isinstance(filter_data, SkimageAutoThresholdFilterData):
@@ -156,53 +158,51 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 
 	def setModelData(self, editor: QWidget, model: QtCore.QAbstractItemModel, index: QtCore.QModelIndex) -> None:
 		key, value = self.model.key(index), self.model.value(index)
-		filter_id = toplevel_key(key)
-		*leading_keys, last_key = key.split('.')
 		filter_id, *attr_path = key.split('.')
 		filter_data: FilterData = self.model[filter_id]
 		value = editor.metaObject().userProperty().read(editor)
-		# filter_data_dict = OrderedDict(asdict(filter_data))
-		filter_data_dict = asodict2(filter_data)
+		# print(f"{key} {value}")
+		filter_data_dict = deep_to_dict(filter_data)
 		deep_set(filter_data_dict, '.'.join(attr_path), value)
-		# filter_data_dict.update({last_key: value})
-		filter_type = filter_data_dict[FilterData_.filter_type]
-		# del filter_data_dict[FilterData_.filter_type]
-		if filter_type == FilterType.THRESHOLD:
-			threshold_type = filter_data_dict.get(ThresholdFilterData_.threshold_type)
-			# del filter_data_dict[ThresholdFilterData_.threshold_type]
-			if threshold_type == ThresholdType.MANUAL:
-				color_mode = filter_data_dict.get(ManualThresholdFilterData_.color_mode)
-				if color_mode == ColorMode.HSV:
-					filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, HSVManualThresholdFilterData)
-				elif color_mode == ColorMode.L:
-					filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, GrayManualThresholdFilterData)
-				else:
-					filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, GrayManualThresholdFilterData)
-			elif threshold_type == ThresholdType.SKIMAGE_AUTO:
-				skimage_threshold_type = filter_data_dict.get(SkimageAutoThresholdFilterData_.skimage_threshold_type)
-				if skimage_threshold_type == SkimageThresholdType.threshold_mean:
-					filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, SkimageMeanThresholdFilterData)
-				elif skimage_threshold_type == SkimageThresholdType.threshold_minimum:
-					filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, SkimageMinimumThresholdFilterData)
-				else:
-					filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, SkimageMeanThresholdFilterData)
-			else:
-				filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, GrayManualThresholdFilterData)
-		# raise ValueError(f"Unknown threshold_type: {threshold_type}")
-		elif filter_type == FilterType.KMEANS:
-			filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, KMeansFilterData)
-		elif filter_type == FilterType.NUCLEI:
-			filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, NucleiFilterData)
-		elif filter_type == FilterType.POSITIVE_PIXEL_COUNT:
-			filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, PositivePixelCountFilterData)
-		elif filter_type == FilterType.KERAS_MODEL:
-			filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, KerasModelFilterData)
-		else:
-			filter_data_copy = dict_to_data_ignore_extra(filter_data_dict, GrayManualThresholdFilterData)
-		# raise ValueError(f"Unknown filter_type: {filter_type}")
-		self.model[filter_id] = filter_data_copy
 
-	# super().setModelData(editor, model, index)
+		filter_type = FilterType(filter_data_dict.get(FilterData_.filter_type, FilterType.THRESHOLD))
+		if filter_type == FilterType.THRESHOLD:
+			threshold_type = ThresholdType(
+				filter_data_dict.get(ThresholdFilterData_.threshold_type, ThresholdType.MANUAL))
+			if threshold_type == ThresholdType.MANUAL:
+				color_mode = ColorMode(filter_data_dict.get(ManualThresholdFilterData_.color_mode, ColorMode.L))
+				if color_mode == ColorMode.HSV:
+					target_type = HSVManualThresholdFilterData
+				elif color_mode == ColorMode.L:
+					target_type = GrayManualThresholdFilterData
+				else:
+					target_type = GrayManualThresholdFilterData
+			elif threshold_type == ThresholdType.SKIMAGE_AUTO:
+				skimage_threshold_type = SkimageThresholdType(
+					filter_data_dict.get(SkimageAutoThresholdFilterData_.skimage_threshold_type,
+										 SkimageThresholdType.threshold_mean))
+				if skimage_threshold_type == SkimageThresholdType.threshold_mean:
+					target_type = SkimageMeanThresholdFilterData
+				elif skimage_threshold_type == SkimageThresholdType.threshold_minimum:
+					target_type = SkimageMinimumThresholdFilterData
+				else:
+					target_type = SkimageMeanThresholdFilterData
+			else:
+				target_type = GrayManualThresholdFilterData
+		elif filter_type == FilterType.KMEANS:
+			target_type = KMeansFilterData
+		elif filter_type == FilterType.NUCLEI:
+			target_type = NucleiFilterData
+		elif filter_type == FilterType.POSITIVE_PIXEL_COUNT:
+			target_type = PositivePixelCountFilterData
+		elif filter_type == FilterType.KERAS_MODEL:
+			target_type = KerasModelFilterData
+		else:
+			target_type = GrayManualThresholdFilterData
+
+		new_filter_data = deep_from_dict(filter_data_dict, target_type)
+		print(new_filter_data)
+		self.model[filter_id] = new_filter_data
 
 	def updateEditorGeometry(self, editor: QWidget, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
 		if isinstance(editor, (SelectListEditor,)):

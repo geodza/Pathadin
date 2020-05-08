@@ -228,20 +228,12 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		self.keysChanged.emit([key])
 
 	def __edit_deepable(self, key: str, old_value: Deepable, value: Deepable):
-		if old_value is None:
-			key_index = self.key_to_index(key, 0)
-			nrows = deep_len(value)
-			self.beginInsertRows(key_index, 0, nrows - 1)
-			deep_set(self.root, key, value)
-			self.endInsertRows()
-			self.keysChanged.emit([key])
+		if old_value is None and value is None:
+			return
+		elif old_value is None:
+			self.__replace_none_by_deepable(key, value)
 		elif value is None:
-			key_index = self.key_to_index(key, 0)
-			nrows = deep_len(value)
-			self.beginRemoveRows(key_index, 0, nrows - 1)
-			deep_set(self.root, key, value)
-			self.endRemoveRows()
-			self.keysChanged.emit([key])
+			self.__replace_deepable_by_none(key)
 		elif self.__can_be_edited_by_parts(old_value, value):
 			self.__edit_by_parts(key, old_value, value)
 		else:
@@ -253,6 +245,22 @@ class PyQAbstractItemModel(QAbstractItemModel):
 				# We need signals about what indexes need to be removed and what indexes need to be inserted (for nested objects).
 				# But we cant update immutable object.
 				self.__edit_by_reset(key, value)
+
+	def __replace_none_by_deepable(self, key: str, value: typing.Any):
+		key_index = self.key_to_index(key, 0)
+		nrows = deep_len(value)
+		self.beginInsertRows(key_index, 0, nrows - 1)
+		deep_set(self.root, key, value)
+		self.endInsertRows()
+		self.keysChanged.emit([key])
+
+	def __replace_deepable_by_none(self, key: str):
+		key_index = self.key_to_index(key, 0)
+		nrows = self.rowCount(key_index)
+		self.beginRemoveRows(key_index, 0, nrows - 1)
+		deep_set(self.root, key, None)
+		self.endRemoveRows()
+		self.keysChanged.emit([key])
 
 	def __can_be_edited_without_insert_remove_signals(self, df: DeepDiffChanges) -> bool:
 		return not df.added and not df.removed

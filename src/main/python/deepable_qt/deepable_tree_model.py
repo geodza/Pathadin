@@ -5,7 +5,8 @@ from PyQt5.QtCore import Qt, QObject, QModelIndex, QVariant
 from PyQt5.QtGui import QColor
 from dataclasses import dataclass
 
-from deepable.core import deep_keys, deep_get, Deepable, is_deepable, deep_contains, deep_to_dict
+from deepable.core import deep_keys, deep_get, Deepable, is_deepable, deep_contains
+from deepable.convert import deep_to_dict
 from deepable_qt.pyqabstract_item_model import PyQAbstractItemModel
 from slide_viewer.ui.common.model import TreeViewConfig
 
@@ -25,6 +26,7 @@ class DeepableTreeModel(PyQAbstractItemModel):
 	# PyQAbstractItemModel.__init__(self, parent)
 
 	def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Any:
+		# role can be EditRole - it will be setted to itemProperty of editor (after createEditor call)
 		if index.column() == 0:
 			obj = self.value(index)
 			if is_deepable(obj) and TreeViewConfig.snake_case_name in deep_keys(obj) and deep_get(obj,
@@ -36,10 +38,13 @@ class DeepableTreeModel(PyQAbstractItemModel):
 				return self.data_plain_value(key, role)
 		elif index.column() == 1:
 			obj = self.value(index)
-			if is_deepable(obj):
-				return QVariant()
+			if role == Qt.EditRole:
+				return obj
 			else:
-				return self.data_plain_value(obj, role)
+				if is_deepable(obj):
+					return QVariant()
+				else:
+					return self.data_plain_value(obj, role)
 
 	def is_index_readonly(self, index: QModelIndex) -> bool:
 		is_readonly = False
@@ -53,9 +58,9 @@ class DeepableTreeModel(PyQAbstractItemModel):
 		if role == Qt.DisplayRole:
 			parent_obj = deep_get(self.root, parent_path)
 			return view_config.display_pattern.format_map(deep_to_dict(parent_obj))
-			# values = list(map(lambda k: deep_get(self.root, parent_path + '.' + k), present_keys))
-			# values_str = "\n".join(map(str, values))
-			# return values_str
+		# values = list(map(lambda k: deep_get(self.root, parent_path + '.' + k), present_keys))
+		# values_str = "\n".join(map(str, values))
+		# return values_str
 		elif role == Qt.DecorationRole:
 			attr_key = view_config.decoration_attr
 			if attr_key:

@@ -10,7 +10,7 @@ from common_qt.edit_text_dialog import EditTextDialog
 from common_qt.separator_action import SeparatorAction
 from deepable.core import is_deepable, deep_keys, \
 	deep_get, deep_set, deep_local_path, deep_local_key
-from deepable.json import DeepableJSONEncoder, common_object_pairs_hook
+from deepable.convert import DeepableJSONEncoder, common_object_pairs_hook
 from deepable_qt.deepable_tree_view import DeepableTreeView
 
 

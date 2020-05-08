@@ -1,5 +1,7 @@
 import collections
+import copy
 import typing
+
 import attr
 from dataclasses import fields, is_dataclass, dataclass, asdict
 from pydantic import BaseModel
@@ -10,10 +12,35 @@ DataClass = Any
 Deepable = Union[dict, DataClass]
 
 
-def isnamedtupleinstance(x):
+# naming conventions:
+# 1) a.b.c.d
+# key: a.b.c.d
+# path: [a,b,c,d]
+# parent_key: a.b.c
+# parent_path: [a,b,c]
+# last_key: d
+# first_key: a
+# parent_parent_key: a.b
+# parent_parent_path: [a,b]
+# 2) a
+# key: a
+# path: [a]
+# parent_key: None
+# parent_path: []
+# last_key: a
+# first_key: a
+
+
+def isnamedtupleinstance(x) -> bool:
 	t = type(x)
 	# b = t.__bases__
 	# if len(b) != 1 or b[0] != tuple: return False
+	f = getattr(t, '_fields', None)
+	if not isinstance(f, tuple): return False
+	return all(type(n) == str for n in f)
+
+
+def isnamedtupletype(t) -> bool:
 	f = getattr(t, '_fields', None)
 	if not isinstance(f, tuple): return False
 	return all(type(n) == str for n in f)
@@ -81,10 +108,15 @@ def deep_get(obj: Deepable, key: str) -> Any:
 
 def deep_set(obj: Deepable, key: str, value: Any) -> None:
 	*leading_keys, last_key = key.split('.')
-	child_obj = deep_get(obj, '.'.join(leading_keys)) if leading_keys else obj
-	if isinstance(child_obj, dict):
+	child_obj_path = '.'.join(leading_keys)
+	child_obj = deep_get(obj, child_obj_path) if leading_keys else obj
+	if is_immutable(child_obj):
+		child_obj_copy = deep_replace(child_obj, last_key, value)
+		deep_set(obj, child_obj_path, child_obj_copy)
+	elif isinstance(child_obj, dict):
 		dict_type = type(child_obj)
 		dict_type.__setitem__(child_obj, last_key, value)
+	# 	TODO tuple is deepable but not settable, raise exceptions
 	elif isinstance(child_obj, (list, tuple)):
 		try:
 			child_obj.__setitem__(int(last_key), value)
@@ -93,8 +125,6 @@ def deep_set(obj: Deepable, key: str, value: Any) -> None:
 	# child_obj[int(last_key)] = value
 	else:
 		setattr(child_obj, last_key, value)
-
-
 
 
 def deep_del(obj: Deepable, key: str) -> None:
@@ -126,6 +156,19 @@ def deep_keys(obj: Deepable) -> list:
 		return list(obj._fields)
 	else:
 		raise ValueError(f'object {obj} is not Deepable')
+
+
+def deep_type_init_keys(obj: type) -> list:
+	if attr.has(obj):
+		return [f.name for f in attr.fields(obj) if f.init]
+	elif issubclass(obj, BaseModel):
+		return obj.__fields__
+	elif is_dataclass(obj):
+		return [f.name for f in fields(obj) if f.init]
+	elif isnamedtupletype(obj):
+		return obj._fields
+	else:
+		raise ValueError(f'deep_type_keys for {obj} is not implemented')
 
 
 def deep_contains(obj: Deepable, key: str) -> bool:
@@ -208,20 +251,38 @@ def deep_keys_deep(obj: Deepable) -> list:
 def deep_items(obj: Deepable) -> list:
 	return [(key, deep_get(obj, key)) for key in deep_keys(obj)]
 
-def deep_to_dict(obj: Deepable) -> dict:
-	if isinstance(obj, dict):
-		return obj
-	elif is_dataclass(obj):
-		return asdict(obj)
-	elif attr.has(type(obj)):
-		return attr.asdict(obj)
-	elif isinstance(obj, BaseModel):
-		return obj.dict()
-	elif isnamedtupleinstance(obj):
-		return obj._asdict()
-	else:
-		raise ValueError(f"Cant convert object {obj} to dict")
 
+def deep_replace(obj: Deepable, key: str, value: Any) -> Deepable:
+	first_child_path = key.split('.', 1)[:1]
+	first_child_key = ".".join(first_child_path)
+	remaining_path = key.split('.', 1)[1:]
+	remaining_key = ".".join(remaining_path)
+	# print(obj, key, value, first_child_path)
+	first_child_obj = deep_get(obj, first_child_key)
+	first_child_obj_copy = deep_replace(first_child_obj, remaining_key, value) if remaining_key else value
+	if is_immutable(obj):
+		# if parent_obj == obj:
+		# 	raise ValueError(f"Cant replace key because of immutability")
+		if isnamedtupleinstance(obj):
+			obj_copy = obj._replace(first_child_key=first_child_obj_copy)
+			return obj_copy
+		elif isinstance(obj, tuple):
+			obj_list = list(obj)
+			obj_list[int(first_child_key)] = first_child_obj_copy
+			obj_copy = tuple(obj_list)
+			return obj_copy
+		elif is_dataclass(obj):
+			obj_type = type(obj)
+			obj_dict = asdict(obj)
+			obj_dict[first_child_key] = first_child_obj_copy
+			obj_copy = obj_type(**obj_dict)
+			return obj_copy
+		else:
+			raise ValueError(f"Cant replace key because of immutability. Not implemented")
+	else:
+		obj_copy = copy.deepcopy(obj)
+		deep_set(obj_copy, first_child_key, first_child_obj_copy)
+		return obj_copy
 
 
 def toplevel_key(key: str) -> str:

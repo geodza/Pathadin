@@ -73,6 +73,8 @@ class AnnotationTreeItems(BaseModel):
 
 
 if __name__ == '__main__':
+	t = ("1", 2)
+	d = dict([t])
 	m = AnnotationModel(geometry=AnnotationGeometry(annotation_type=AnnotationType.RECT, origin_point=(0, 0),
 													points=[(0, 0), (10, 10)]), id="1")
 	d = m.dict()

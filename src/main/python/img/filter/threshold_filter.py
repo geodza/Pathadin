@@ -32,3 +32,10 @@ class ThresholdFilterData_(ThresholdFilterData):
 @dataclass
 class ThresholdFilterResults(FilterResults2):
     histogram_html: str
+
+
+
+# if __name__ == '__main__':
+#     t=ThresholdType(ThresholdType.MANUAL)
+#     t1=ThresholdType(1)
+#     print(t, t1, t.name)

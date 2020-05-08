@@ -3,7 +3,7 @@ from typing import Collection, TypeVar, Type, Dict
 
 from dataclasses import fields, is_dataclass
 
-from deepable.core import deep_keys, is_deepable, deep_get
+from deepable.core import is_deepable, deep_keys, deep_get
 
 K = TypeVar('K')
 V = TypeVar('V')
@@ -27,28 +27,6 @@ def narrow_dict_to_data_dict(dict_: Dict[K, V], data_type: Type[T]) -> Dict[K, V
 	return data_dict
 
 
-def asodict(data) -> OrderedDict:
-	data_dict = OrderedDict()
-	for f in fields(data):
-		v = getattr(data, f.name)
-		if is_dataclass(f.type):
-			v = asodict(v)
-		data_dict[f.name] = v
-	return data_dict
-
-
-def asodict2(data) -> OrderedDict:
-	if is_deepable(data):
-		data_dict = OrderedDict()
-		for k in deep_keys(data):
-			v = deep_get(data, k)
-			vd = asodict2(v)
-			data_dict[k] = vd
-		return data_dict
-	else:
-		return data
-
-
 def dict_to_data_ignore_extra(dict_: Dict[K, V], data_type: Type[T]) -> T:
 	# data_dict = narrow_dict_to_data_dict(dict_, data_type)
 	# data_type_val = data_type(**data_dict)
@@ -66,3 +44,15 @@ def dict_to_data_ignore_extra(dict_: Dict[K, V], data_type: Type[T]) -> T:
 
 def remove_none_values(dict_: Dict[K, V]) -> Dict[K, V]:
 	return {k: v for k, v in dict_.items() if v is not None}
+
+
+def asodict2(data) -> OrderedDict:
+	if is_deepable(data):
+		data_dict = OrderedDict()
+		for k in deep_keys(data):
+			v = deep_get(data, k)
+			vd = asodict2(v)
+			data_dict[k] = vd
+		return data_dict
+	else:
+		return data

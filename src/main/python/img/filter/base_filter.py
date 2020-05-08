@@ -37,3 +37,6 @@ class FilterResults2:
 # @dataclass()
 # class NucleiFilterResults(FilterResults):
 #     n_nuclei: int
+
+# if __name__ == '__main__':
+#     fd=FilterData()

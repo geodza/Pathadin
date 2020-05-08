@@ -72,19 +72,19 @@ template_odicts = [
     })),
 ]
 
-if __name__ == "__main__":
-    install_qt_message_handler()
-    app = QApplication(sys.argv)
-    window = QMainWindow()
-    widget = TemplatedDeepableTreeWidget(window)
-    # widget.templates_view.setModel(
-    #     ODictsTreeModel(template_odicts, [], ODictsTreeModelSelectMode.odict_rows, "default"))
-    instances_model = DeepableTreeModel(headers=("Items", ""))
-    instances_model.set_root(odict1)
-    widget.instances_view.setModel(instances_model)
-
-    window.setCentralWidget(widget)
-
-    window.show()
-    window.resize(QSize(700, 700))
-    sys.exit(app.exec_())
+# if __name__ == "__main__":
+#     install_qt_message_handler()
+#     app = QApplication(sys.argv)
+#     window = QMainWindow()
+#     widget = TemplatedDeepableTreeWidget(window)
+#     # widget.templates_view.setModel(
+#     #     ODictsTreeModel(template_odicts, [], ODictsTreeModelSelectMode.odict_rows, "default"))
+#     instances_model = DeepableTreeModel(headers=("Items", ""))
+#     instances_model.set_root(odict1)
+#     widget.instances_view.setModel(instances_model)
+#
+#     window.setCentralWidget(widget)
+#
+#     window.show()
+#     window.resize(QSize(700, 700))
+#     sys.exit(app.exec_())

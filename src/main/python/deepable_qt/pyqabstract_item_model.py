@@ -19,7 +19,7 @@ class PyQAbstractItemModel(QAbstractItemModel):
 	# 	key-value nature (2 columns) (with possible nesting)
 	# 	get, set, delete through dict-like interface methods
 	# 	operates on root only through deepable functions
-	#   transforms rows signals to keys signals
+	#   emits keys signals
 
 	parent_: InitVar[typing.Optional[QObject]] = None
 
@@ -68,15 +68,19 @@ class PyQAbstractItemModel(QAbstractItemModel):
 		self.root = root
 
 	def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> typing.Any:
+		# role can be EditRole - it will be setted to itemProperty of editor (after createEditor call)
 		if index.column() == 0:
 			key = self.key(index).split('.')[-1]
 			return self.data_plain_value(key, role)
 		elif index.column() == 1:
 			obj = self.value(index)
-			if is_deepable(obj):
-				return QVariant()
+			if role == Qt.EditRole:
+				return obj
 			else:
-				return self.data_plain_value(obj, role)
+				if is_deepable(obj):
+					return QVariant()
+				else:
+					return self.data_plain_value(obj, role)
 
 	def data_plain_value(self, value: object, role: int = Qt.DisplayRole):
 		if role == Qt.DisplayRole:

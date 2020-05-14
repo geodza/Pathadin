@@ -5,10 +5,10 @@ from PyQt5.QtGui import QVector2D
 from PyQt5.QtWidgets import QGraphicsSceneMouseEvent
 from dataclasses import dataclass, field
 
-from common_qt.debounce_signal import debounce_two_arg_slot_wrap
-from common_qt.key_press_util import KeyPressEventUtil
-from common_qt.qobjects_convert_util import qpoint_to_ituple, ituple_to_qpoint
-from common_qt.slot_disconnected_utils import slot_disconnected
+from common_qt.util.debounce_signal import debounce_two_arg_slot_wrap
+from common_qt.util.key_press_util import KeyPressEventUtil
+from common_qt.util.qobjects_convert_util import qpoint_to_ituple, ituple_to_qpoint
+from common_qt.util.slot_disconnected_utils import slot_disconnected
 from slide_viewer.ui.common.annotation_type import AnnotationType
 from slide_viewer.ui.common.model import TreeViewConfig, AnnotationModel, AnnotationGeometry
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene

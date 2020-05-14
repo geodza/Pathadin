@@ -1,20 +1,15 @@
 import json
 import typing
-from enum import Enum
 
 from PyQt5.QtCore import Qt, QPoint, QModelIndex
 from PyQt5.QtWidgets import QWidget, QMenu
 
-from common_qt.my_action import MyAction
-from deepable.core import deep_supports_key_add, is_immutable, is_deepable, deep_contains, deep_local_key, \
-	deep_local_path
+from deepable.core import deep_supports_key_add, is_immutable, deep_local_key
 from deepable.convert import DeepableJSONEncoder
 from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
 from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
-from img.filter.manual_threshold import GrayManualThresholdFilterData
 from slide_viewer.ui.common.model import AnnotationModel
-from slide_viewer.ui.slide.widget.filter.filter_tree_view_delegate import FilterTreeViewDelegate
 
 
 def create_annotations_tree_view(parent_: typing.Optional[QWidget], model: TreeViewConfigDeepableTreeModel) -> DeepableTreeView:

@@ -4,7 +4,7 @@ import openslide
 from PIL import Image
 from PyQt5.QtGui import QPolygon
 
-from common_qt.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
+from common_qt.util.qobjects_convert_util import ituple_to_qpoint, qpoint_to_ituple
 from slide_viewer.cache_config import gcached
 from slide_viewer.ui.common.annotation_type import AnnotationType
 

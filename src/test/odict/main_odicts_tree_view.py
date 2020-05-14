@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
-from common_qt.message_handler import install_qt_message_handler
+from common_qt.util.message_handler import install_qt_message_handler
 from common_qt.persistent_settings.settings_utils import read_settings, write_settings
 from common_qt.persistent_settings.user_custom_color import get_user_custom_color_names, \
     set_user_custom_colors

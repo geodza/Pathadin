@@ -4,8 +4,8 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QActionGroup
 from dataclasses import InitVar, dataclass
 
-from common_qt.my_action import MyAction
-from common_qt.disableable_action import subscribe_disableable
+from common_qt.action.my_action import MyAction
+from common_qt.action.disableable_action import subscribe_disableable
 from slide_viewer.ui.slide.callback.sub_window.on_sync_sub_windows import on_sync_option
 from slide_viewer.ui.slide.widget.icons import IconName
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider

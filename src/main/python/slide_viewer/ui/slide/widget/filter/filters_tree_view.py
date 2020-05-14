@@ -2,7 +2,7 @@ import typing
 from PyQt5.QtCore import Qt, QPoint, QModelIndex
 from PyQt5.QtWidgets import QWidget, QMenu
 
-from common_qt.my_action import MyAction
+from common_qt.action.my_action import MyAction
 from deepable.core import deep_supports_key_add
 from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
 from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel

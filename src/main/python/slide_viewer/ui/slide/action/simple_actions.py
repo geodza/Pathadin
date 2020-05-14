@@ -4,8 +4,8 @@ from typing import Dict
 from PyQt5.QtCore import QObject
 from dataclasses import dataclass, InitVar
 
-from common_qt.my_action import MyAction
-from common_qt.disableable_action import subscribe_disableable
+from common_qt.action.my_action import MyAction
+from common_qt.action.disableable_action import subscribe_disableable
 from slide_viewer.ui.slide.callback.on_copy_screenshot import on_copy_screenshot
 from slide_viewer.ui.slide.callback.on_export_annotations import on_export_annotations
 from slide_viewer.ui.slide.callback.on_fit import on_fit

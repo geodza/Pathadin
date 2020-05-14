@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QVBoxLay
 from skimage import io
 
 from common_image.core.mode_convert import convert_ndarray
-from common_qt.message_handler import qt_message_handler
+from common_qt.util.message_handler import qt_message_handler
 from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
 
 QtCore.qInstallMessageHandler(qt_message_handler)

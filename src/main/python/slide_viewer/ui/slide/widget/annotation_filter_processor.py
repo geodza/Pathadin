@@ -31,7 +31,7 @@ from common_image.core.threshold import ndimg_to_thresholded_ndimg
 from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg, ndimg_to_bitmap
 from common_qt.abcq_meta import ABCQMeta
-from common_qt.qobjects_convert_util import ituple_to_qpoint
+from common_qt.util.qobjects_convert_util import ituple_to_qpoint
 from common_shapely.shapely_utils import get_polygon_bbox_size, scale_at_origin, locate, get_polygon_bbox_pos
 from img.filter.base_filter import FilterData, FilterResults2
 from img.filter.keras_model import KerasModelFilterResults, KerasModelFilterData, KerasModelParams

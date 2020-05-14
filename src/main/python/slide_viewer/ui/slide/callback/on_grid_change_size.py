@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QMargins
 from PyQt5.QtWidgets import QDialog, QSpinBox, QHBoxLayout, QFormLayout, QVBoxLayout, QDialogButtonBox, QRadioButton, QButtonGroup, QWidget, QLabel
 
-from common_qt.slot_disconnected_utils import slot_disconnected
+from common_qt.util.slot_disconnected_utils import slot_disconnected
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 

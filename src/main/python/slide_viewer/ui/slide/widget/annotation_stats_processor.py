@@ -3,7 +3,7 @@ from typing import Callable
 from PyQt5.QtCore import QObject
 from dataclasses import dataclass
 
-from common_qt.qobjects_convert_util import ituples_to_qpoints
+from common_qt.util.qobjects_convert_util import ituples_to_qpoints
 from slide_viewer.ui.common.metrics import calc_length, calc_geometry_area
 from slide_viewer.ui.common.model import AnnotationModel, AnnotationStats
 

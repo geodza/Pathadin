@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QFileInfo, QFile
 
-from common_qt.select_json_file_action import SelectJsonFileAction
+from common_qt.action.select_json_file_action import SelectJsonFileAction
 from slide_viewer.ui.common.model import AnnotationTreeItems
 from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
 

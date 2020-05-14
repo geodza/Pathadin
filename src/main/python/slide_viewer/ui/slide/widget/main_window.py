@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QItemEditorFactory, \
 
 from common_qt.abcq_meta import ABCQMeta
 from common_qt.editor.custom_item_editor_factory import CustomItemEditorFactory
-from common_qt.mdi_subwindow_sync_utils import sync_about_to_activate, sync_close
+from common_qt.util.mdi_subwindow_sync_utils import sync_about_to_activate, sync_close
 from common_qt.persistent_settings.settings_utils import write_settings, read_settings
-from common_qt.slot_disconnected_utils import slot_disconnected
+from common_qt.util.slot_disconnected_utils import slot_disconnected
 from deepable.core import toplevel_keys
 from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
@@ -26,15 +26,13 @@ from img.filter.positive_pixel_count import PositivePixelCountFilterData
 from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
 from slide_viewer.config import initial_main_window_size, model_path
 from slide_viewer.ui.slide.widget.annotation.annotations_tree_view import create_annotations_tree_view
-from slide_viewer.ui.slide.widget.filter.filter_tree_view_delegate import FilterTreeViewDelegate
 from slide_viewer.ui.common.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 import GraphicsViewAnnotationService2
 from slide_viewer.ui.slide.widget.annotation_filter_processor import AnnotationFilterProcessor
 from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
 from slide_viewer.ui.slide.widget.deepable_annotation_service import DeepableAnnotationService
-from slide_viewer.ui.slide.widget.filter.filters_tree_view import create_filters_tree_view, \
-	create_filters_tree_view_context_menu
+from slide_viewer.ui.slide.widget.filter.filters_tree_view import create_filters_tree_view
 from slide_viewer.ui.slide.widget.graphics_view_mdi_sub_window import GraphicsViewMdiSubWindow
 from slide_viewer.ui.slide.widget.interface.active_annotation_tree_view_provider import ActiveAnnotationTreeViewProvider
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider

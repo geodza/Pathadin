@@ -1,11 +1,10 @@
 import sys
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from dataclasses import asdict
 
-from common_qt.message_handler import qt_message_handler
+from common_qt.util.message_handler import qt_message_handler
 
 from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView

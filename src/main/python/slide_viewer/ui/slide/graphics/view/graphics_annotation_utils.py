@@ -1,7 +1,6 @@
 from PyQt5.QtGui import QColor
 
-from common_qt.qobjects_convert_util import ituples_to_qpoints, ituple_to_qpoint
-from deepable.core import deep_get, deep_contains
+from common_qt.util.qobjects_convert_util import ituples_to_qpoints, ituple_to_qpoint
 from slide_viewer.ui.common.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_figure_graphics_item import AnnotationFigureGraphicsModel
 from slide_viewer.ui.slide.graphics.item.annotation.annotation_graphics_item import AnnotationGraphicsModel

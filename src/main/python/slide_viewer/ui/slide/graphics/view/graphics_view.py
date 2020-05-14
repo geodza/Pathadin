@@ -10,8 +10,8 @@ from common_qt.abcq_meta import ABCQMeta
 from common_qt.graphics.graphics_item_debug_rect import GraphicsItemDebugRect
 from common_qt.graphics.graphics_view_debug_rect import \
     GraphicsViewDebugRect
-from common_qt.grid_graphics_item import GridGraphicsItem
-from common_qt.mime_utils import mime_data_is_url
+from common_qt.graphics.grid_graphics_item import GridGraphicsItem
+from common_qt.util.mime_utils import mime_data_is_url
 from slide_viewer.common.slide_helper import SlideHelper
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text

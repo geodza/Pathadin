@@ -4,7 +4,7 @@ import sys
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDockWidget, QLabel
 
-from common_qt.message_handler import install_qt_message_handler
+from common_qt.util.message_handler import install_qt_message_handler
 from deepable_qt.context_menu_factory2 import context_menu_factory2
 from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView

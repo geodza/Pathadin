@@ -3,7 +3,7 @@ from datetime import datetime
 from PyQt5.QtCore import QFileInfo, QFile
 
 from common_qt.graphics.screenshot_builders import build_screenshot_image_from_view
-from common_qt.select_image_file_action import SelectImageFileAction
+from common_qt.action.select_image_file_action import SelectImageFileAction
 from slide_viewer.common.img_formats import saveable_image_mime_types
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 

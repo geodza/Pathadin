@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QToolBar, QWidget
 from dataclasses import dataclass, InitVar
 
-from common_qt.separator_action import SeparatorAction
+from common_qt.action.separator_action import SeparatorAction
 from slide_viewer.ui.slide.action.annotation_action_group import AnnotationActionGroup
 from slide_viewer.ui.slide.action.simple_actions import SimpleActions, ActionType
 from slide_viewer.ui.slide.action.zoom_action_group import ZoomActionGroup

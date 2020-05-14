@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QMdiArea, QMdiSubWindow
 
-from common_qt.message_handler import install_qt_message_handler
+from common_qt.util.message_handler import install_qt_message_handler
 
 if __name__ == "__main__":
     install_qt_message_handler()

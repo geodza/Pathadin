@@ -4,7 +4,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QDialogButtonBox
 
-from common_qt.text_dialog import TextDialog
+from common_qt.dialog.text_dialog import TextDialog
 
 
 class EditTextDialog(TextDialog):

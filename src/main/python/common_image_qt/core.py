@@ -7,7 +7,7 @@ from PyQt5.QtCore import QBuffer
 from PyQt5.QtGui import QImage, QBitmap, QPixmap
 
 from common_image.model.ndimg import Ndimg
-from common_qt.qobjects_convert_util import ituple_to_qsize
+from common_qt.util.qobjects_convert_util import ituple_to_qsize
 
 
 def ndimg_to_qimg(img: Ndimg) -> QImage:

@@ -1,7 +1,7 @@
 import json
 from collections import OrderedDict
 
-from common_qt.text_dialog import TextDialog
+from common_qt.dialog.text_dialog import TextDialog
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 

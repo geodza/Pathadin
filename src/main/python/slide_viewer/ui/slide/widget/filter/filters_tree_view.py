@@ -5,13 +5,13 @@ from PyQt5.QtWidgets import QWidget, QMenu
 from common_qt.my_action import MyAction
 from deepable.core import deep_supports_key_add
 from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
 from img.filter.manual_threshold import GrayManualThresholdFilterData
 from slide_viewer.ui.slide.widget.filter.filter_tree_view_delegate import FilterTreeViewDelegate
 
 
-def create_filters_tree_view(parent_: typing.Optional[QWidget], model: DeepableTreeModel) -> DeepableTreeView:
+def create_filters_tree_view(parent_: typing.Optional[QWidget], model: TreeViewConfigDeepableTreeModel) -> DeepableTreeView:
 	filters_tree_view = DeepableTreeView(parent_, model_=model)
 	filters_tree_view.setContextMenuPolicy(Qt.CustomContextMenu)
 	filters_tree_view.customContextMenuRequested.connect(create_filters_tree_view_context_menu(filters_tree_view))

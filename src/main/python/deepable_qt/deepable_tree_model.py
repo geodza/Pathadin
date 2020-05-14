@@ -1,54 +1,364 @@
-import re
-from typing import Tuple, Optional, Any
+import collections
+import copy
+import typing
+from typing import Iterator
 
-from PyQt5.QtCore import Qt, QObject, QModelIndex, QVariant
-from PyQt5.QtGui import QColor
-from dataclasses import dataclass
+from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal, Qt, QVariant
+from dataclasses import dataclass, InitVar, FrozenInstanceError
 
-from deepable.core import deep_keys, deep_get, Deepable, is_deepable, deep_contains
-from deepable.convert import deep_to_dict
-from deepable_qt.pyqabstract_item_model import PyQAbstractItemModel
-from slide_viewer.ui.common.model import TreeViewConfig
+from deepable.convert import type_for_key
+from deepable.core import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable, deep_diff_ignore_order, \
+	deep_key_index, deep_contains, deep_iter, deep_len, is_immutable, deep_new_key_index, DeepDiffChanges, \
+	deep_index_key, deep_replace, deep_copy, deep_supports_key_replace, deep_replace_key, deep_supports_key_delete, \
+	deep_supports_key_add
 
 
 @dataclass
-class DeepableTreeModel(PyQAbstractItemModel):
-	read_only_attr_pattern: str = None
+class DeepableTreeModel(QAbstractItemModel):
+	# Model for Deepable interface (Deepable interface is expressed through a set of deep_* functions).
+	# Main principles:
+	#   has Deepable root
+	# 	key-value nature (2 columns) (with possible nesting)
+	# 	get, set, delete through dict-like interface methods
+	# 	operates on root only through deepable functions
+	#   emits keys signals
 
-	def __post_init__(self, parent_: Optional[QObject]):
-		super().__post_init__(parent_)
+	parent_: InitVar[typing.Optional[QObject]] = None
 
-	def is_index_readonly(self, index: QModelIndex) -> bool:
-		is_readonly=any([])
+	_root: Deepable = None
+
+	keysChanged = pyqtSignal(list)
+	keysRemoved = pyqtSignal(list)
+	keysInserted = pyqtSignal(list)
+
+	def __post_init__(self, parent_: typing.Optional[QObject]):
+		super().__init__(parent_)
+		# https://www.riverbankcomputing.com/pipermail/pyqt/2007-April/015842.html
+		# Qt requires method "parent(self, index: QModelIndex) -> QModelIndex"
+		# To find out parent of index, we need to store info about parent in index.
+		# "internalPointer" is the place were we can store info about parent.
+		# The problems with "internalPointer" are:
+		# 1) we cant store integer because it would be interpreted as address and program will crash
+		# 2) we can store object in it, but we need to keep reference to this object because qt will not
+		self.pyqt_bug_weak_ref_dict = {}
+
+	@property
+	def root(self) -> Deepable:
+		return self._root
+
+	@root.setter
+	def root(self, root: Deepable) -> None:
+		self.beginResetModel()
+		self._root = root
+		self.endResetModel()
+
+	def get_root(self) -> Deepable:
+		return self.root
+
+	def set_root(self, root: Deepable) -> None:
+		self.root = root
+
+	def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> typing.Any:
+		# role can be EditRole - it will be setted to itemProperty of editor (after createEditor call)
+		if index.column() == 0:
+			key = self.key(index).split('.')[-1]
+			return self.__data_plain_value(key, role)
+		elif index.column() == 1:
+			obj = self.value(index)
+			if role == Qt.EditRole:
+				return obj
+			else:
+				if is_deepable(obj):
+					return QVariant()
+				else:
+					return self.__data_plain_value(obj, role)
+
+	def __data_plain_value(self, value: object, role: int = Qt.DisplayRole):
+		if role == Qt.DisplayRole:
+			return str(value)
+		elif role == Qt.EditRole:
+			return value
+		return QVariant()
+
+	def setData(self, index: QModelIndex, value: typing.Any, role: int = Qt.DisplayRole) -> bool:
+		if index.column() == 1:
+			self[self.key(index)] = value
+			return True
+		else:
+			old_key, key_value = self.key(index), self.value(index)
+			new_last_key = value
+			parent_key, parent_value = self.key(index.parent()), self.value(index.parent())
+			new_key = parent_key + "." + new_last_key
+			del self[old_key]
+			self[new_key] = key_value
+			return True
+
+	def index(self, row: int, column: int, parent: QModelIndex = QModelIndex()) -> QModelIndex:
+		if parent.isValid():
+			parent_path, p = parent.internalPointer()
+			parent_object = deep_get(self.get_root(), parent_path)
+			index_path = parent_path + '.' + deep_index_key(parent_object, row)
+		else:
+			index_path = deep_index_key(self.get_root(), row)
+		self.pyqt_bug_weak_ref_dict.setdefault(index_path, [index_path, parent])
+		index_path_list = self.pyqt_bug_weak_ref_dict[index_path]
+		# print(f'{row}, {column} {index_path_list}')
+		# we have to store info about position to be able to restore
+		# it in parent() method (qt model-view requirement)
+		return self.createIndex(row, column, index_path_list)
+
+	def parent(self, index: QModelIndex) -> QModelIndex:
+		# print(index.row(), index.column(), index.internalPointer())
+		index_path, p = index.internalPointer()
+		keys = index_path.split('.')
+		if len(keys) == 1:
+			return QModelIndex()
+		else:
+			return p
+
+	def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+		flags = super().flags(index)
+		flags |= Qt.ItemIsEditable
+		if self._is_index_readonly(index):
+			flags &= ~ Qt.ItemIsEditable
+		return flags
+
+	def _is_index_readonly(self, index: QModelIndex) -> bool:
+		# It is not a model-api method, it is a private helper method for flags method.
+		# It represents index editability only in context of flags method.
+		# If you override flags method and do not use __is_index_readonly in it
+		# then __is_index_readonly will reflect nothing (will be useless).
 		is_readonly = False
-		is_readonly |= index.column() == 0
-		is_readonly |= bool(
-			re.match(self.read_only_attr_pattern, self.key(index))) if self.read_only_attr_pattern else False
+		if index.column() == 0:
+			parent_value = self.value(index.parent())
+			if not (deep_supports_key_delete(parent_value) and deep_supports_key_add(parent_value)):
+				return True
+		elif index.column() == 1:
+			value = self.value(index)
+			if value is not None and not isinstance(value, (str, int, float, bool)):
+				return True
+			elif value is None:
+				parent_value = self.value(index.parent())
+				key = self.key(index).split(".")[-1]
+				key_type = type_for_key(type(parent_value), key)
+				print(f"{key} of type {key_type}")
+				if not issubclass(key_type, (str, int, float, bool)):
+					print(f"{key} of type {key_type} is read_only")
+					return True
+
 		return is_readonly
 
-	def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Any:
-		if index.column() == 0:
-			key, value = self.key(index), self.value(index)
-			if self.has_tree_view_config(key):
-				tree_view_config = deep_get(value, TreeViewConfig.snake_case_name)
-				if role == Qt.DisplayRole:
-					return self.display_data(key, tree_view_config)
-				elif role == Qt.DecorationRole:
-					return self.decoration_data(key, tree_view_config)
-		return super().data(index, role)
+	def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
+		return 2
 
-	def has_tree_view_config(self, key: str) -> bool:
-		obj = deep_get(self.root, key)
-		return is_deepable(obj) and TreeViewConfig.snake_case_name in deep_keys(obj) and deep_get(obj,
-																								  TreeViewConfig.snake_case_name)
+	def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
+		if not parent.isValid():
+			return deep_len(self.get_root())
+		elif parent.column() == 1:
+			return 0
+		elif parent.column() == 0:
+			val = self.value(parent)
+			if is_deepable(val):
+				return deep_len(val)
+			else:
+				return 0
 
-	def display_data(self, key: str, view_config: TreeViewConfig) -> Any:
-		obj = deep_get(self.root, key)
-		return view_config.display_pattern.format_map(deep_to_dict(obj))
+	def key(self, index: QModelIndex) -> str:
+		if index.isValid():
+			key_ = index.internalPointer()[0]
+			return key_
+		else:
+			raise ValueError("Invalid index")
 
-	def decoration_data(self, key: str, view_config: TreeViewConfig) -> Any:
-		attr_key = view_config.decoration_attr
-		if attr_key:
-			color_str = deep_get(self.root, key + '.' + attr_key)
-			return QColor(color_str)
-		return QVariant()
+	def indexes_to_keys(self, indexes: typing.Iterable[QModelIndex]) -> typing.List[str]:
+		return list(map(self.key, indexes))
+
+	def value(self, index: QModelIndex) -> typing.Any:
+		if index.isValid():
+			key_ = index.internalPointer()[0]
+			value_ = deep_get(self.get_root(), key_)
+			return value_
+		else:
+			return self.get_root()
+
+	def parent_value(self, index: QModelIndex) -> typing.Any:
+		return self.value(index.parent())
+
+	def key_to_row(self, key: str) -> int:
+		return deep_key_index(self.get_root(), key)
+
+	def key_to_parent_index(self, key: str) -> QModelIndex:
+		*leading_path, last_key = key.split('.')
+		return self.key_to_index('.'.join(leading_path), 0) if leading_path else QModelIndex()
+
+	# path = key.split('.')
+	# parent_obj = self.get_root()
+	# parent = QModelIndex()
+	# for key_ in path[:-1]:
+	# 	row = deep_key_index(parent_obj, key_)
+	# 	parent = self.index(row, 0, parent)
+	# 	parent_obj = deep_get(parent_obj, key_)
+	# return parent
+
+	def key_to_parent_value(self, key: str) -> typing.Any:
+		return self.value(self.key_to_parent_index(key))
+
+	def key_to_index(self, key: str, column: int = 0) -> QModelIndex:
+		row = self.key_to_row(key)
+		parent = self.key_to_parent_index(key)
+		if parent.isValid():
+			return parent.child(row, column)
+		else:
+			return self.index(row, column, QModelIndex())
+
+	def __getitem__(self, key: str) -> typing.Any:
+		return deep_get(self.get_root(), key)
+
+	def __len__(self) -> int:
+		return deep_len(self.get_root())
+
+	def __iter__(self) -> Iterator:
+		return deep_iter(self.get_root())
+
+	def __contains__(self, key: str):
+		return deep_contains(self.get_root(), key)
+
+	def __delitem__(self, key: str) -> None:
+		row = self.key_to_row(key)
+		parent_index = self.key_to_parent_index(key)
+		self.beginRemoveRows(parent_index, row, row)
+		deep_del(self.get_root(), key)
+		self.endRemoveRows()
+		self.keysRemoved.emit([key])
+
+	def __setitem__(self, key: str, value: typing.Any) -> None:
+		# print(f"__setitem__({key}, {value})")
+		try:
+			old_value = deep_get(self.get_root(), key)
+		except (KeyError, AttributeError, IndexError):
+			self.__insert_new_key(key, value)
+		else:
+			if is_deepable(old_value) or is_deepable(value):
+				self.__edit_deepable(key, old_value, value)
+			else:
+				self.__edit_not_deepable(key, value)
+
+	def __insert_new_key(self, key: str, value: typing.Any) -> None:
+		parent_index = self.key_to_parent_index(key)
+		new_row = deep_new_key_index(self.get_root(), key)
+		self.beginInsertRows(parent_index, new_row, new_row)
+		deep_set(self.get_root(), key, value)
+		self.endInsertRows()
+		self.keysInserted.emit([key])
+
+	def __edit_not_deepable(self, key: str, value: typing.Any):
+		row = self.key_to_row(key)
+		parent_index = self.key_to_parent_index(key)
+		deep_set(self.get_root(), key, value)
+		self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
+		self.keysChanged.emit([key])
+
+	def __edit_deepable(self, key: str, old_value: Deepable, value: Deepable):
+		if old_value is None and value is None:
+			return
+		elif old_value is None:
+			self.__replace_none_by_deepable(key, value)
+		elif value is None:
+			self.__replace_deepable_by_none(key)
+		elif self.__can_be_edited_by_parts(old_value, value):
+			self.__edit_by_parts(key, old_value, value)
+		else:
+			df = deep_diff_ignore_order(old_value, value)
+			# print(f"key: {key}, df: {df} old_value: {old_value} value: {value}")
+			if self.__can_be_edited_without_insert_remove_signals(df):
+				self.__edit_without_insert_remove_signals(key, value, df)
+			else:
+				# We need signals about what indexes need to be removed and what indexes need to be inserted (for nested objects).
+				# But we cant update immutable object.
+				self.__edit_by_reset(key, value)
+
+	def __replace_none_by_deepable(self, key: str, value: typing.Any):
+		key_index = self.key_to_index(key, 0)
+		nrows = deep_len(value)
+		self.beginInsertRows(key_index, 0, nrows - 1)
+		deep_set(self.root, key, value)
+		self.endInsertRows()
+		self.keysChanged.emit([key])
+
+	def __replace_deepable_by_none(self, key: str):
+		key_index = self.key_to_index(key, 0)
+		nrows = self.rowCount(key_index)
+		self.beginRemoveRows(key_index, 0, nrows - 1)
+		deep_set(self.root, key, None)
+		self.endRemoveRows()
+		self.keysChanged.emit([key])
+
+	def __can_be_edited_without_insert_remove_signals(self, df: DeepDiffChanges) -> bool:
+		return not df.added and not df.removed
+
+	def __edit_without_insert_remove_signals(self, key: str, value: Deepable, df: DeepDiffChanges):
+		deep_set(self.get_root(), key, value)
+		# edit by key as one big edit but for indexes it is many dataChanged signals
+		for changed_key, diff_change in df.changed.items():
+			changed_key_root = key + "." + changed_key
+			row = self.key_to_row(changed_key_root)
+			parent_index = self.key_to_parent_index(changed_key_root)
+			self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
+		self.keysChanged.emit([key])
+
+	def __can_be_edited_by_parts(self, old_value: Deepable, value: Deepable) -> bool:
+		return not is_immutable(value) and not is_immutable(old_value) and type(old_value) == type(value)
+
+	def __edit_by_parts(self, key: str, old_value: Deepable, value: Deepable):
+		df = deep_diff_ignore_order(old_value, value)
+		# print(f"edit by parts for key: {key}", df)
+		try:
+			for removed_key in df.removed:
+				removed_key_root = key + "." + removed_key
+				row = self.key_to_row(removed_key_root)
+				parent_index = self.key_to_parent_index(removed_key_root)
+				self.beginRemoveRows(parent_index, row, row)
+				deep_del(self.get_root(), removed_key_root)
+				self.endRemoveRows()
+				self.keysRemoved.emit([removed_key_root])
+			for added_key, added_value in df.added.items():
+				added_key_root = key + "." + added_key
+				parent_index = self.key_to_parent_index(added_key_root)
+				new_row = deep_new_key_index(self.get_root(), added_key_root)
+				self.beginInsertRows(parent_index, new_row, new_row)
+				deep_set(self.get_root(), added_key_root, added_value)
+				self.endInsertRows()
+				self.keysInserted.emit([added_key_root])
+			for changed_key, diff_change in df.changed.items():
+				changed_key_root = key + "." + changed_key
+				row = self.key_to_row(changed_key_root)
+				parent_index = self.key_to_parent_index(changed_key_root)
+				deep_set(self.get_root(), changed_key_root, diff_change.new_value)
+				self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
+				self.keysChanged.emit([changed_key_root])
+		except FrozenInstanceError as e:
+			# TODO
+			raise ValueError(
+				f"Deepable object {old_value} cant be edited. Attempted to modify immutable(frozen) object. deep_diff method must not dig into immutable objects.",
+				e)
+
+	# def __delete_then_add(self, key: str, value: typing.Any) -> None:
+	# 	# TODO bad practice. When delete key from OrderedDict and then add it will be in the end. If deep_del(list,0) and then deep_set(list,0,value) then set is not insert!
+	# 	row = self.key_to_row(key)
+	# 	parent_index = self.key_to_parent_index(key)
+	# 	# if parent_index.isValid():
+	# 	self.beginRemoveRows(parent_index, row, row)
+	# 	deep_del(self.get_root(), key)
+	# 	self.endRemoveRows()
+	# 	row = deep_new_key_index(self.get_root(), key)
+	# 	self.beginInsertRows(parent_index, row, row)
+	# 	deep_set(self.get_root(), key, value)
+	# 	self.endInsertRows()
+	# 	self.keysChanged.emit([key])
+
+	def __edit_by_reset(self, key: str, value: typing.Any) -> None:
+		# print(f"edit by reset for key: {key}", value)
+		self.beginResetModel()
+		deep_set(self.get_root(), key, value)
+		self.endResetModel()
+		self.keysChanged.emit([key])

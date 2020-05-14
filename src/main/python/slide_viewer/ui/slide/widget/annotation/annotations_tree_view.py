@@ -10,14 +10,14 @@ from deepable.core import deep_supports_key_add, is_immutable, is_deepable, deep
 	deep_local_path
 from deepable.convert import DeepableJSONEncoder
 from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
 from img.filter.manual_threshold import GrayManualThresholdFilterData
 from slide_viewer.ui.common.model import AnnotationModel
 from slide_viewer.ui.slide.widget.filter.filter_tree_view_delegate import FilterTreeViewDelegate
 
 
-def create_annotations_tree_view(parent_: typing.Optional[QWidget], model: DeepableTreeModel) -> DeepableTreeView:
+def create_annotations_tree_view(parent_: typing.Optional[QWidget], model: TreeViewConfigDeepableTreeModel) -> DeepableTreeView:
 	tree_view = DeepableTreeView(parent_, model_=model)
 	tree_view.setContextMenuPolicy(Qt.CustomContextMenu)
 	tree_view.customContextMenuRequested.connect(create_annotations_tree_view_context_menu(tree_view))

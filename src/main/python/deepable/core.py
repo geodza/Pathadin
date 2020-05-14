@@ -227,11 +227,44 @@ def deep_supports_key_add(obj: Deepable) -> bool:
 		return False
 
 
+def deep_supports_key_replace(obj: Deepable) -> bool:
+	# TODO. dict supports key replace, but it means
+	#  diff({"attr1":1, "attr2":2},{"attr2":2, "attr1":1}) = replace ("attr1", 1)->("attr2", 2) and replace ("attr2", 2)->("attr1", 1)
+	#  but now we think diff({"attr1":1, "attr2":2},{"attr2":2, "attr1":1})=None
+	#  We need to index deepable not by keys, but indexes. Need to control order.
+	#  Now instead of key replacement we can delete old key and then add new key.
+	#  For now notion of key replacement is absent.
+	return False
+	# if isinstance(obj, dict):
+	# 	return True
+	# else:
+	# 	return False
+
+
 def deep_supports_key_delete(obj: Deepable) -> bool:
 	if isinstance(obj, dict):
 		return True
 	else:
 		return False
+
+
+def deep_replace_key(obj: Deepable, old_key: str, new_key: str) -> Deepable:
+	if isinstance(obj, dict):
+		value = obj[old_key]
+		old_key_index = list(obj.keys()).index(old_key)
+		print(f"old_key_index {old_key_index}")
+		items = list(obj.items())
+		del items[old_key_index]
+		items.insert(old_key_index, (new_key, value))
+		obj_type = type(obj)
+		# obj_copy = deep_copy(obj)
+		obj_copy = obj_type(items)
+		print(f"obj_copy {obj_copy}")
+		# deep_del(obj_copy, old_key)
+		# deep_set(obj_copy, new_key, value)
+		return obj_copy
+	else:
+		raise ValueError(f"Deepable object of type: {type(obj)} doesnt support deep_replace_key")
 
 
 def deep_keys_deep(obj: Deepable) -> list:
@@ -285,6 +318,10 @@ def deep_replace(obj: Deepable, key: str, value: Any) -> Deepable:
 		return obj_copy
 
 
+def deep_copy(obj: Deepable) -> Deepable:
+	return copy.deepcopy(obj)
+
+
 def toplevel_key(key: str) -> str:
 	return key.split('.')[0]
 
@@ -306,7 +343,7 @@ class DeepDiffChanges:
 	changed: Dict[str, DeepDiffChange]
 
 
-def deep_diff(obj1: Optional[Deepable], obj2: Optional[Deepable]) -> DeepDiffChanges:
+def deep_diff_ignore_order(obj1: Optional[Deepable], obj2: Optional[Deepable]) -> DeepDiffChanges:
 	# if is_immutable(obj1) and is_immutable(obj2) and obj1!=
 	keys1 = set(deep_keys_deep(obj1)) if obj1 else set()
 	keys2 = set(deep_keys_deep(obj2)) if obj2 else set()

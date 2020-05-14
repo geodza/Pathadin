@@ -7,9 +7,9 @@ from dataclasses import asdict
 
 from common_qt.message_handler import qt_message_handler
 
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
-from deepable_qt.pyqabstract_item_model import PyQAbstractItemModel
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 
 if __name__ == "__main__":
 	QtCore.qInstallMessageHandler(qt_message_handler)
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 			"f": 0,
 		}
 	}
-	model = PyQAbstractItemModel()
+	model = DeepableTreeModel()
 	model.root = d1
 	view = DeepableTreeView(window)
 	view.setModel(model)

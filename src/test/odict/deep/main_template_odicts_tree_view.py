@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QDockWidget, QLabel
 
 from common_qt.message_handler import install_qt_message_handler
 from deepable_qt.context_menu_factory2 import context_menu_factory2
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
 from src.test.odict._data import odict1
 
@@ -15,14 +15,14 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = QMainWindow()
 
-    model = DeepableTreeModel()
+    model = TreeViewConfigDeepableTreeModel()
     model.set_root(odict1)
     view = DeepableTreeView(window)
     view.setModel(model)
     view.setContextMenuPolicy(Qt.CustomContextMenu)
     view.customContextMenuRequested.connect(context_menu_factory2(view))
 
-    model2 = DeepableTreeModel()
+    model2 = TreeViewConfigDeepableTreeModel()
     model2.set_root(copy.deepcopy(odict1))
     view2 = DeepableTreeView(window)
     view2.setModel(model2)

@@ -5,7 +5,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 from common_qt.message_handler import install_qt_message_handler
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from slide_viewer.ui.odict.odict import ODict2, ODictModel
 from slide_viewer.ui.odict.deep.templated_deepable_tree_widget import TemplatedDeepableTreeWidget
 from src.test.odict._data import odict1

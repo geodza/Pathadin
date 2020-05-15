@@ -1,13 +1,13 @@
 import typing
 from PyQt5.QtCore import QModelIndex, Qt, QVariant, QAbstractItemModel
 
-from common_qt.mvc.delegate.item_model_delegate import QAbstractItemModelDelegate
+from common_qt.mvc.model.delegate.item_model_delegate import AbstractItemModelDelegate
 from deepable.convert import type_for_key
 from deepable.core import is_deepable, deep_supports_key_delete, deep_supports_key_add
-from deepable_qt.deepable_model_index import DeepableQModelIndex
+from deepable_qt.model.deepable_model_index import DeepableQModelIndex
 
 
-class DeepableTreeModelDelegate(QAbstractItemModelDelegate[DeepableQModelIndex]):
+class DeepableTreeModelDelegate(AbstractItemModelDelegate[DeepableQModelIndex]):
 
 	def flags(self, index: DeepableQModelIndex) -> Qt.ItemFlags:
 		model = index.model()
@@ -74,8 +74,8 @@ class DeepableTreeModelDelegate(QAbstractItemModelDelegate[DeepableQModelIndex])
 		else:
 			old_key, key_value = model.key(index), model.value(index)
 			new_last_key = value
-			parent_key, parent_value = model.key(index.parent()), model.value(index.parent())
-			new_key = parent_key + "." + new_last_key
+			*parent_path, old_last_key = old_key.split(".")
+			new_key = ".".join(parent_path + [new_last_key])
 			del model[old_key]
 			model[new_key] = key_value
 			return True

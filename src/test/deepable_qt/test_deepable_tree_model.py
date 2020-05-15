@@ -1,6 +1,7 @@
 import unittest
 
-from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
+from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.deepable_tree_model_delegate import DeepableTreeModelDelegate
 
 
 class DeepableTreeModelTest(unittest.TestCase):
@@ -22,7 +23,7 @@ class DeepableTreeModelTest(unittest.TestCase):
 				"e": 3
 			}
 		}
-		model = TreeViewConfigDeepableTreeModel()
+		model = DeepableTreeModel(_modelDelegate=DeepableTreeModelDelegate())
 		model.root = d1
 		model["a"] = d2["a"]
 		self.assertEqual(model.root, d2)
@@ -30,7 +31,7 @@ class DeepableTreeModelTest(unittest.TestCase):
 	def test_list_tree_model(self):
 		d1 = [{"a": 10}, {"b": 20}, {"c": 30}]
 		d2 = [{"a": 10}, {"b": 22}, {"d": 40}]
-		model = TreeViewConfigDeepableTreeModel()
+		model = DeepableTreeModel(_modelDelegate=DeepableTreeModelDelegate())
 		model.root = d1
 		model["1"] = d2[1]
 		model["2"] = d2[2]

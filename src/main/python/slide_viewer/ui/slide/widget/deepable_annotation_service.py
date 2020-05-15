@@ -5,7 +5,7 @@ from PyQt5.QtCore import QObject, pyqtBoundSignal, pyqtSignal
 
 from common_qt.abcq_meta import ABCQMeta
 from deepable.core import toplevel_keys
-from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 from img.filter.base_filter import FilterResults2
 from img.filter.keras_model import KerasModelFilterResults
 from img.filter.kmeans_filter import KMeansFilterResults
@@ -51,7 +51,7 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
 	deleted = pyqtSignal(list)
 	selected = pyqtSignal(list)
 
-	def __init__(self, root: TreeViewConfigDeepableTreeModel, stats_processor: Optional[AnnotationStatsProcessor] = None) -> None:
+	def __init__(self, root: DeepableTreeModel, stats_processor: Optional[AnnotationStatsProcessor] = None) -> None:
 		self.root = root
 		self.stats_processor = stats_processor
 		self.annotation_label_template: str = 'annotation_{}'

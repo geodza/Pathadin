@@ -7,12 +7,12 @@ from PyQt5.QtWidgets import QWidget, QMenu
 from deepable.core import deep_supports_key_add, is_immutable, deep_local_key
 from deepable.convert import DeepableJSONEncoder
 from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
-from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
 from slide_viewer.ui.common.model import AnnotationModel
 
 
-def create_annotations_tree_view(parent_: typing.Optional[QWidget], model: TreeViewConfigDeepableTreeModel) -> DeepableTreeView:
+def create_annotations_tree_view(parent_: typing.Optional[QWidget], model: DeepableTreeModel) -> DeepableTreeView:
 	tree_view = DeepableTreeView(parent_, model_=model)
 	tree_view.setContextMenuPolicy(Qt.CustomContextMenu)
 	tree_view.customContextMenuRequested.connect(create_annotations_tree_view_context_menu(tree_view))

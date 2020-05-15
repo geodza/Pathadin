@@ -5,8 +5,8 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 from common_qt.util.message_handler import qt_message_handler
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 
-from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
 
 if __name__ == "__main__":
@@ -22,7 +22,7 @@ if __name__ == "__main__":
 			"f": 0,
 		}
 	}
-	model = TreeViewConfigDeepableTreeModel()
+	model = DeepableTreeModel()
 	model.root = d1
 	view = DeepableTreeView(window)
 	view.setModel(model)

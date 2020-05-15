@@ -1,16 +1,13 @@
-import collections
-import copy
 import typing
 from typing import Iterator
 
-from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal, Qt, QVariant
-from dataclasses import dataclass, InitVar, FrozenInstanceError
+from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal, Qt
+from dataclasses import dataclass, InitVar, FrozenInstanceError, field
 
-from deepable.convert import type_for_key
-from deepable.core import deep_keys, deep_get, deep_set, deep_del, Deepable, is_deepable, deep_diff_ignore_order, \
+from common_qt.mvc.delegate.item_model_delegate import QAbstractItemModelDelegate
+from deepable.core import deep_get, deep_set, deep_del, Deepable, is_deepable, deep_diff_ignore_order, \
 	deep_key_index, deep_contains, deep_iter, deep_len, is_immutable, deep_new_key_index, DeepDiffChanges, \
-	deep_index_key, deep_replace, deep_copy, deep_supports_key_replace, deep_replace_key, deep_supports_key_delete, \
-	deep_supports_key_add
+	deep_index_key
 
 
 @dataclass
@@ -23,6 +20,7 @@ class DeepableTreeModel(QAbstractItemModel):
 	# 	operates on root only through deepable functions
 	#   emits keys signals
 
+	_modelDelegate: QAbstractItemModelDelegate
 	parent_: InitVar[typing.Optional[QObject]] = None
 
 	_root: Deepable = None
@@ -59,39 +57,10 @@ class DeepableTreeModel(QAbstractItemModel):
 		self.root = root
 
 	def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> typing.Any:
-		# role can be EditRole - it will be setted to itemProperty of editor (after createEditor call)
-		if index.column() == 0:
-			key = self.key(index).split('.')[-1]
-			return self.__data_plain_value(key, role)
-		elif index.column() == 1:
-			obj = self.value(index)
-			if role == Qt.EditRole:
-				return obj
-			else:
-				if is_deepable(obj):
-					return QVariant()
-				else:
-					return self.__data_plain_value(obj, role)
-
-	def __data_plain_value(self, value: object, role: int = Qt.DisplayRole):
-		if role == Qt.DisplayRole:
-			return str(value)
-		elif role == Qt.EditRole:
-			return value
-		return QVariant()
+		return self._modelDelegate.data(index, role)
 
 	def setData(self, index: QModelIndex, value: typing.Any, role: int = Qt.DisplayRole) -> bool:
-		if index.column() == 1:
-			self[self.key(index)] = value
-			return True
-		else:
-			old_key, key_value = self.key(index), self.value(index)
-			new_last_key = value
-			parent_key, parent_value = self.key(index.parent()), self.value(index.parent())
-			new_key = parent_key + "." + new_last_key
-			del self[old_key]
-			self[new_key] = key_value
-			return True
+		return self._modelDelegate.setData(index, value, role)
 
 	def index(self, row: int, column: int, parent: QModelIndex = QModelIndex()) -> QModelIndex:
 		if parent.isValid():
@@ -117,36 +86,7 @@ class DeepableTreeModel(QAbstractItemModel):
 			return p
 
 	def flags(self, index: QModelIndex) -> Qt.ItemFlags:
-		flags = super().flags(index)
-		flags |= Qt.ItemIsEditable
-		if self._is_index_readonly(index):
-			flags &= ~ Qt.ItemIsEditable
-		return flags
-
-	def _is_index_readonly(self, index: QModelIndex) -> bool:
-		# It is not a model-api method, it is a private helper method for flags method.
-		# It represents index editability only in context of flags method.
-		# If you override flags method and do not use __is_index_readonly in it
-		# then __is_index_readonly will reflect nothing (will be useless).
-		is_readonly = False
-		if index.column() == 0:
-			parent_value = self.value(index.parent())
-			if not (deep_supports_key_delete(parent_value) and deep_supports_key_add(parent_value)):
-				return True
-		elif index.column() == 1:
-			value = self.value(index)
-			if value is not None and not isinstance(value, (str, int, float, bool)):
-				return True
-			elif value is None:
-				parent_value = self.value(index.parent())
-				key = self.key(index).split(".")[-1]
-				key_type = type_for_key(type(parent_value), key)
-				print(f"{key} of type {key_type}")
-				if not issubclass(key_type, (str, int, float, bool)):
-					print(f"{key} of type {key_type} is read_only")
-					return True
-
-		return is_readonly
+		return self._modelDelegate.flags(index)
 
 	def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
 		return 2

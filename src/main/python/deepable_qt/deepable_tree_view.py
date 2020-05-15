@@ -5,13 +5,14 @@ from PyQt5.QtCore import QItemSelection, QModelIndex, pyqtSignal, QItemSelection
 from PyQt5.QtWidgets import QTreeView, QWidget, QAbstractItemView, QHeaderView
 from dataclasses import dataclass, InitVar
 
-from deepable_qt.tree_view_config_deepable_tree_model import DeepableTreeModel
+from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.deepable_tree_model_delegate import DeepableTreeModelDelegate
 
 
 @dataclass
 class DeepableTreeView(QTreeView):
 	parent_: InitVar[typing.Optional[QWidget]] = None
-	model_: InitVar[DeepableTreeModel] = DeepableTreeModel(_root=OrderedDict())
+	model_: InitVar[DeepableTreeModel] = DeepableTreeModel(_modelDelegate=DeepableTreeModelDelegate(),_root=OrderedDict())
 
 	objectsSelected = pyqtSignal(list)
 

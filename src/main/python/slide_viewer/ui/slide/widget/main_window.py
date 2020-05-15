@@ -15,8 +15,9 @@ from common_qt.util.mdi_subwindow_sync_utils import sync_about_to_activate, sync
 from common_qt.persistent_settings.settings_utils import write_settings, read_settings
 from common_qt.util.slot_disconnected_utils import slot_disconnected
 from deepable.core import toplevel_keys
-from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 from deepable_qt.deepable_tree_view import DeepableTreeView
+from deepable_qt.tree_view_config_deepable_tree_model_delegate import TreeViewConfigDeepableTreeModelDelegate
 from img.filter.base_filter import FilterData
 from img.filter.keras_model import KerasModelFilterData, KerasModelParams
 from img.filter.kmeans_filter import KMeansFilterData
@@ -109,7 +110,7 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 		self.setCentralWidget(self.view_mdi)
 		# print(f"order {self.view_mdi.activationOrder()}")
 
-		filters_model = TreeViewConfigDeepableTreeModel(_root=filters)
+		filters_model = DeepableTreeModel(_root=filters, _modelDelegate=TreeViewConfigDeepableTreeModelDelegate())
 		# filters_model = TreeViewConfigDeepableTreeModel()
 		self.filters_tree_view = create_filters_tree_view(self, filters_model)
 		filters_dock_widget = QDockWidget('Filters', self)
@@ -156,7 +157,8 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 			self.cleanup = setup_sync(view, sub_views_except_active, sync_states)
 
 	def add_sub_window(self) -> GraphicsViewMdiSubWindow:
-		annotations_tree_model = TreeViewConfigDeepableTreeModel(_root=OrderedDict())
+		annotations_tree_model = DeepableTreeModel(_root=OrderedDict(),
+												   _modelDelegate=TreeViewConfigDeepableTreeModelDelegate())
 		annotations_tree_view = create_annotations_tree_view(self, annotations_tree_model)
 		annotation_tree_view_sub_window = MdiSubWindow(self)
 		annotation_tree_view_sub_window.setWidget(annotations_tree_view)

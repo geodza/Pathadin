@@ -8,6 +8,7 @@ from dataclasses import dataclass, InitVar, replace
 
 from common_image.model.color_mode import ColorMode
 from deepable.convert import deep_to_dict, deep_from_dict
+from deepable_qt.deepable_tree_model import DeepableTreeModel
 from img.filter.base_filter import FilterData, FilterData_, FilterType
 from img.filter.keras_model import KerasModelFilterData, KerasModelParams, KerasModelParams_
 from img.filter.kmeans_filter import KMeansFilterData, KMeansInitType, KMeansParams_
@@ -21,14 +22,12 @@ from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresh
 	SkimageMinimumThresholdParams_
 from img.filter.threshold_filter import ThresholdFilterData, ThresholdFilterData_, \
 	ThresholdType
-from common.dict_utils import dict_to_data_ignore_extra, asodict2
 from common_qt.editor.dropdown import Dropdown
 from common_qt.editor.file_path_editor import FilePathEditor
 from common_qt.editor.list_editor import SelectListEditor
 from common_qt.editor.range.gray_range_editor import GrayRangeEditor
 from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
 from deepable.core import toplevel_key, deep_set, deep_keys, deep_get
-from deepable_qt.tree_view_config_deepable_tree_model import TreeViewConfigDeepableTreeModel
 
 
 def commit_close_after_dropdown_select(delegate: QStyledItemDelegate, dropdown: Dropdown) -> Dropdown:
@@ -44,7 +43,7 @@ def commit_close_after_dropdown_select(delegate: QStyledItemDelegate, dropdown: 
 @dataclass
 # delegate is coupled to concrete model
 class FilterTreeViewDelegate(QStyledItemDelegate):
-	model: TreeViewConfigDeepableTreeModel
+	model: DeepableTreeModel
 	parent_: InitVar[Optional[QObject]] = None
 
 	# filterDataChanged = pyqtSignal(FilterData)

@@ -1,5 +1,26 @@
 # Pathadin
 
+Pathadin is tool for quick and simple quantitative pathology. It is developed in close collaboration between programmists and pathologists of the Estonian Digital Pathology Association ([EDIPA](https://pathology.ee/)).
+
+The concept of Pathadin differs from other desktop WSI alternatives: in contrast to unitary solutions, which require rather powerful machines, it is a combinatory toolset, where each part can be separately updated and modified; this also includes the opportunity of the A.I. training without strict linkage to the local computer, as described further. Such an approach gives a better understanding of functional elements of modern computer-assisted image analysis, makes the program more flexible in the context of modification, updating and testing different models, and allows users to run digital pathology on the basic hardware.
+
+Among Java solutions, Pathadin is entirely Python 3.6 software built with PyQT5 GUI. Pathadin is based on the openslide library. The central analytic libraries include Keras, Skimage/ Sklearn, and Histomics TK.
+
+Pathadin project provides:
+* Main graphical user interface (GUI)-application
+* Tool for slicing digital slides – a convenient feature for dataset generation for machine learning or usage in alternative software
+* Simply reproducable example of U- net model training.
+
+
+The U-net model training is performed separately from GUI due to training been computationally heavy and excessively dynamic, thus irrational to be enclosed by GUI.
+
+Minimum system requirements for adequate experience for provided binaries include
+* Monitor resolution 1280 × 720
+* Operation system Windows 7 SP1 or newer
+* CPU Intel DualCore, RAM 4 GB
+
+
+
 **Getting started**
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
 * http://www.pathadin.eu/

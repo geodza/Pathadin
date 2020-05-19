@@ -19,7 +19,7 @@ Minimum system requirements for adequate experience for provided binaries includ
 * Operation system Windows 7 SP1 or newer
 * CPU Intel DualCore, RAM 4 GB
 
-
+Supports all the Openslide format for Whole Slide Imaging, as the main image formats.
 
 **Getting started**
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab

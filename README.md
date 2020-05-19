@@ -26,8 +26,7 @@ Minimum system requirements for adequate experience for provided binaries includ
 * http://www.pathadin.eu/
 * Latest release ([01.05.2020](https://www.pathadin.eu/pathadin/PathadinSetup.exe))
 
-**Stroma and gland seprataion: for 
-> Pathadin – a simple tool for quantitative pathology.**
+**Stroma and gland seprataion: for Pathadin – a simple tool for quantitative pathology.**
 * [Dataset](https://www.pathadin.eu/pathadin/slice_example_patches.zip)
 * [Trained model](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
 * [Segmentation example](https://colab.research.google.com/drive/1kc9mKy1ldCQCFXIzy8l_tqGC2FGLcqOd)

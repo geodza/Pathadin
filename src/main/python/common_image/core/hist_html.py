@@ -2,6 +2,7 @@ from typing import Tuple
 
 import numpy as np
 
+from common.timeit_utils import timing
 from common_image.core.hist import HistResults
 
 
@@ -22,6 +23,7 @@ def color_to_rgba(color) -> Tuple[int, int, int, int]:
     return color_rgba
 
 
+@timing
 def build_histogram_html(sorted_most_freq_colors: np.ndarray, sorted_most_freq_colors_counts_normed: np.ndarray) -> str:
     max_points = 7
     bars = []

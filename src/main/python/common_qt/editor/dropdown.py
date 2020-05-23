@@ -1,7 +1,8 @@
 import typing
+from typing import cast
 
-from PyQt5.QtCore import Qt, pyqtProperty, pyqtSignal, QObject, QVariant
-from PyQt5.QtWidgets import QComboBox, QWidget, QItemEditorCreatorBase
+from PyQt5.QtCore import Qt, pyqtProperty, pyqtSignal, QObject, QVariant, pyqtBoundSignal
+from PyQt5.QtWidgets import QComboBox, QWidget, QItemEditorCreatorBase, QStyledItemDelegate
 
 
 # class DropdownCreatorBase(QItemEditorCreatorBase):
@@ -47,3 +48,13 @@ class Dropdown(QComboBox):
         self.setCurrentIndex(index)
 
     itemProperty = pyqtProperty(QVariant, get_item, set_item, user=True)
+
+
+def commit_close_after_dropdown_select(delegate: QStyledItemDelegate, dropdown: Dropdown) -> Dropdown:
+	def on_selected_item_changed(item):
+		delegate.commitData.emit(dropdown)
+		delegate.closeEditor.emit(dropdown)
+
+	dropdown.selectedItemChanged.connect(on_selected_item_changed)
+	cast(pyqtBoundSignal, dropdown.activated).connect(on_selected_item_changed)
+	return dropdown

@@ -3,9 +3,11 @@ from typing import List
 import cv2
 import numpy as np
 
+from common.timeit_utils import timing
 from common_image.model.ndimg import Ndimg
 
 
+@timing
 def convert_ndimg(ndimg: Ndimg, required_mode: str) -> Ndimg:
     return Ndimg(convert_ndarray(ndimg.ndarray, ndimg.color_mode, required_mode), required_mode, ndimg.bool_mask_ndarray)
 

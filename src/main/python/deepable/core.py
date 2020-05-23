@@ -235,10 +235,12 @@ def deep_supports_key_replace(obj: Deepable) -> bool:
 	#  Now instead of key replacement we can delete old key and then add new key.
 	#  For now notion of key replacement is absent.
 	return False
-	# if isinstance(obj, dict):
-	# 	return True
-	# else:
-	# 	return False
+
+
+# if isinstance(obj, dict):
+# 	return True
+# else:
+# 	return False
 
 
 def deep_supports_key_delete(obj: Deepable) -> bool:
@@ -275,6 +277,7 @@ def deep_keys_deep(obj: Deepable) -> list:
 		if is_deepable(value) and not is_immutable(value):
 			value_keys = deep_keys_deep(value)
 			obj_value_keys = [".".join([key, value_key]) for value_key in value_keys]
+			keys_.append(key)
 			keys_.extend(obj_value_keys)
 		else:
 			keys_.append(key)
@@ -349,23 +352,33 @@ def deep_diff_ignore_order(obj1: Optional[Deepable], obj2: Optional[Deepable]) -
 	keys2 = set(deep_keys_deep(obj2)) if obj2 else set()
 	keys1_only = keys1 - keys2
 	keys2_only = keys2 - keys1
+	added_keys = set(k for k in keys2_only if not any(k.startswith(k2) for k2 in keys2_only if k != k2))
+	removed_keys = set(k for k in keys1_only if not any(k2.startswith(k2) for k2 in keys1_only if k != k2))
 	keys_both = keys1.intersection(keys2)
+	changed_keys = set(k for k in keys_both if not any(k2.startswith(k) for k2 in keys_both if k != k2))
+
+	added_keys = set(k for k in added_keys if not any(k.startswith(k2) for k2 in changed_keys))
+	removed_keys = set(k for k in removed_keys if not any(k.startswith(k2) for k2 in changed_keys))
+
 	added = {}
-	for key in keys2_only:
+	for key in added_keys:
 		added_value = deep_get(obj2, key)
 		added[key] = added_value
+
 	changes = {}
-	for key in keys_both:
+	for key in changed_keys:
 		value1 = deep_get(obj1, key)
 		value2 = deep_get(obj2, key)
 		if value1 != value2:
 			# comparing by eq means we capture diff only for immutable objects
 			changes[key] = DeepDiffChange(old_value=value1, new_value=value2)
-	return DeepDiffChanges(keys1_only, added, changes)
+	return DeepDiffChanges(removed_keys, added, changes)
 
 
 def is_immutable(obj: Any) -> bool:
 	return isinstance(obj, collections.Hashable)
+
+
 # return hasattr(obj, "__hash__")
 
 # if (hasattr(old_value, "__hash__") or hasattr(value, "__hash__")) and old_value!=value:
@@ -409,3 +422,8 @@ def is_immutable(obj: Any) -> bool:
 # @default.register(Enum)
 # def f(e: Enum):
 #     return e.name
+
+
+def first_last_keys(key: str) -> typing.Tuple[str, str]:
+	keys = key.split(".")
+	return (keys[0], keys[-1])

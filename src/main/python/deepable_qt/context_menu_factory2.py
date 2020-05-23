@@ -8,7 +8,7 @@ from common_qt.action.my_action import MyAction
 from common_qt.dialog.edit_text_dialog import EditTextDialog
 from common_qt.action.separator_action import SeparatorAction
 from deepable.core import deep_local_path
-from deepable_qt.deepable_tree_view import DeepableTreeView
+from deepable_qt.view.deepable_tree_view import DeepableTreeView
 
 
 def all_top_level_indexes(view: QAbstractItemView) -> List[QModelIndex]:

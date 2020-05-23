@@ -2,6 +2,7 @@ from typing import Tuple, Iterable
 
 import numpy as np
 
+from common.timeit_utils import timing
 from common_image.core.draw import draw_ellipse, draw_rect, draw_polygon, draw_line
 from slide_viewer.cache_config import gcached
 from slide_viewer.ui.common.annotation_type import AnnotationType
@@ -26,6 +27,7 @@ def draw_annotation(ndarray: np.ndarray, points: Iterable[ituple], annotationTyp
         raise ValueError()
 
 
+@timing
 @gcached
 def build_mask(img_shape: Tuple[int, ...], points: Iterable[ituple],
                annotationType: AnnotationType = AnnotationType.RECT, background_color: int = 0, color: int = 255) -> np.ndarray:

@@ -18,3 +18,5 @@ if __name__ == '__main__':
 	print(AnnotationType.LINE.value)
 	print(AnnotationType.LINE)
 	print(str(AnnotationType.LINE))
+	print(AnnotationType["LINE"])
+	print(AnnotationType[AnnotationType.LINE])

@@ -1,20 +1,20 @@
 from typing import Optional, cast
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QModelIndex, QObject, QSize, pyqtBoundSignal
+from PyQt5.QtCore import QModelIndex, QObject, QSize
 from PyQt5.QtWidgets import QWidget, QStyledItemDelegate, \
 	QStyleOptionViewItem
 from dataclasses import dataclass, InitVar, replace
 
 from common_image.model.color_mode import ColorMode
 from deepable.convert import deep_to_dict, deep_from_dict
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.model.deepable_tree_model import DeepableTreeModel
 from img.filter.base_filter import FilterData, FilterData_, FilterType
 from img.filter.keras_model import KerasModelFilterData, KerasModelParams, KerasModelParams_
 from img.filter.kmeans_filter import KMeansFilterData, KMeansInitType, KMeansParams_
 from img.filter.manual_threshold import ManualThresholdFilterData, ManualThresholdFilterData_, \
 	GrayManualThresholdFilterData, GrayManualThresholdFilterData_, HSVManualThresholdFilterData, \
-	HSVManualThresholdFilterData_, color_mode_to_filter_type
+	HSVManualThresholdFilterData_
 from img.filter.nuclei import NucleiFilterData, NucleiParams
 from img.filter.positive_pixel_count import PositivePixelCountFilterData, PositivePixelCountParams
 from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresholdFilterData, \
@@ -22,28 +22,17 @@ from img.filter.skimage_threshold import SkimageThresholdType, SkimageAutoThresh
 	SkimageMinimumThresholdParams_
 from img.filter.threshold_filter import ThresholdFilterData, ThresholdFilterData_, \
 	ThresholdType
-from common_qt.editor.dropdown import Dropdown
+from common_qt.editor.dropdown import Dropdown, commit_close_after_dropdown_select
 from common_qt.editor.file_path_editor import FilePathEditor
 from common_qt.editor.list_editor import SelectListEditor
 from common_qt.editor.range.gray_range_editor import GrayRangeEditor
 from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
-from deepable.core import toplevel_key, deep_set, deep_keys, deep_get
-
-
-def commit_close_after_dropdown_select(delegate: QStyledItemDelegate, dropdown: Dropdown) -> Dropdown:
-	def on_selected_item_changed(item):
-		delegate.commitData.emit(dropdown)
-		delegate.closeEditor.emit(dropdown)
-
-	dropdown.selectedItemChanged.connect(on_selected_item_changed)
-	cast(pyqtBoundSignal, dropdown.activated).connect(on_selected_item_changed)
-	return dropdown
+from deepable.core import toplevel_key, deep_set, deep_keys
 
 
 @dataclass
 # delegate is coupled to concrete model
 class FilterTreeViewDelegate(QStyledItemDelegate):
-	model: DeepableTreeModel
 	parent_: InitVar[Optional[QObject]] = None
 
 	# filterDataChanged = pyqtSignal(FilterData)
@@ -51,10 +40,14 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 	def __post_init__(self, parent_: Optional[QObject]):
 		QStyledItemDelegate.__init__(self, parent_)
 
+	def model(self, index: QModelIndex) -> DeepableTreeModel:
+		return cast(DeepableTreeModel, index.model())
+
 	def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex) -> QWidget:
-		key, value = self.model.key(index), self.model.value(index)
+		model = self.model(index)
+		key, value = model.key(index), model.value(index)
 		filter_id = toplevel_key(key)
-		filter_data: FilterData = self.model[filter_id]
+		filter_data: FilterData = model[filter_id]
 		key = key.split('.')[-1]
 		if key == FilterData_.filter_type:
 			dropdown = Dropdown(list(FilterType), value, parent)
@@ -76,7 +69,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 						def on_threshold_range_change(range_):
 							new_filter_data = replace(filter_data,
 													  **{HSVManualThresholdFilterData_.hsv_range: range_})
-							self.model[filter_id] = new_filter_data
+							model[filter_id] = new_filter_data
 
 						# self.filterDataChanged.emit(new_filter_data)
 
@@ -90,16 +83,16 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 					# self.sizeHintChanged.emit(index.sibling(index.row() + 1, index.column()))
 					if key == GrayManualThresholdFilterData_.gray_range:
 						def on_threshold_range_change(range_):
-							self.model[filter_id] = replace(filter_data,
-															**{GrayManualThresholdFilterData_.gray_range: range_})
+							model[filter_id] = replace(filter_data,
+													   **{GrayManualThresholdFilterData_.gray_range: range_})
 
 						editor = GrayRangeEditor(parent)
 						if filter_data.realtime:
 							editor.grayRangeChanged.connect(on_threshold_range_change)
 						return editor
 					else:
-						return  super().createEditor(parent, option, index)
-						# raise ValueError(f"Unknown key {key} for filter {filter_data}")
+						return super().createEditor(parent, option, index)
+				# raise ValueError(f"Unknown key {key} for filter {filter_data}")
 				else:
 					raise ValueError(f"Unknown key {key} for filter {filter_data}")
 			elif isinstance(filter_data, SkimageAutoThresholdFilterData):
@@ -156,9 +149,9 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 	#     super().setEditorData(editor, index)
 
 	def setModelData(self, editor: QWidget, model: QtCore.QAbstractItemModel, index: QtCore.QModelIndex) -> None:
-		key, value = self.model.key(index), self.model.value(index)
+		key, value = model.key(index), model.value(index)
 		filter_id, *attr_path = key.split('.')
-		filter_data: FilterData = self.model[filter_id]
+		filter_data: FilterData = model[filter_id]
 		value = editor.metaObject().userProperty().read(editor)
 		# print(f"{key} {value}")
 		filter_data_dict = deep_to_dict(filter_data)
@@ -201,7 +194,7 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 
 		new_filter_data = deep_from_dict(filter_data_dict, target_type)
 		print(new_filter_data)
-		self.model[filter_id] = new_filter_data
+		model[filter_id] = new_filter_data
 
 	def updateEditorGeometry(self, editor: QWidget, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
 		if isinstance(editor, (SelectListEditor,)):
@@ -237,10 +230,11 @@ class FilterTreeViewDelegate(QStyledItemDelegate):
 		return super().editorEvent(event, model, option, index)
 
 	def sizeHint(self, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> QtCore.QSize:
-		key, value = self.model.key(index), self.model.value(index)
+		model = self.model(index)
+		key, value = model.key(index), model.value(index)
 		*leading_keys, last_key = key.split('.')
 		filter_id = toplevel_key(key)
-		filter_data: FilterData = self.model[filter_id]
+		filter_data: FilterData = model[filter_id]
 		if isinstance(filter_data, ManualThresholdFilterData):
 			if last_key in (HSVManualThresholdFilterData_.hsv_range, GrayManualThresholdFilterData_.gray_range):
 				color_mode_to_size = {

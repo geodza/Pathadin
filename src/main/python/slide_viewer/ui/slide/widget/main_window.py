@@ -15,9 +15,9 @@ from common_qt.util.mdi_subwindow_sync_utils import sync_about_to_activate, sync
 from common_qt.persistent_settings.settings_utils import write_settings, read_settings
 from common_qt.util.slot_disconnected_utils import slot_disconnected
 from deepable.core import toplevel_keys
-from deepable_qt.deepable_tree_model import DeepableTreeModel
-from deepable_qt.deepable_tree_view import DeepableTreeView
-from deepable_qt.tree_view_config_deepable_tree_model_delegate import TreeViewConfigDeepableTreeModelDelegate
+from deepable_qt.model.deepable_tree_model import DeepableTreeModel
+from deepable_qt.view.deepable_tree_view import DeepableTreeView
+from deepable_qt.model.tree_view_config_deepable_tree_model_delegate import TreeViewConfigDeepableTreeModelDelegate
 from img.filter.base_filter import FilterData
 from img.filter.keras_model import KerasModelFilterData, KerasModelParams
 from img.filter.kmeans_filter import KMeansFilterData
@@ -33,7 +33,9 @@ from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 impor
 from slide_viewer.ui.slide.widget.annotation_filter_processor import AnnotationFilterProcessor
 from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
 from slide_viewer.ui.slide.widget.deepable_annotation_service import DeepableAnnotationService
-from slide_viewer.ui.slide.widget.filter.filters_tree_view import create_filters_tree_view
+from slide_viewer.ui.slide.widget.filter.filters_tree_view import create_filters_tree_view, create_filters_tree_model
+from slide_viewer.ui.slide.widget.filter.plugin import load_filter_plugins
+from slide_viewer.ui.slide.widget.filter.processor import create_filter_processor
 from slide_viewer.ui.slide.widget.graphics_view_mdi_sub_window import GraphicsViewMdiSubWindow
 from slide_viewer.ui.slide.widget.interface.active_annotation_tree_view_provider import ActiveAnnotationTreeViewProvider
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider
@@ -110,7 +112,8 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 		self.setCentralWidget(self.view_mdi)
 		# print(f"order {self.view_mdi.activationOrder()}")
 
-		filters_model = DeepableTreeModel(_root=filters, _modelDelegate=TreeViewConfigDeepableTreeModelDelegate())
+		# model_delegate = TreeViewConfigDeepableTreeModelDelegate()
+		filters_model = create_filters_tree_model(filters)
 		# filters_model = TreeViewConfigDeepableTreeModel()
 		self.filters_tree_view = create_filters_tree_view(self, filters_model)
 		filters_dock_widget = QDockWidget('Filters', self)
@@ -139,6 +142,7 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
 		max_workers = os.cpu_count()
 		max_workers = max_workers - 1 if max_workers > 1 else max_workers
+		max_workers = min(7, max_workers - 1 if max_workers > 1 else max_workers)
 		self.pool = ThreadPoolExecutor(max_workers, thread_name_prefix="main_window_")
 		self.read_settings()
 
@@ -184,17 +188,20 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 		scene_provider = lambda: view.scene()
 
 		# annotation_filter_processor = None
+		filter_processor = create_filter_processor(load_filter_plugins())
 		annotation_filter_processor = AnnotationFilterProcessor(pool=self.pool,
 																slide_path_provider=slide_path_provider,
 																annotation_service=annotation_service,
-																filter_model_provider=filter_model_provider)
+																filter_model_provider=filter_model_provider,
+																filter_processor=filter_processor)
+
 		graphics_view_annotation_service = GraphicsViewAnnotationService2(scene_provider=scene_provider,
 																		  annotation_service=annotation_service,
 																		  scale_provider=None)
 
 		view = GraphicsView(parent_=self,
 							graphics_view_annotation_service=graphics_view_annotation_service,
-							annotation_pixmap_provider=annotation_filter_processor)
+							annotation_pixmap_provider=annotation_filter_processor, thread_pool=self.pool)
 		graphics_view_annotation_service.slide_stats_provider = view
 		graphics_view_annotation_service.scale_provider = view
 		view.set_background_brush(QBrush(QColor("#A088BDBC")))

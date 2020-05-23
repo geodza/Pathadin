@@ -32,7 +32,7 @@ class FilterGraphicsItem(QGraphicsObject):
         painter.save()
         for item in self.exposed_annotation_items(exposed_scene_rect):
             # level_pixmap = self.pixmap_provider.get_pixmap(item.id, lambda: self.update())
-            level_pixmap = self.pixmap_provider.get_pixmap(item.id, lambda: self.update())
+            level_pixmap = self.pixmap_provider.get_pixmap(item.id, self.update)
             if level_pixmap:
                 level, pixmap = level_pixmap
                 # level_to_scene = QTransform().fromScale(current_scale, current_scale)

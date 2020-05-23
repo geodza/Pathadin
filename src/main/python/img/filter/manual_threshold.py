@@ -1,3 +1,4 @@
+import pkgutil
 import typing
 
 from dataclasses import dataclass, field
@@ -41,3 +42,9 @@ class HSVManualThresholdFilterData_(HSVManualThresholdFilterData):
 
 
 color_mode_to_filter_type = {ColorMode.L: GrayManualThresholdFilterData, ColorMode.HSV: HSVManualThresholdFilterData}
+
+if __name__ == '__main__':
+	p = HSVManualThresholdFilterData.hsv_range
+	print(p)
+	pkgs = list(pkgutil.iter_modules('.'))
+	print(pkgs)

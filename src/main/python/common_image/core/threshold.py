@@ -3,6 +3,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 
+from common.timeit_utils import timing
 from common_image.model.ndimg import Ndimg
 
 
@@ -27,7 +28,7 @@ def ndarray_to_thresholded_ndarray(ndarray: np.ndarray, threshold_range: Tuple) 
     result_ndarray = np.atleast_3d(result_ndarray)
     return result_ndarray
 
-
+@timing
 def ndimg_to_thresholded_ndimg(ndimg: Ndimg, threshold_range: Tuple) -> Ndimg:
     thresholded_ndarray = ndarray_to_thresholded_ndarray(ndimg.ndarray, threshold_range)
     return Ndimg(thresholded_ndarray, "L", ndimg.bool_mask_ndarray)

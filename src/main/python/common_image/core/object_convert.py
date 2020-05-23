@@ -4,6 +4,7 @@ from PIL import Image
 # def expose_ndarray_to_qimage(ndarray: np.array):
 # img = QImage(ndarray, ndarray.shape[1], ndarray.shape[0], QImage.Format_Indexed8)
 # return img
+from common.timeit_utils import timing
 from common_image.model.ndimg import Ndimg
 
 
@@ -27,6 +28,7 @@ def pilimg_to_ndarray(pilimg: Image.Image) -> np.ndarray:
     return ndarray
 
 
+@timing
 def pilimg_to_ndimg(pilimg: Image.Image) -> Ndimg:
     ndarray = np.array(pilimg)
     return Ndimg(ndarray, pilimg.mode)

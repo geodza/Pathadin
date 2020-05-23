@@ -10,3 +10,6 @@ class ABCQMeta(type(QObject), type(abc.ABC)):
 
 # class BaseModelQMeta(type(QObject), type(BaseModel)):
 #     pass
+
+class QABCMeta(type(QObject), abc.ABCMeta):
+    pass

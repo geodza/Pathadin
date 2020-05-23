@@ -5,7 +5,7 @@ from PyQt5.QtCore import QObject, pyqtBoundSignal, pyqtSignal
 
 from common_qt.abcq_meta import ABCQMeta
 from deepable.core import toplevel_keys
-from deepable_qt.deepable_tree_model import DeepableTreeModel
+from deepable_qt.model.deepable_tree_model import DeepableTreeModel
 from img.filter.base_filter import FilterResults2
 from img.filter.keras_model import KerasModelFilterResults
 from img.filter.kmeans_filter import KMeansFilterResults

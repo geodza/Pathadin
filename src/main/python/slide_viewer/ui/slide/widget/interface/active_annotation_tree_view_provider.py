@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from deepable_qt.deepable_tree_view import DeepableTreeView
+from deepable_qt.view.deepable_tree_view import DeepableTreeView
 
 
 class ActiveAnnotationTreeViewProvider(ABC):

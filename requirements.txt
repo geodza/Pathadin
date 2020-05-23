@@ -1,24 +1,34 @@
-PyQt5==5.9.2
-fbs==0.8.4
+# Python 3.6.8
+dataclasses==0.7
+pydantic==1.5.1
+cachetools==4.1.0
 attrs==19.3.0
-dataclasses==0.6
-pydantic==1.3
-cachetools==4.0.0
-numpy==1.18.1
-h5py==2.10.0
-imageio==2.5.0
-Pillow==6.1.0
-opencv-python==4.1.1.26
-openslide-python==1.1.1
-scikit-image==0.15.0
-scikit-learn==0.21.3
-scikit-build==0.10.0
-typing-extensions==3.7.4.1
+typing-extensions==3.7.4.2
 mypy-extensions==0.4.3
+fbs==0.8.6
+PyQt5==5.9.2 #fbs
+# pyinstaller==3.4 #fbs, downgrading pip to 18.1 may be required. https://ru.stackoverflow.com/questions/951400/%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0-%D0%BF%D1%80%D0%B8-%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5-pyinstaller-%D1%87%D0%B5%D1%80%D0%B5%D0%B7-pip
+PyQt5-stubs==5.11.3
 tensorflow==1.14.0
+# numpy==1.18.4 # tensorflow
+# h5py==2.10.0 # tensorflow
 Keras==2.3.1
-keras-unet==0.0.7
+# scipy==1.4.1 # keras
+openslide-python==1.1.1
+# Pillow==7.1.2 # openslide-python
+opencv-python==4.2.0.34
+scikit-learn==0.23.1
+scikit-image==0.17.2
+# imageio==2.8.0 # scikit-image
+# matplotlib==3.2.1 # scikit-image
 Shapely==1.7.0
-matplotlib
-#PyQt5-stubs = "==5.13.0.1"
-#histomicstk = {editable = true,path = "./../HistomicsTK"}
+#histomicstk from sources https://pypi.org/project/histomicstk/
+girder-client==3.1.0 # for histomics
+# HistomicsTK for windows needs fix in histomicstk.segmentation.nucler._max_clustering_cython.pyx because of
+# ValueError: Buffer dtype mismatch, expected 'long' but got 'long long'
+# Change these definitions to fix the error:
+# cdef long long[:] px, py
+# cdef long[:, ::1] maxpath = maxpath_np
+# Related issues:
+# https://github.com/akaszynski/pyansys/issues/14
+# https://stackoverflow.com/questions/32262976/cython-buffer-type-mismatch-expected-int-but-got-long

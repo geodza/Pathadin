@@ -129,12 +129,12 @@ def remove_from_global_pending(key: str):
     cache_.pop(build_global_pending_key(key), None)
 
 
-def closure_nonhashable(hash_prefix: str, i, func):
+def closure_nonhashable(hash_prefix: str, nonhashable_input, func):
     # def decor(method):
     #     return cachetools.cached(cache_, key=partial(hashkey, method.__name__, hash_prefix), lock=cache_lock)(method)
 
     def w(*args, **kwargs):
-        return func(i, *args, **kwargs)
+        return func(nonhashable_input, *args, **kwargs)
 
     cached_w = cachetools.cached(cache_, key=partial(hashkey, func.__name__, hash_prefix), lock=cache_lock)(w)
 

@@ -25,6 +25,7 @@ Minimum system requirements for adequate experience for provided binaries includ
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
 * http://www.pathadin.eu/
 * Latest release ([01.05.2020](https://www.pathadin.eu/pathadin/PathadinSetup.exe))
+* [Updates](https://gitlab.com/Digipathology/Pathadin/-/wikis/Updates)
 
 **Stroma and gland seprataion for manuscript "Pathadin – a simple tool for quantitative pathology."**
 * [Dataset](https://www.pathadin.eu/pathadin/slice_example_patches.zip)

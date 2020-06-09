@@ -5,8 +5,8 @@ from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView, QAction
 
 from common_qt.action.my_action import MyAction
-from common_qt.dialog.edit_text_dialog import EditTextDialog
 from common_qt.action.separator_action import SeparatorAction
+from common_qt.dialog.edit_text_dialog import EditTextDialog
 from deepable.core import deep_local_path
 from deepable_qt.view.deepable_tree_view import DeepableTreeView
 
@@ -82,7 +82,6 @@ class DeepableTreeViewActionsFactory:
 				new_attr_key = ".".join([key, new_attr_local_key])
 				new_value = new_attr_value_factory()
 				model[new_attr_key] = new_value
-
 
 		return MyAction(f"Add new attr to {mode}", action_func=f)
 

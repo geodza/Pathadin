@@ -7,10 +7,11 @@ from dataclasses import InitVar, dataclass
 from common_qt.action.my_action import MyAction
 from common_qt.action.disableable_action import subscribe_disableable
 from slide_viewer.ui.slide.callback.sub_window.on_sync_sub_windows import on_sync_option
-from slide_viewer.ui.slide.widget.icons import IconName
+from slide_viewer.ui.slide.widget.menu.icons import IconName
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider
 from slide_viewer.ui.slide.widget.interface.icon_provider import IconProvider
-from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService, SyncOption
+from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService
+from slide_viewer.ui.slide.widget.sync.sync_option import SyncOption
 
 
 @dataclass

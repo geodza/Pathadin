@@ -4,6 +4,7 @@ from typing import Iterator
 from PyQt5.QtCore import QAbstractItemModel, QObject, QModelIndex, pyqtSignal, Qt
 from dataclasses import dataclass, InitVar, FrozenInstanceError
 
+from common.log_utils import log
 from common_qt.mvc.model.delegate.item_model_delegate import AbstractItemModelDelegate
 from deepable.core import deep_get, deep_set, deep_del, Deepable, is_deepable, deep_diff_ignore_order, \
 	deep_key_index, deep_contains, deep_iter, deep_len, is_immutable, deep_new_key_index, DeepDiffChanges, \
@@ -39,6 +40,10 @@ class DeepableTreeModel(QAbstractItemModel):
 		# 1) we cant store integer because it would be interpreted as address and program will crash
 		# 2) we can store object in it, but we need to keep reference to this object because qt will not
 		self.pyqt_bug_weak_ref_dict = {}
+		self.dataChanged.connect(self.on_data_changed)
+
+	def on_data_changed(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles: typing.Iterable[int]) -> None:
+		self._modelDelegate.on_data_changed(topLeft, bottomRight, roles)
 
 	@property
 	def root(self) -> Deepable:
@@ -217,6 +222,7 @@ class DeepableTreeModel(QAbstractItemModel):
 				# But we cant update immutable object.
 				self.__edit_by_reset(key, value)
 
+	# @log()
 	def __replace_none_by_deepable(self, key: str, value: typing.Any):
 		key_index = self.key_to_index(key, 0)
 		nrows = deep_len(value)
@@ -225,6 +231,7 @@ class DeepableTreeModel(QAbstractItemModel):
 		self.endInsertRows()
 		self.keysChanged.emit([key])
 
+	# @log()
 	def __replace_deepable_by_none(self, key: str):
 		key_index = self.key_to_index(key, 0)
 		nrows = self.rowCount(key_index)
@@ -233,9 +240,11 @@ class DeepableTreeModel(QAbstractItemModel):
 		self.endRemoveRows()
 		self.keysChanged.emit([key])
 
+	# @log()
 	def __can_be_edited_without_insert_remove_signals(self, df: DeepDiffChanges) -> bool:
 		return not df.added and not df.removed
 
+	# @log()
 	def __edit_without_insert_remove_signals(self, key: str, value: Deepable, df: DeepDiffChanges):
 		deep_set(self.get_root(), key, value)
 		# edit by key as one big edit but for indexes it is many dataChanged signals
@@ -246,9 +255,11 @@ class DeepableTreeModel(QAbstractItemModel):
 			self.dataChanged.emit(self.index(row, 0, parent_index), self.index(row, 1, parent_index))
 		self.keysChanged.emit([key])
 
+	# @log()
 	def __can_be_edited_by_parts(self, old_value: Deepable, value: Deepable) -> bool:
 		return not is_immutable(value) and not is_immutable(old_value) and type(old_value) == type(value)
 
+	# @log()
 	def __edit_by_parts(self, key: str, old_value: Deepable, value: Deepable):
 		df = deep_diff_ignore_order(old_value, value)
 		# print(f"edit by parts for key: {key}", df)
@@ -297,7 +308,7 @@ class DeepableTreeModel(QAbstractItemModel):
 	# 	self.keysChanged.emit([key])
 
 	def __edit_by_reset(self, key: str, value: typing.Any) -> None:
-		print(f"edit by reset for key: {key}", value)
+		# print(f"edit by reset for key: {key}", value)
 		self.beginResetModel()
 		deep_set(self.get_root(), key, value)
 		self.endResetModel()

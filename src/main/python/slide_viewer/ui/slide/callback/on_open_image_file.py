@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QFileDialog
 
-from slide_viewer.common.img_formats import whole_slide_formats, pillow_formats
+from common_openslide.formats import whole_slide_formats, pillow_formats
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 

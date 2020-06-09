@@ -1,15 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import List, TypeVar, Generic, Hashable, Callable
+from typing import TypeVar, Generic, Hashable, Callable
 
-from img.filter.base_filter import FilterResults2
-from slide_viewer.ui.common.model import AnnotationModel
+from filter.common.filter_model import FilterOutput
+from annotation.model import AnnotationModel
 
 F = TypeVar('F')
-R = TypeVar('R', bound=FilterResults2)
 G = TypeVar('G')
 
 
-class FilterProcessor(ABC, Generic[F, R]):
+class FilterProcessor(ABC, Generic[F]):
 
 	# def filter_batch(self, filter_data: F, img_path: str, annotations: List[AnnotationModel]) -> List[R]:
 	# 	# consider caching, multithreading, yielding, client-server, calling another process
@@ -22,7 +21,7 @@ class FilterProcessor(ABC, Generic[F, R]):
 	# 	return rr
 
 	@abstractmethod
-	def filter_task(self, filter_data: F, img_path: str, annotation: AnnotationModel) -> Callable[[], R]:
+	def filter_task(self, filter_data: F, img_path: str, annotation: AnnotationModel) -> Callable[[], FilterOutput]:
 		pass
 
 	@abstractmethod

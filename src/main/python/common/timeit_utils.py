@@ -9,7 +9,7 @@ def timing(f):
 		ts = time()
 		result = f(*args, **kw)
 		te = time()
-		print('func:{} args:[{}, {}] took: {:2.4f} sec'.format(f.__name__, str(args)[:30], str(kw)[:30], te - ts))
+		# print('func:{} args:[{}, {}] took: {:2.4f} sec'.format(f.__name__, str(args)[:30], str(kw)[:30], te - ts))
 		return result
 
 	return wrap

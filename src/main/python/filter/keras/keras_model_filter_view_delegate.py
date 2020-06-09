@@ -1,49 +1,70 @@
 import typing
-from typing import cast
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import QModelIndex, Qt, QSize
-from PyQt5.QtWidgets import QWidget, QStyleOptionViewItem
-from dataclasses import replace
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QWidget, QStyleOptionViewItem, QMenu
 
-from common_qt.editor.dropdown import Dropdown, commit_close_after_dropdown_select
+from common_qt.action.my_menu import create_menu
 from common_qt.editor.file_path_editor import FilePathEditor
-from common_qt.editor.range.gray_range_editor import GrayRangeEditor
-from common_qt.editor.range.hsv_range_editor import HSVRangeEditor
-from common_qt.mvc.model.delegate.factory.item_model_delegate_factory import AbstractItemModelDelegateFactory
 from common_qt.mvc.model.delegate.item_model_delegate import AbstractItemModelDelegate
-from common_qt.mvc.view.delegate.factory.item_view_delegate_factory import AbstractItemViewDelegateFactory
-from common_qt.mvc.view.delegate.item_view_delegate import AbstractItemViewDelegate
-from deepable.convert import deep_to_dict, deep_from_dict
-from deepable.core import deep_set, first_last_keys, deep_keys
+from common_qt.mvc.view.delegate.abstract_item_view_context_menu_delegate import AbstractItemViewContextMenuDelegate
+from common_qt.mvc.view.delegate.abstract_item_view_delegate import AbstractItemViewDelegate
+from deepable.core import first_last_keys, deep_keys
 from deepable_qt.model.deepable_model_index import DeepableQModelIndex
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
 from deepable_qt.model.standard_deepable_tree_model_delegate import StandardDeepableTreeModelDelegate
 from deepable_qt.view.deepable_tree_view import DeepableTreeView
-from filter_template.filter_template_item_model_delegate_factory import FilterTemplateItemModelDelegateFactory
+from filter_template.filter_template_item_model_delegate_factory import FilterTemplateItemModelDelegateFactory, \
+	FilterTemplateItemModelDelegate
+from filter_template.filter_template_item_view_context_menu_delegate import FilterTemplateItemViewContextMenuDelegate
+from filter_template.filter_template_item_view_context_menu_delegate_factory import \
+	FilterTemplateItemViewContextMenuDelegateFactory
 from filter_template.filter_template_item_view_delegate import ImmutableFilterTemplateTreeViewDelegate
 from filter_template.filter_template_item_viewl_delegate_factory import FilterTemplateItemViewDelegateFactory
-from img.filter.base_filter import FilterData
+from filter.common.filter_model import FilterData
 
-from img.filter.keras_model import KerasModelParams, KerasModelFilterData, KerasModelParams_
-from img.filter.manual_threshold import HSVManualThresholdFilterData, HSVManualThresholdFilterData_
+from filter.keras.keras_model_filter_model import KerasModelParams, KerasModelFilterData, KerasModelParams_
 
-T = DeepableQModelIndex
+I = DeepableQModelIndex
 M = DeepableTreeModel
 V = DeepableTreeView
 F = KerasModelFilterData
 
+class KerasModelFilterContextMenuDelegateFactory(FilterTemplateItemViewContextMenuDelegateFactory):
+
+	def _create_delegate(self, index: I, view: V, filter_data) -> typing.Optional[
+		AbstractItemViewContextMenuDelegate[I, V]]:
+		if not index.isValid():
+			return KerasModelFilterContextMenuDelegate(view)
+		elif isinstance(filter_data, KerasModelFilterData):
+			return KerasModelFilterContextMenuDelegate(view)
+		else:
+			return None
+
+
+class KerasModelFilterContextMenuDelegate(FilterTemplateItemViewContextMenuDelegate):
+
+	def create_menu(self, index: I) -> typing.Optional[QMenu]:
+		actions = []
+		# Index may be invalid => no model for invalid index. So take model from view.
+		model = self.view.model()
+		if not index.isValid():
+			add_action = self.create_add_action("Add keras model filter", "keras_model_filter_", lambda k: KerasModelFilterData(k, k))
+			actions.append(add_action)
+			menu = create_menu("Keras model", actions)
+			return menu
+		else:
+			return None
 
 class KerasModelFilterModelDelegateFactory(FilterTemplateItemModelDelegateFactory):
 
-	def _create(self, index: T, filter_data: F) -> typing.Optional[AbstractItemModelDelegate[T]]:
+	def _create(self, index: I, filter_data: F) -> typing.Optional[AbstractItemModelDelegate[I]]:
 		if isinstance(filter_data, KerasModelFilterData):
 			return KerasModelFilterModelDelegate()
 
 
-class KerasModelFilterModelDelegate(StandardDeepableTreeModelDelegate):
+class KerasModelFilterModelDelegate(FilterTemplateItemModelDelegate):
 
-	def _is_index_readonly(self, index: T) -> bool:
+	def _is_index_readonly(self, index: I) -> bool:
 		model = index.model()
 		key, value = model.key(index), model.value(index)
 		filter_key, last_key = first_last_keys(key)
@@ -57,7 +78,7 @@ class KerasModelFilterModelDelegate(StandardDeepableTreeModelDelegate):
 
 class KerasModelFilterViewDelegateFactory(FilterTemplateItemViewDelegateFactory):
 
-	def _create(self, index: T, filter_data: F) -> typing.Optional[AbstractItemViewDelegate[T, M, V]]:
+	def _create(self, index: I, filter_data: F) -> typing.Optional[AbstractItemViewDelegate[I, M, V]]:
 		if isinstance(filter_data, KerasModelFilterData):
 			return KerasModelFilterViewDelegate()
 
@@ -67,7 +88,7 @@ class KerasModelFilterViewDelegate(ImmutableFilterTemplateTreeViewDelegate):
 	def filter_data_type(self, filter_data_dict: dict) -> type:
 		return KerasModelFilterData
 
-	def _createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: T, key: str,
+	def _createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: I, key: str,
 					  filter_data: F) -> QWidget:
 		model = index.model()
 		filter_key, last_key = first_last_keys(key)
@@ -79,5 +100,5 @@ class KerasModelFilterViewDelegate(ImmutableFilterTemplateTreeViewDelegate):
 
 		return super()._createEditor(parent, option, index, key, filter_data)
 
-	def _sizeHint(self, option: QStyleOptionViewItem, index: T, key: str) -> QSize:
+	def _sizeHint(self, option: QStyleOptionViewItem, index: I, key: str) -> QSize:
 		return super()._sizeHint(option, index, key)

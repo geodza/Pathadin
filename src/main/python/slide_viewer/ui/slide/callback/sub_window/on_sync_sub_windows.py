@@ -1,4 +1,5 @@
-from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService, SyncOption
+from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService
+from slide_viewer.ui.slide.widget.sync.sync_option import SyncOption
 
 
 # def on_sync_sub_windows(s: SubWindowService, sync: bool) -> None:

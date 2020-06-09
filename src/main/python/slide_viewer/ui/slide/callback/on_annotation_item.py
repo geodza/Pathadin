@@ -1,4 +1,4 @@
-from slide_viewer.ui.common.annotation_type import AnnotationType
+from annotation.annotation_type import AnnotationType
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
 
 

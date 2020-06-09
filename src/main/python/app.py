@@ -5,10 +5,9 @@ from PIL import Image
 from PyQt5 import QtCore
 from PyQt5.QtGui import *
 
-from slide_viewer.config import cache_size_in_kb
 from common_qt.util.message_handler import qt_message_handler
 from slide_viewer.app_context import AppContext
-import sys
+from slide_viewer.config import cache_size_in_kb
 
 if __name__ == '__main__':
 	sys.path.insert(0, 'filter')

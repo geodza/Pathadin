@@ -19,3 +19,6 @@ class AbstractItemModelDelegate(ABC, typing.Generic[T]):
 	@abstractmethod
 	def setData(self, index: T, value: typing.Any, role: int = Qt.DisplayRole) -> bool:
 		pass
+
+	def on_data_changed(self, topLeft: T, bottomRight: T, roles: typing.Iterable[int]) -> None:
+		pass

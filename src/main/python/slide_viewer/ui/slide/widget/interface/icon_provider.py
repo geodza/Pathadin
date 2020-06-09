@@ -3,7 +3,7 @@ from typing import Optional
 
 from PyQt5.QtGui import QIcon
 
-from slide_viewer.ui.slide.widget.icons import IconName
+from slide_viewer.ui.slide.widget.menu.icons import IconName
 
 
 class IconProvider(ABC):

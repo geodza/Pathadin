@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import Collection, TypeVar, Type, Dict
 
 from dataclasses import fields, is_dataclass
@@ -56,3 +56,19 @@ def asodict2(data) -> OrderedDict:
 		return data_dict
 	else:
 		return data
+
+
+def format_map(pattern: str, d: dict, joiner: str = "\n") -> str:
+	dict_default = defaultdict(str, d)
+	patterns = pattern.split("\\n")
+	lines = []
+	for p in patterns:
+		try:
+			lines.append(p.format_map(dict_default))
+		except Exception as e:
+			# print(e)
+			pass
+	# display_text = pattern.format_map(dict_default)
+	non_empty_lines = [line for line in lines if line != ""]
+	text = joiner.join(non_empty_lines)
+	return text

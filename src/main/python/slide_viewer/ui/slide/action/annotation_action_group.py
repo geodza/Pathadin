@@ -6,9 +6,9 @@ from dataclasses import InitVar, dataclass
 
 from common_qt.action.disableable_action import subscribe_disableable
 from common_qt.action.my_action import MyAction
-from slide_viewer.ui.common.annotation_type import AnnotationType
+from annotation.annotation_type import AnnotationType
 from slide_viewer.ui.slide.callback.on_annotation_item import on_annotation_item, on_selection_tool
-from slide_viewer.ui.slide.widget.icons import IconName
+from slide_viewer.ui.slide.widget.menu.icons import IconName
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider
 from slide_viewer.ui.slide.widget.interface.icon_provider import IconProvider
 from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService

@@ -1,30 +1,24 @@
+import numpy as np
 import openslide
 import skimage
-from dataclasses import asdict
 from shapely.affinity import translate
 from shapely.geometry import box
 
-from common.dict_utils import remove_none_values
+from annotation.model import AnnotationModel, AnnotationGeometry
+from annotation_image.core import build_region_data
+from annotation_image.reagion_data import RegionData
 from common.grid_utils import pos_range
 from common.timeit_utils import timing
-from common_image.core.hist import ndimg_to_hist
-from common_image.core.hist_html import build_histogram_html
 from common_image.core.img_polygon_utils import create_polygon_image
-from common_image.core.kmeans import ndimg_to_quantized_ndimg
 from common_image.core.resize import resize_ndimg, resize_ndarray
 from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg
+from common_openslide.slide_helper import SlideHelper
 from common_shapely.shapely_utils import get_polygon_bbox_size, get_polygon_bbox_pos, scale_at_origin, locate
-from img.filter.keras_model import KerasModelParams, KerasModelFilterResults, KerasModelFilterData
-from img.filter.kmeans_filter import KMeansFilterData, KMeansFilterResults, KMeansParams
-from img.filter.threshold_filter import ThresholdFilterResults
-from img.proc.region import RegionData
+from filter.common.filter_model import FilterResults, FilterOutput
+from filter.keras.keras_model_filter_model import KerasModelParams, KerasModelFilterData
 from slice.annotation_shapely_utils import annotation_geom_to_shapely_geom
 from slice.image_shapely_utils import get_slide_polygon_bbox_rgb_region
-from slide_viewer.common.slide_helper import SlideHelper
-from slide_viewer.ui.common.model import AnnotationModel, AnnotationGeometry
-from slide_viewer.ui.slide.widget.filter.region_data import build_region_data, read_masked_region
-import numpy as np
 
 
 # @gcached
@@ -35,7 +29,7 @@ def load_keras_model(model_path: str):
 
 
 def keras_model_filter(annotation: AnnotationModel, filter_data: KerasModelFilterData,
-					   img_path: str) -> KerasModelFilterResults:
+					   img_path: str) -> FilterOutput:
 	rd = build_region_data(img_path, annotation, annotation.filter_level)
 	results = _keras_model_filter(rd, filter_data.keras_model_params)
 	return results
@@ -43,7 +37,7 @@ def keras_model_filter(annotation: AnnotationModel, filter_data: KerasModelFilte
 
 # @gcached
 @timing
-def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelFilterResults:
+def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> FilterOutput:
 	keras_model = load_keras_model(params.model_path)
 	input_shape = keras_model.input_shape[1:]
 	input_size = input_shape[:2]
@@ -114,4 +108,4 @@ def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> KerasModelF
 	polygon_ = scale_at_origin(locate(polygon0, polygon0), level_scale)
 	bool_mask_ndarray = create_polygon_image(polygon_, 'L', 255, create_mask=False).ndarray
 	qimg = ndimg_to_qimg(Ndimg(filter_image, "RGBA", bool_mask_ndarray))
-	return KerasModelFilterResults(qimg, bool_mask_ndarray)
+	return FilterOutput(qimg, bool_mask_ndarray, FilterResults(None, None))

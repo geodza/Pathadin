@@ -4,7 +4,7 @@ from typing import NamedTuple
 from dataclasses import dataclass
 from pydantic import BaseModel
 
-from deepable.convert import obj_from_dict, type_for_key
+from deepable.convert import type_for_key
 from deepable.core import deep_get, deep_replace
 
 

@@ -13,28 +13,29 @@ from common_qt.graphics.graphics_view_debug_rect import \
 	GraphicsViewDebugRect
 from common_qt.graphics.grid_graphics_item import GridGraphicsItem
 from common_qt.util.mime_utils import mime_data_is_url
-from slide_viewer.common.slide_helper import SlideHelper
+from common_openslide.slide_helper import SlideHelper
 from slide_viewer.ui.slide.graphics.graphics_scene import GraphicsScene
 from slide_viewer.ui.slide.graphics.help_utils import empty_view_help_text
-from slide_viewer.ui.slide.graphics.item.filter_graphics_item import FilterGraphicsItem
+from slide_viewer.ui.slide.graphics.item.filtered_annotation_image_graphics_item import FilteredAnnotationImageGraphicsItem
 from slide_viewer.ui.slide.graphics.item.slide_graphics_item import SlideGraphicsItem
-from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 import GraphicsViewAnnotationService2
+from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service3 import GraphicsViewAnnotationService3
 from slide_viewer.ui.slide.graphics.view.scale_graphics_view import ScaleGraphicsView
 from slide_viewer.ui.slide.widget.interface.annotation_pixmap_provider import AnnotationItemPixmapProvider
-from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
+from slide_viewer.ui.slide.widget.annotation.annotation_service import AnnotationService
 from slide_viewer.ui.slide.widget.interface.slide_stats_provider import SlideStatsProvider
 
 
 @dataclass(repr=False)
 class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
-	graphics_view_annotation_service: GraphicsViewAnnotationService2 = ...
+	annotation_service: AnnotationService = ...
+	graphics_view_annotation_service: GraphicsViewAnnotationService3 = ...
 	annotation_pixmap_provider: AnnotationItemPixmapProvider = ...
 	thread_pool: ThreadPoolExecutor = ...
 	_grid_size: Tuple[int, int] = (512, 512)
 	_grid_size_is_in_pixels: bool = True
 	slide_helper: Optional[SlideHelper] = field(init=False, default=None)
 	slide_graphics_item: Optional[SlideGraphicsItem] = field(init=False, default=None)
-	filter_graphics_item: Optional[FilterGraphicsItem] = field(init=False, default=None)
+	filter_graphics_item: Optional[FilteredAnnotationImageGraphicsItem] = field(init=False, default=None)
 	slide_graphics_grid_item: Optional[GridGraphicsItem] = field(init=False, default=None)
 
 	gridVisibleChanged = pyqtSignal(bool)
@@ -56,9 +57,10 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
 		self.gridSizeChanged.connect(self.update_grid_item)
 		self.gridSizeIsInPixelsChanged.connect(self.update_grid_item)
 
-	@property
-	def annotation_service(self) -> AnnotationService:
-		return self.graphics_view_annotation_service.annotation_service
+	# @property
+	# def annotation_service(self) -> AnnotationService:
+	# 	# return self.graphics_view_annotation_service.annotation_service
+	# 	return self.annotation_service
 
 	def get_microns_per_pixel(self) -> float:
 		return self.slide_helper.microns_per_pixel
@@ -114,7 +116,7 @@ class GraphicsView(ScaleGraphicsView, SlideStatsProvider, metaclass=ABCQMeta):
 		self.update_grid_item()
 		self.scene().addItem(self.slide_graphics_grid_item)
 
-		self.filter_graphics_item = FilterGraphicsItem(self.annotation_pixmap_provider, self.slide_helper)
+		self.filter_graphics_item = FilteredAnnotationImageGraphicsItem(self.annotation_pixmap_provider, self.slide_helper)
 		self.scene().addItem(self.filter_graphics_item)
 
 		self.filePathChanged.emit(file_path)

@@ -6,8 +6,8 @@ from PyQt5.QtCore import QSize, QModelIndex, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStyledItemDelegate, QWidget, QStyleOptionViewItem
 
 from common_qt.mvc.view.delegate.composite_item_view_delegate import CompositeItemViewDelegate
-from common_qt.mvc.view.delegate.factory.item_view_delegate_factory import AbstractItemViewDelegateFactory, T
-from common_qt.mvc.view.delegate.item_view_delegate import AbstractItemViewDelegate
+from common_qt.mvc.view.delegate.factory.abstract_item_view_delegate_factory import AbstractItemViewDelegateFactory, T
+from common_qt.mvc.view.delegate.abstract_item_view_delegate import AbstractItemViewDelegate
 from common_qt.mvc.view.delegate.styled_item_view_delegate import QStyledItemViewDelegate
 from common_qt.util.message_handler import qt_message_handler
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel

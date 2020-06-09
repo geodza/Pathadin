@@ -5,7 +5,7 @@ from PyQt5.QtGui import QFont, QTransform
 from PyQt5.QtWidgets import QActionGroup
 from dataclasses import dataclass, InitVar
 
-from slide_viewer.common.slide_helper import SlideHelper
+from common_openslide.slide_helper import SlideHelper
 from common_qt.action.my_action import MyAction
 from slide_viewer.ui.slide.callback.on_zoom import on_zoom
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider

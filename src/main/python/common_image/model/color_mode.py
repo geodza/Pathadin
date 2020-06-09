@@ -2,7 +2,7 @@ from enum import unique, Enum
 
 
 @unique
-class ColorMode(Enum):
-    L = 1
-    HSV = 2
+class ColorMode(str, Enum):
+    L = 'L'
+    HSV = 'HSV'
     # RGB = 3

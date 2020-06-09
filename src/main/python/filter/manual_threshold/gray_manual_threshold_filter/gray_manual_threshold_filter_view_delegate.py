@@ -1,62 +1,78 @@
 import typing
-from typing import cast
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import QModelIndex, Qt, QSize
-from PyQt5.QtWidgets import QWidget, QStyleOptionViewItem
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QWidget, QStyleOptionViewItem, QMenu
 from dataclasses import replace
 
+from common_qt.action.my_menu import create_menu
 from common_qt.editor.range.gray_range_editor import GrayRangeEditor
-from common_qt.mvc.model.delegate.factory.item_model_delegate_factory import AbstractItemModelDelegateFactory
-from common_qt.mvc.model.delegate.item_model_delegate import AbstractItemModelDelegate
-from common_qt.mvc.view.delegate.factory.item_view_delegate_factory import AbstractItemViewDelegateFactory
-from common_qt.mvc.view.delegate.item_view_delegate import AbstractItemViewDelegate, T, M
-from deepable.convert import deep_to_dict, deep_from_dict
-from deepable.core import deep_set, first_last_keys
+from common_qt.mvc.view.delegate.abstract_item_view_context_menu_delegate import AbstractItemViewContextMenuDelegate
+from common_qt.mvc.view.delegate.abstract_item_view_delegate import AbstractItemViewDelegate
+from deepable.core import first_last_keys
 from deepable_qt.model.deepable_model_index import DeepableQModelIndex
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
-from deepable_qt.model.standard_deepable_tree_model_delegate import StandardDeepableTreeModelDelegate
 from deepable_qt.view.deepable_tree_view import DeepableTreeView
-from filter.filter_plugin import FilterPlugin
-from filter_template.filter_item_model_delegate_rule import FilterItemModelDelegateRule
-from filter_template.filter_template_item_model_delegate_factory import FilterTemplateItemModelDelegateFactory, \
-	RuleBasedFilterTemplateItemModelDelegateFactory
+from filter.common.filter_model import FilterData
+from filter.manual_threshold.manual_threshold_filter_model import GrayManualThresholdFilterData, \
+	GrayManualThresholdFilterData_
+from filter_template.filter_template_item_model_delegate_factory import FilterTemplateItemModelDelegate
+from filter_template.filter_template_item_view_context_menu_delegate import FilterTemplateItemViewContextMenuDelegate
+from filter_template.filter_template_item_view_context_menu_delegate_factory import \
+	FilterTemplateItemViewContextMenuDelegateFactory
 from filter_template.filter_template_item_view_delegate import ImmutableFilterTemplateTreeViewDelegate
 from filter_template.filter_template_item_viewl_delegate_factory import FilterTemplateItemViewDelegateFactory
-from img.filter.base_filter import FilterData
-from img.filter.manual_threshold import GrayManualThresholdFilterData_, GrayManualThresholdFilterData
 
-T = DeepableQModelIndex
+I = DeepableQModelIndex
 M = DeepableTreeModel
 V = DeepableTreeView
 
 
-class GrayManualThresholdFilterModelDelegateFactory(RuleBasedFilterTemplateItemModelDelegateFactory):
+class GrayManualThresholdFilterContextMenuDelegateFactory(FilterTemplateItemViewContextMenuDelegateFactory):
 
-	def rule(self) -> FilterItemModelDelegateRule:
-		return FilterItemModelDelegateRule(GrayManualThresholdFilterData, GrayManualThresholdFilterModelDelegate())
+	def _create_delegate(self, index: I, view: V, filter_data) -> typing.Optional[
+		AbstractItemViewContextMenuDelegate[I, V]]:
+		if not index.isValid():
+			return GrayManualThresholdFilterContextMenuDelegate(view)
+		elif isinstance(filter_data, GrayManualThresholdFilterData):
+			return GrayManualThresholdFilterContextMenuDelegate(view)
+		else:
+			return None
 
 
-# def _create(self, index: T, filter_data) -> typing.Optional[AbstractItemModelDelegate[T]]:
-# 	if isinstance(filter_data, GrayManualThresholdFilterData):
-# 		return GrayManualThresholdFilterModelDelegate()
+class GrayManualThresholdFilterContextMenuDelegate(FilterTemplateItemViewContextMenuDelegate):
+
+	def create_menu(self, index: I) -> typing.Optional[QMenu]:
+		actions = []
+		# Index may be invalid => no model for invalid index. So take model from view.
+		model = self.view.model()
+		if not index.isValid():
+			add_action = self.create_add_action("Add gray threshold filter", "gray_manual_threshold_filter_",
+												lambda k: GrayManualThresholdFilterData(k, k))
+			actions.append(add_action)
+			menu = create_menu("Gray threshold", actions)
+			return menu
+		else:
+			return None
 
 
-class GrayManualThresholdFilterModelDelegate(StandardDeepableTreeModelDelegate):
+class GrayManualThresholdFilterModelDelegate(FilterTemplateItemModelDelegate):
 
-	def _is_index_readonly(self, index: T) -> bool:
+	def _is_index_readonly(self, index: I) -> bool:
 		model = index.model()
 		key, value = model.key(index), model.value(index)
 		filter_key, last_key = first_last_keys(key)
 		filter_data: FilterData = model[filter_key]
-		if index.column() == 1 and last_key == GrayManualThresholdFilterData_.gray_range:
-			return False
+		if index.column() == 1:
+			if last_key in (GrayManualThresholdFilterData_.gray_range):
+				return False
+			elif last_key in (GrayManualThresholdFilterData_.color_mode):
+				return True
 		return super()._is_index_readonly(index)
 
 
 class GrayManualThresholdFilterViewDelegateFactory(FilterTemplateItemViewDelegateFactory):
 
-	def _create(self, index: T, filter_data) -> typing.Optional[AbstractItemViewDelegate[T, M, V]]:
+	def _create(self, index: I, filter_data) -> typing.Optional[AbstractItemViewDelegate[I, M, V]]:
 		if isinstance(filter_data, GrayManualThresholdFilterData):
 			return GrayManualThresholdFilterViewDelegate()
 
@@ -66,7 +82,7 @@ class GrayManualThresholdFilterViewDelegate(ImmutableFilterTemplateTreeViewDeleg
 	def filter_data_type(self, filter_data_dict: dict) -> type:
 		return GrayManualThresholdFilterData
 
-	def _createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: T, key: str, filter_data) -> QWidget:
+	def _createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: I, key: str, filter_data) -> QWidget:
 		model = index.model()
 		filter_key, last_key = first_last_keys(key)
 		filter_data: FilterData = model[filter_key]
@@ -82,7 +98,7 @@ class GrayManualThresholdFilterViewDelegate(ImmutableFilterTemplateTreeViewDeleg
 		else:
 			return super()._createEditor(parent, option, index, key, filter_data)
 
-	def _sizeHint(self, option: QStyleOptionViewItem, index: T, key: str) -> QSize:
+	def _sizeHint(self, option: QStyleOptionViewItem, index: I, key: str) -> QSize:
 		*leading_keys, last_key = key.split('.')
 		if last_key == GrayManualThresholdFilterData_.gray_range:
 			return QSize(100, 300)

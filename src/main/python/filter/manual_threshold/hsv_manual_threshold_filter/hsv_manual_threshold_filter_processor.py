@@ -1,20 +1,19 @@
 from typing import Hashable, Callable
 
+from filter.common.filter_model import FilterOutput
 from filter.manual_threshold.manual_threshold_filter import hsv_manual_threshold_filter
 from filter_processor.filter_processor import FilterProcessor, F
 from filter_processor.filter_processor_factory import FilterProcessorFactory
-from img.filter.manual_threshold import HSVManualThresholdFilterData
-from img.filter.threshold_filter import ThresholdFilterResults
-from slide_viewer.ui.common.model import AnnotationModel
-from slide_viewer.ui.slide.widget.filter.region_data import build_region_data
+from filter.manual_threshold.manual_threshold_filter_model import HSVManualThresholdFilterData
+from annotation.model import AnnotationModel
+from annotation_image.core import build_region_data
 
 F = HSVManualThresholdFilterData
-R = ThresholdFilterResults
 
 
-class HSVManualThresholdFilterProcessorFactory(FilterProcessorFactory[F, R]):
+class HSVManualThresholdFilterProcessorFactory(FilterProcessorFactory[F]):
 
-	def create(self, filter_data: F) -> FilterProcessor[F, R]:
+	def create(self, filter_data: F) -> FilterProcessor[F]:
 		if isinstance(filter_data, F):
 			return HSVManualThresholdFilterProcessor()
 
@@ -25,5 +24,5 @@ class HSVManualThresholdFilterProcessor(FilterProcessor):
 		rd = build_region_data(img_path, annotation, annotation.filter_level)
 		return ('hsv', img_path, rd, annotation.filter_level, filter_data.hsv_range)
 
-	def filter_task(self, filter_data: F, img_path: str, annotation: AnnotationModel) -> Callable[[], R]:
+	def filter_task(self, filter_data: F, img_path: str, annotation: AnnotationModel) -> Callable[[], FilterOutput]:
 		return lambda: hsv_manual_threshold_filter(annotation, filter_data, img_path)

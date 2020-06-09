@@ -1,24 +1,9 @@
 from abc import ABC, abstractmethod
-from enum import unique, auto, Enum
 
 from PyQt5.QtCore import pyqtSignal, pyqtBoundSignal
 from PyQt5.QtWidgets import QMdiSubWindow
 
-
-@unique
-class SyncOption(Enum):
-    all = auto()
-    view_transform = auto()
-    grid_visible = auto()
-    grid_size = auto()
-    file_path = auto()
-    background_brush = auto()
-    annotations = auto()
-    annotation_filter = auto()
-
-    @staticmethod
-    def single_options():
-        return set(SyncOption) - {SyncOption.all}
+from slide_viewer.ui.slide.widget.sync.sync_option import SyncOption
 
 
 class SubWindowService(ABC):
@@ -35,11 +20,6 @@ class SubWindowService(ABC):
     @property
     @abstractmethod
     def sub_window_activated(self) -> pyqtBoundSignal:
-        pass
-
-    @property
-    @abstractmethod
-    def sub_window_slide_path_changed(self) -> pyqtBoundSignal(str):
         pass
 
     @property

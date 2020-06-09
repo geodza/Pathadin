@@ -1,16 +1,13 @@
-from abc import ABC, abstractmethod
-
 import typing
 from functools import wraps
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import QModelIndex, Qt, QAbstractItemModel
-from PyQt5.QtWidgets import QStyledItemDelegate, QWidget, QItemEditorFactory, QStyleOptionViewItem, \
-	QAbstractItemDelegate, QAbstractItemView
+from PyQt5.QtCore import QModelIndex, QAbstractItemModel
+from PyQt5.QtWidgets import QStyledItemDelegate, QWidget, QStyleOptionViewItem, \
+	QAbstractItemView
 from dataclasses import dataclass
 
-from common_qt.abcq_meta import ABCQMeta, QABCMeta
-from common_qt.mvc.view.delegate.item_view_delegate import AbstractItemViewDelegate
+from common_qt.mvc.view.delegate.abstract_item_view_delegate import AbstractItemViewDelegate
 
 T = typing.TypeVar('T', bound=QModelIndex)
 M = typing.TypeVar('M', bound=QAbstractItemModel)
@@ -36,6 +33,9 @@ class QStyledItemViewDelegate(QStyledItemDelegate):
 
 	def __post_init__(self):
 		super().__init__()
+		self.item_view_delegate.closeEditor.connect(self.closeEditor)
+		self.item_view_delegate.commitData.connect(self.commitData)
+		self.item_view_delegate.sizeHintChanged.connect(self.sizeHintChanged)
 
 	@item_view_delegate_wrapper
 	def editorEvent(self, event: QtCore.QEvent, model: M, option: QStyleOptionViewItem,
@@ -80,10 +80,6 @@ class QStyledItemViewDelegate(QStyledItemDelegate):
 
 	@item_view_delegate_wrapper
 	def paint(self, painter: QtGui.QPainter, option: QStyleOptionViewItem, index: T) -> None:
-		pass
-
-	@item_view_delegate_wrapper
-	def sizeHintChanged(self, a0: T) -> None:
 		pass
 
 	# def closeEditor(self, editor: QWidget, hint: QAbstractItemDelegate.EndEditHint = ...) -> None:

@@ -79,7 +79,6 @@ def acquire_timeout(lock, timeout):
 
 
 cache_lock = RLock()
-pixmap_cache_lock = RLock()
 
 
 def cache_key_func(func_name):

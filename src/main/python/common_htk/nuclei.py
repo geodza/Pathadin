@@ -4,7 +4,7 @@ from dataclasses import asdict
 from scipy import ndimage
 
 from common_image.model.ndimg import Ndimg
-from img.filter.nuclei import default_stain_color_map, NucleiParams
+from filter.nuclei.nuclei_filter_model import default_stain_color_map, NucleiParams
 
 
 def ndimg_to_nuclei_seg_mask(ndimg: Ndimg, params: NucleiParams) -> Ndimg:
@@ -21,15 +21,15 @@ def ndarray_to_nuclei_seg_mask(ndarray: np.ndarray, params: NucleiParams) -> np.
 
 def build_nuclei_seg_mask(im_reference: np.ndarray, foreground_threshold=60, min_radius=10,
                           max_radius=15, local_max_search_radius=10.0, min_nucleus_area=80,
-                          stainColorMap=default_stain_color_map(),
+                          stain_color_map=default_stain_color_map(),
                           stain_1='hematoxylin', stain_2='eosin', stain_3='null') -> np.ndarray:
     im_reference = im_reference[:, :, :3]
     mean_ref, std_ref = htk.preprocessing.color_conversion.lab_mean_std(im_reference)
     im_nmzd = htk.preprocessing.color_normalization.reinhard(im_reference, mean_ref, std_ref)
     # create stain matrix
-    W = np.array([stainColorMap[stain_1],
-                  stainColorMap[stain_2],
-                  stainColorMap[stain_3]]).T
+    W = np.array([stain_color_map[stain_1],
+                  stain_color_map[stain_2],
+                  stain_color_map[stain_3]]).T
     # np.array(list(stainColorMap.values()))[[0,1,3]].T
     im_stains = htk.preprocessing.color_deconvolution.color_deconvolution(im_nmzd, W).Stains
     im_nuclei_stain = im_stains[:, :, 0]

@@ -1,13 +1,16 @@
 # Python 3.6.8
 dataclasses==0.7
 pydantic==1.5.1
+dacite==1.5.0
 cachetools==4.1.0
-attrs==19.3.0
 typing-extensions==3.7.4.2
 mypy-extensions==0.4.3
 fbs==0.8.6
 PyQt5==5.9.2 #fbs
-# pyinstaller==3.4 #fbs, downgrading pip to 18.1 may be required. https://ru.stackoverflow.com/questions/951400/%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0-%D0%BF%D1%80%D0%B8-%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5-pyinstaller-%D1%87%D0%B5%D1%80%D0%B5%D0%B7-pip
+# pyinstaller==3.4 #fbs, downgrading pip to 18.1 may be required.
+# Related issues:
+# https://ru.stackoverflow.com/questions/951400/%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0-%D0%BF%D1%80%D0%B8-%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5-pyinstaller-%D1%87%D0%B5%D1%80%D0%B5%D0%B7-pip
+# https://github.com/pypa/pip/issues/6264
 PyQt5-stubs==5.11.3
 tensorflow==1.14.0
 # numpy==1.18.4 # tensorflow

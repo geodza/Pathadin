@@ -1,22 +1,29 @@
+import csv
 import json
 import typing
+from collections import OrderedDict
 
 from PyQt5.QtCore import Qt, QPoint, QModelIndex
 from PyQt5.QtWidgets import QWidget, QMenu
 
-from deepable.core import deep_supports_key_add, is_immutable, deep_local_key
+from annotation.model import AnnotationModel
+from common_qt.action.my_action import MyAction
+from common_qt.action.select_json_file_action import show_select_file_dialog, csv_mime_types
 from deepable.convert import DeepableJSONEncoder
+from deepable.core import deep_supports_key_add, is_immutable, deep_local_key, deep_get
 from deepable_qt.context_menu_factory2 import DeepableTreeViewActionsFactory
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
 from deepable_qt.view.deepable_tree_view import DeepableTreeView
-from slide_viewer.ui.common.model import AnnotationModel
+from slide_viewer.ui.slide.widget.filter.filter_data_service import FilterDataService
 
 
-def create_annotations_tree_view(parent_: typing.Optional[QWidget], model: DeepableTreeModel) -> DeepableTreeView:
+def create_annotations_tree_view(parent_: typing.Optional[QWidget], model: DeepableTreeModel,
+								 filter_data_service: FilterDataService) -> DeepableTreeView:
 	tree_view = DeepableTreeView(parent_)
 	tree_view.setModel(model)
 	tree_view.setContextMenuPolicy(Qt.CustomContextMenu)
-	tree_view.customContextMenuRequested.connect(create_annotations_tree_view_context_menu(tree_view))
+	tree_view.customContextMenuRequested.connect(
+		create_annotations_tree_view_context_menu(tree_view, filter_data_service))
 	return tree_view
 
 
@@ -26,7 +33,7 @@ def can_be_restored_from_json_by_default(obj: typing.Any) -> bool:
 	return type(obj) in (str, int, float, bool)
 
 
-def create_annotations_tree_view_context_menu(view: DeepableTreeView):
+def create_annotations_tree_view_context_menu(view: DeepableTreeView, filter_data_service: FilterDataService):
 	def on_context_menu(position: QPoint):
 		if not view.model().rowCount():
 			return
@@ -47,6 +54,59 @@ def create_annotations_tree_view_context_menu(view: DeepableTreeView):
 
 		if all(is_top_level(i) or deep_supports_key_add(factory.model.value(i.parent())) for i in factory.indexes):
 			actions.append(factory.duplicate())
+
+		if all(is_top_level(i) for i in factory.indexes):
+			def on_filter_results_csv_export():
+				filter_results_csv_export_configs = OrderedDict()
+				annotation_models = OrderedDict()
+				for i in factory.indexes:
+					if i.column() == 0:
+						key, value = view.model().key(i), view.model().value(i)
+						annotation_model: AnnotationModel = value
+						if annotation_model.filter_id:
+							filter_data = filter_data_service.get_filter_item(annotation_model.filter_id)
+							if filter_data.csv_export_config:
+								filter_results_csv_export_configs[key] = filter_data.csv_export_config
+								annotation_models[key] = annotation_model
+
+				rows = []
+				headers = OrderedDict()
+				for key in annotation_models:
+					annotation_model = annotation_models[key]
+					config = filter_results_csv_export_configs[key]
+					row = OrderedDict()
+					for column in config.columns:
+						column_value = deep_get(annotation_model, column.value_path)
+						if column.is_value_dict:
+							for i, k in enumerate(column_value):
+								key_header = f'{column.header}.{i}.key'
+								row[key_header] = k
+								headers[key_header] = key_header
+								value_header = f'{column.header}.{i}.value'
+								row[value_header] = column_value[k]
+								headers[value_header] = value_header
+						else:
+							header = f'{column.header}'
+							row[header] = column_value
+							headers[header] = header
+					rows.append(row)
+
+				if not rows:
+					return
+				delimiter = next(cfg.delimiter for cfg in filter_results_csv_export_configs.values())
+				# print(rows)
+				file = show_select_file_dialog(view, save=True, default_file_name='filter_results.csv',
+											   mime_types=csv_mime_types())
+				if file:
+					with open(file, 'w') as csvfile:
+						fieldnames = list(headers)
+						writer = csv.DictWriter(csvfile, fieldnames=fieldnames, dialect='excel', delimiter=delimiter)
+						writer.writeheader()
+						for row in rows:
+							writer.writerow(row)
+
+			actions.append(
+				MyAction(f"Export filter results of {factory.mode} to csv ", action_func=on_filter_results_csv_export))
 
 		if factory.current_index is not None:
 			actions.append(factory.separator())

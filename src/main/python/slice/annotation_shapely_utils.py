@@ -6,8 +6,8 @@ from shapely.geometry import Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.strtree import STRtree
 
-from slide_viewer.ui.common.annotation_type import AnnotationType
-from slide_viewer.ui.common.model import AnnotationModel, AnnotationTreeItems, AnnotationGeometry
+from annotation.annotation_type import AnnotationType
+from annotation.model import AnnotationModel, AnnotationTreeItems, AnnotationGeometry
 
 
 def annotation_geom_to_shapely_geom(geometry: AnnotationGeometry) -> Polygon:

@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 import typing
 
-from common_qt.mvc.view.delegate.factory.item_view_delegate_factory import AbstractItemViewDelegateFactory, T
-from common_qt.mvc.view.delegate.item_view_delegate import AbstractItemViewDelegate
+from common_qt.mvc.view.delegate.factory.abstract_item_view_delegate_factory import AbstractItemViewDelegateFactory, T
+from common_qt.mvc.view.delegate.abstract_item_view_delegate import AbstractItemViewDelegate
 from deepable.core import first_last_keys
 from deepable_qt.model.deepable_model_index import DeepableQModelIndex
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel

@@ -13,7 +13,7 @@ def load_filter_plugin_clazzes() -> typing.List[typing.Type[F]]:
 		name: importlib.import_module(name)
 		for finder, name, ispkg
 		in pkgutil.iter_modules()
-		if name.startswith('pathadin_') and not ispkg
+		if name.startswith('pathadin') and not ispkg
 	}
 	filter_plugin_clazzes = []
 	for module_name, module in discovered_plugins.items():

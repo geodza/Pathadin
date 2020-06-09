@@ -4,53 +4,61 @@ from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
-from PyQt5.QtCore import QSize, Qt, pyqtBoundSignal, QFileInfo, QFile, QRectF, pyqtSignal
+from PyQt5.QtCore import QSize, Qt, pyqtBoundSignal, QFileInfo, QFile
 from PyQt5.QtGui import QCloseEvent, QColor, QBrush
-from PyQt5.QtWidgets import QMainWindow, QApplication, QItemEditorFactory, \
-	QDockWidget, QMdiArea, QMdiSubWindow
+from PyQt5.QtWidgets import QMainWindow, QApplication, QDockWidget, QMdiArea, QMdiSubWindow
 
 from common_qt.abcq_meta import ABCQMeta
-from common_qt.editor.custom_item_editor_factory import CustomItemEditorFactory
-from common_qt.util.mdi_subwindow_sync_utils import sync_about_to_activate, sync_close
+from common_qt.core import QMdiAreaP, QDockWidgetP
+from common_qt.mvc.view.delegate.abstract_item_view_delegate import AbstractItemViewDelegate
+from common_qt.mvc.view.delegate.styled_item_view_delegate import QStyledItemViewDelegate
 from common_qt.persistent_settings.settings_utils import write_settings, read_settings
-from common_qt.util.slot_disconnected_utils import slot_disconnected
-from deepable.core import toplevel_keys
+from common_qt.util.mdi_subwindow_sync_utils import sync_about_to_activate, sync_close
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
-from deepable_qt.view.deepable_tree_view import DeepableTreeView
 from deepable_qt.model.tree_view_config_deepable_tree_model_delegate import TreeViewConfigDeepableTreeModelDelegate
-from img.filter.base_filter import FilterData
-from img.filter.keras_model import KerasModelFilterData, KerasModelParams
-from img.filter.kmeans_filter import KMeansFilterData
-from img.filter.manual_threshold import GrayManualThresholdFilterData, HSVManualThresholdFilterData
-from img.filter.nuclei import NucleiFilterData
-from img.filter.positive_pixel_count import PositivePixelCountFilterData
-from img.filter.skimage_threshold import SkimageMeanThresholdFilterData
+from deepable_qt.view.deepable_tree_view import DeepableTreeView
+from filter.filter_plugin import FilterPlugin
+from filter.keras.keras_model_filter_model import KerasModelFilterData, KerasModelParams
+from filter.kmeans.kmeans_filter_model import KMeansFilterData
+from filter.manual_threshold.manual_threshold_filter_model import GrayManualThresholdFilterData, \
+	HSVManualThresholdFilterData
+from filter.nuclei.nuclei_filter_model import NucleiFilterData
+from filter.positive_pixel_count.positive_pixel_count_filter_model import PositivePixelCountFilterData
+from filter.skimage_threshold.skimage_threshold_filter_model import SkimageMeanThresholdFilterData
 from slide_viewer.config import initial_main_window_size, model_path
-from slide_viewer.ui.slide.widget.annotation.annotations_tree_view import create_annotations_tree_view
-from slide_viewer.ui.common.model import AnnotationModel
 from slide_viewer.ui.slide.graphics.view.graphics_view import GraphicsView
-from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service2 import GraphicsViewAnnotationService2
-from slide_viewer.ui.slide.widget.annotation_filter_processor import AnnotationFilterProcessor
-from slide_viewer.ui.slide.widget.annotation_stats_processor import AnnotationStatsProcessor
-from slide_viewer.ui.slide.widget.deepable_annotation_service import DeepableAnnotationService
-from slide_viewer.ui.slide.widget.filter.filters_tree_view import create_filters_tree_view, create_filters_tree_model
-from slide_viewer.ui.slide.widget.filter.plugin import load_filter_plugins
-from slide_viewer.ui.slide.widget.filter.processor import create_filter_processor
+from slide_viewer.ui.slide.graphics.view.graphics_view_annotation_service3 import GraphicsViewAnnotationService3
+from slide_viewer.ui.slide.widget.annotation.annotation_filter_processor import AnnotationFilterProcessor
+from slide_viewer.ui.slide.widget.annotation.annotation_service import AnnotationService
+from slide_viewer.ui.slide.widget.annotation.annotations_tree_view import create_annotations_tree_view
+from slide_viewer.ui.slide.widget.annotation.deepable_annotation_service import DeepableAnnotationService
+from slide_viewer.ui.slide.widget.filter.filter_data_service import FilterDataService
+from slide_viewer.ui.slide.widget.filter.filters_tree_view import create_filters_tree_view, create_filters_tree_model, \
+	create_filter_processor
+from slide_viewer.ui.slide.widget.filtered_annotation_model_delegate import FilteredAnnotationModelDelegate, \
+	FilterAnnotationViewDelegate
 from slide_viewer.ui.slide.widget.graphics_view_mdi_sub_window import GraphicsViewMdiSubWindow
+from slide_viewer.ui.slide.widget.interface.active_annotation_service_provider import ActiveAnnotationServiceProvider
 from slide_viewer.ui.slide.widget.interface.active_annotation_tree_view_provider import ActiveAnnotationTreeViewProvider
 from slide_viewer.ui.slide.widget.interface.active_view_provider import ActiveViewProvider
-from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService, SyncOption
-from slide_viewer.ui.slide.widget.main_window_view_sync import setup_sync
+from slide_viewer.ui.slide.widget.interface.mdi_sub_window_service import SubWindowService
 from slide_viewer.ui.slide.widget.mdi_sub_window import MdiSubWindow
-from slide_viewer.ui.slide.widget.menubar import Menubar
+from slide_viewer.ui.slide.widget.sync.annotation_stats import sync_annotations_stats
+from slide_viewer.ui.slide.widget.sync.annotations import sync_graphics_and_model_annotations, \
+	sync_filtered_annotation_graphics_item_and_model_annotations
+from slide_viewer.ui.slide.widget.sync.filters import sync_graphics_and_model_filters
+from slide_viewer.ui.slide.widget.sync.selection import sync_graphics_and_model_selection
+from slide_viewer.ui.slide.widget.sync.sub_window.annotation_services_synchronizer import \
+	AnnotationServicesSynchronizer, \
+	AnnotationServiceSyncOptions
+from slide_viewer.ui.slide.widget.sync.sub_window.graphics_views_synchronizer import GraphicsViewsSynchronizer, \
+	GraphicsViewSyncOptions
+from slide_viewer.ui.slide.widget.sync.sync_option import SyncOption
 
 
-class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvider, SubWindowService,
+class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvider, ActiveAnnotationServiceProvider,
+				 SubWindowService,
 				 metaclass=ABCQMeta):
-	__sub_window_slide_path_changed = pyqtSignal(str)
-
-	def menuBar(self) -> Menubar:
-		return typing.cast(Menubar, super().menuBar())
 
 	def get_sync_state(self, option: SyncOption) -> bool:
 		return bool(self.sync_states.get(option))
@@ -64,6 +72,11 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 		return [typing.cast(GraphicsView, w.widget()) for w in self.view_mdi.subWindowList()]
 
 	@property
+	def sub_services(self) -> List[AnnotationService]:
+		return [typing.cast(AnnotationService, w.annotation_service) for w in
+				self.annotations_tree_mdi.subWindowList()]
+
+	@property
 	def active_sub_window(self) -> QMdiSubWindow:
 		return self.view_mdi.activeSubWindow()
 
@@ -74,10 +87,6 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 	@property
 	def sub_window_activated(self) -> pyqtBoundSignal:
 		return self.view_mdi.subWindowActivated
-
-	@property
-	def sub_window_slide_path_changed(self) -> pyqtBoundSignal(str):
-		return self.__sub_window_slide_path_changed
 
 	def tile_sub_windows(self) -> None:
 		self.view_mdi.tileSubWindows()
@@ -92,21 +101,30 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 		active = self.annotations_tree_mdi.activeSubWindow()
 		return active.widget() if active else None
 
-	def __init__(self):
-		super().__init__()
-		self.sync_states: typing.Dict[SyncOption, bool] = {}
-		self.cleanup: typing.Optional[typing.Callable[[], None]] = None
+	@property
+	def active_annotation_service(self) -> typing.Optional[AnnotationService]:
+		active = self.annotations_tree_mdi.activeSubWindow()
+		return active.annotation_service if active else None
 
-		filters = OrderedDict({
-			'GRAY': GrayManualThresholdFilterData('GRAY', True, (150, 100)),
-			'HSV': HSVManualThresholdFilterData('HSV', True, ((165, 40, 0), (15, 255, 255))),
-			'KMEANS': KMeansFilterData('KMEANS'),
-			'NUCLEI': NucleiFilterData('NUCLEI'),
-			'SKIMAGE_MEAN': SkimageMeanThresholdFilterData('SKIMAGE_MEAN'),
-			'PIXEL_COUNT': PositivePixelCountFilterData('PIXEL_COUNT'),
-			'KERAS': KerasModelFilterData('KERAS', True, KerasModelParams(model_path)),
-			# '7': KerasModelFilterData('7', KerasModelParams(model_path2)),
-		})
+	def __init__(self, filter_plugins: List[FilterPlugin] = []):
+		super().__init__()
+		self.filter_plugins = filter_plugins
+		self.sync_states: typing.Dict[SyncOption, bool] = {}
+		self.graphics_views_cleanup: typing.Optional[typing.Callable[[], None]] = None
+		self.tree_models_cleanup: typing.Optional[typing.Callable[[], None]] = None
+
+		self.graphics_views_synchronizer = GraphicsViewsSynchronizer()
+		self.annotation_services_synchronizer = AnnotationServicesSynchronizer()
+
+		filters = [
+			GrayManualThresholdFilterData('G', 'Gray', gray_range=(150, 100)),
+			HSVManualThresholdFilterData('H', 'HSV', hsv_range=((165, 40, 0), (15, 255, 255))),
+			KMeansFilterData('K', 'KMeans'),
+			NucleiFilterData('N', 'Nuclei'),
+			SkimageMeanThresholdFilterData('S', 'SkimageMean'),
+			PositivePixelCountFilterData('P', 'PPC'),
+			KerasModelFilterData('E', 'KerasModel', keras_model_params=KerasModelParams(model_path)),
+		]
 
 		self.view_mdi = QMdiArea(self)
 		self.setCentralWidget(self.view_mdi)
@@ -114,31 +132,31 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
 		# model_delegate = TreeViewConfigDeepableTreeModelDelegate()
 		filters_model = create_filters_tree_model(filters)
+		self.filter_data_service = FilterDataService(filters_model)
 		# filters_model = TreeViewConfigDeepableTreeModel()
-		self.filters_tree_view = create_filters_tree_view(self, filters_model)
-		filters_dock_widget = QDockWidget('Filters', self)
-		filters_dock_widget.setWidget(self.filters_tree_view)
-		filters_dock_widget.setFeatures(filters_dock_widget.features() & ~QDockWidget.DockWidgetClosable)
+		self.filters_tree_view = create_filters_tree_view(self, filters_model, self.filter_plugins)
+		filters_dock_widget = QDockWidgetP('Filters', self, widget=self.filters_tree_view,
+										   features=QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
 		self.addDockWidget(Qt.RightDockWidgetArea, filters_dock_widget)
 
-		self.annotations_tree_mdi = QMdiArea(self)
-		self.annotations_tree_mdi.setViewMode(QMdiArea.TabbedView)
-		annotations_dock_widget = QDockWidget('Annotations', self)
-		annotations_dock_widget.setWidget(self.annotations_tree_mdi)
-		annotations_dock_widget.setFeatures(annotations_dock_widget.features() & ~QDockWidget.DockWidgetClosable)
+		self.annotations_tree_mdi = QMdiAreaP(self, view_mode=QMdiArea.TabbedView)
+		annotations_dock_widget = QDockWidgetP('Annotations', self, widget=self.annotations_tree_mdi,
+											   features=QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
 		self.addDockWidget(Qt.RightDockWidgetArea, annotations_dock_widget)
 
 		self.resizeDocks([annotations_dock_widget, filters_dock_widget], [600, 600], Qt.Horizontal)
 		self.resizeDocks([annotations_dock_widget, filters_dock_widget], [500, 500], Qt.Vertical)
 
-		# self.setup_editor_factory()
-
 		# def on_activated(w):
 		#     print("on_activated", w)
 
 		# self.view_mdi.subWindowActivated.connect(on_activated)
-		self.view_mdi.subWindowActivated.connect(self.on_init_sync)
-		self.isSyncChanged.connect(self.on_init_sync)
+
+		self.view_mdi.subWindowActivated.connect(self.sync_graphics_views)
+		self.isSyncChanged.connect(self.sync_graphics_views)
+
+		self.annotations_tree_mdi.subWindowActivated.connect(self.sync_tree_models)
+		self.isSyncChanged.connect(self.sync_tree_models)
 
 		max_workers = os.cpu_count()
 		max_workers = max_workers - 1 if max_workers > 1 else max_workers
@@ -149,57 +167,54 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 	def __del__(self):
 		self.pool.shutdown(False)
 
-	def on_init_sync(self, except_view: GraphicsView):
-		if self.cleanup:
-			self.cleanup()
-			self.cleanup = None
-		if self.active_view:
-			view = self.active_view
-			sub_views_except_active = [sw for sw in self.sub_views if sw is not view and sw is not except_view]
-			sync_states = dict(self.sync_states)
-			# print(f"active view: {view.id}")
-			self.cleanup = setup_sync(view, sub_views_except_active, sync_states)
+	def sync_graphics_views(self, option: SyncOption):
+		options = GraphicsViewSyncOptions(self.sync_states.get(SyncOption.view_transform, False),
+										  self.sync_states.get(SyncOption.grid_visible, False),
+										  self.sync_states.get(SyncOption.grid_size, False),
+										  self.sync_states.get(SyncOption.file_path, False),
+										  self.sync_states.get(SyncOption.background_brush, False),
+										  self.sync_states.get(SyncOption.annotations, False))
+		self.graphics_views_synchronizer.sync(self.active_view, self.sub_views, options)
+
+	def sync_tree_models(self, option: SyncOption):
+		options = AnnotationServiceSyncOptions(self.sync_states.get(SyncOption.annotations, False),
+											   self.sync_states.get(SyncOption.annotation_filter, False))
+		self.annotation_services_synchronizer.sync(self.active_annotation_service, self.sub_services, options)
 
 	def add_sub_window(self) -> GraphicsViewMdiSubWindow:
+		# annotations_tree_model_delegate = FilteredAnnotationModelDelegate(TreeViewConfigDeepableTreeModelDelegate(),None)
+		annotations_tree_model_delegate = TreeViewConfigDeepableTreeModelDelegate()
 		annotations_tree_model = DeepableTreeModel(_root=OrderedDict(),
-												   _modelDelegate=TreeViewConfigDeepableTreeModelDelegate())
-		annotations_tree_view = create_annotations_tree_view(self, annotations_tree_model)
+												   _modelDelegate=annotations_tree_model_delegate)
+
+		annotations_tree_view = create_annotations_tree_view(self, annotations_tree_model, self.filter_data_service)
+		annotations_tree_view_delegate = QStyledItemViewDelegate(
+			FilterAnnotationViewDelegate(AbstractItemViewDelegate(), self.filter_data_service))
+		annotations_tree_view.setItemDelegate(annotations_tree_view_delegate)
 		annotation_tree_view_sub_window = MdiSubWindow(self)
 		annotation_tree_view_sub_window.setWidget(annotations_tree_view)
 		annotations_tree_sub_window = self.annotations_tree_mdi.addSubWindow(annotation_tree_view_sub_window)
+		annotation_service = DeepableAnnotationService(root=annotations_tree_model)
+		annotations_tree_sub_window.annotation_service = annotation_service
+		# Be careful. Show will call activated signal => synchronization logic will be performed which requires "active annotation_service",
+		# so need to set service(anything required for sync method) before showing.
 		annotations_tree_sub_window.show()
 
-		microns_per_pixel_provider = lambda: view.get_microns_per_pixel()
-		annotation_stats_processor = AnnotationStatsProcessor(microns_per_pixel_provider=microns_per_pixel_provider)
-		annotation_service = DeepableAnnotationService(root=annotations_tree_model,
-													   stats_processor=annotation_stats_processor)
 		slide_path_provider = lambda: view.slide_helper.slide_path
-
-		def filter_model_provider(filter_id: str):
-			if filter_id in self.filters_tree_view.model():
-				for key in self.filters_tree_view.model():
-					fd: FilterData = self.filters_tree_view.model()[key]
-					if fd.id == filter_id:
-						return fd
-			# return self.filters_tree_view.model()[filter_id]
-			else:
-				return None
-
 		scene_provider = lambda: view.scene()
 
-		# annotation_filter_processor = None
-		filter_processor = create_filter_processor(load_filter_plugins())
+		filter_processor = create_filter_processor(self.filter_plugins)
 		annotation_filter_processor = AnnotationFilterProcessor(pool=self.pool,
 																slide_path_provider=slide_path_provider,
 																annotation_service=annotation_service,
-																filter_model_provider=filter_model_provider,
+																filter_data_service=self.filter_data_service,
 																filter_processor=filter_processor)
+		# annotations_tree_model_delegate.annotation_item_pixmap_provider = annotation_filter_processor
 
-		graphics_view_annotation_service = GraphicsViewAnnotationService2(scene_provider=scene_provider,
-																		  annotation_service=annotation_service,
+		graphics_view_annotation_service = GraphicsViewAnnotationService3(scene_provider=scene_provider,
 																		  scale_provider=None)
-
 		view = GraphicsView(parent_=self,
+							annotation_service=annotation_service,
 							graphics_view_annotation_service=graphics_view_annotation_service,
 							annotation_pixmap_provider=annotation_filter_processor, thread_pool=self.pool)
 		graphics_view_annotation_service.slide_stats_provider = view
@@ -216,58 +231,25 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 
 		def on_file_path_dropped(file_path: str):
 			self.sub_window_activated.emit(view_sub_window)
-
-		def on_scene_annotations_selected(ids: typing.List[str]):
-			with slot_disconnected(annotations_tree_view.objectsSelected, on_tree_objects_selected):
-				annotations_tree_view.select_keys(ids)
-
-		def on_tree_objects_selected(keys: typing.List[str]):
-			with slot_disconnected(view.scene().annotationModelsSelected, on_scene_annotations_selected):
-				ids = toplevel_keys(keys) & set(keys)
-				annotations_bounding_rect = QRectF()
-				for id_, annotation in view.scene().annotations.items():
-					if id_ in ids:
-						annotation.setSelected(True)
-						annotation_bounding_rect = annotation.boundingRect().translated(annotation.pos())
-						annotations_bounding_rect = annotations_bounding_rect.united(annotation_bounding_rect)
-					else:
-						annotation.setSelected(False)
-				if annotations_bounding_rect:
-					view.fit_rect(annotations_bounding_rect)
-
-		def tree_filter_models_changed(keys: List[str]):
-			if view and view.filter_graphics_item:
-				view.filter_graphics_item.update()
+			self.view_mdi.activateWindow()
 
 		def on_about_to_close():
 			print("on_about_to_close", view_sub_window)
-			self.on_init_sync(view)
+			self.sync_graphics_views(view)
 
 		sync_about_to_activate(view_sub_window, annotation_tree_view_sub_window)
 		sync_close(view_sub_window, annotation_tree_view_sub_window)
 		view_sub_window.aboutToClose.connect(on_about_to_close)
 		view.filePathChanged.connect(on_file_path_changed)
 		view.filePathDropped.connect(on_file_path_dropped)
-		view.scene().annotationModelsSelected.connect(on_scene_annotations_selected)
-		annotations_tree_view.objectsSelected.connect(on_tree_objects_selected)
-		self.filters_tree_view.model().keysChanged.connect(tree_filter_models_changed)
 
-		def on_annotation_model_edited(id_: str, model: AnnotationModel):
-			with slot_disconnected(annotation_service.edited_signal(), on_annotation_model_edited):
-				stats = annotation_stats_processor.calc_stats(model)
-				annotation_service.edit_stats(id_, stats)
-
-		annotation_service.edited_signal().connect(on_annotation_model_edited)
+		sync_graphics_and_model_filters(self.filters_tree_view, view)
+		sync_filtered_annotation_graphics_item_and_model_annotations(view, annotation_service)
+		sync_annotations_stats(annotation_service, lambda: view.get_microns_per_pixel())
+		sync_graphics_and_model_annotations(graphics_view_annotation_service, annotation_service)
+		sync_graphics_and_model_selection(annotations_tree_view, view)
 
 		return view_sub_window
-
-	def setup_editor_factory(self):
-		self.system_default_factory = QItemEditorFactory.defaultFactory()
-		# editor_factory = QItemEditorFactory()
-		editor_factory = CustomItemEditorFactory(self.system_default_factory)
-		# editor_factory = QItemEditorFactory.defaultFactory()
-		# editor_factory.registerEditor(QVariant.Color, ColorEditorCreatorBase(self.ctx.icon_palette))
-		QItemEditorFactory.setDefaultFactory(editor_factory)
 
 	def write_settings(self):
 		settings = {

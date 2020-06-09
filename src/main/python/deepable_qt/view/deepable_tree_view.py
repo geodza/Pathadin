@@ -19,6 +19,7 @@ class DeepableTreeView(QTreeView):
 		self.setAllColumnsShowFocus(True)
 		self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
 		self.header().hide()
+
 		# self.setModel(model_)
 		# font = self.font()
 		# font.setPointSize(8)

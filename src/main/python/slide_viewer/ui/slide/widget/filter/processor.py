@@ -1,14 +1,8 @@
 import typing
 
-from filter.filter_plugin import FilterPlugin
-from filter_processor.composite_filter_processor import CompositeFilterProcessor
-from filter_processor.filter_processor import FilterProcessor
-from img.filter.base_filter import FilterResults2
+from filter.common.filter_model import FilterOutput
 
 F = typing.TypeVar('F')
-R = typing.TypeVar('R', bound=FilterResults2)
+R = typing.TypeVar('R', bound=FilterOutput)
 
 
-def create_filter_processor(filter_plugins: typing.List[FilterPlugin]) -> FilterProcessor:
-	factories = [p.filterProcessorFactory() for p in filter_plugins]
-	return CompositeFilterProcessor(factories)

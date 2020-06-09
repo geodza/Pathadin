@@ -1,29 +1,24 @@
-import os
-from bisect import bisect_left
 import typing
-from concurrent.futures import ThreadPoolExecutor, Executor
-import openslide
+from bisect import bisect_left
+from concurrent.futures import ThreadPoolExecutor
+
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QRectF, QRect, Qt, QMutex, QMutexLocker
+from PyQt5.QtCore import QRectF, QRect, Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGraphicsItem, QWidget, QStyleOptionGraphicsItem
 
-from slide_viewer.config import debug, initial_cell_size
-from slide_viewer.common.slide_helper import SlideHelper
 from common_image_qt.core import pilimage_to_pixmap
-
-cache_mutex = QMutex()
-
-
-def load_tile(slide_path, level0_pos, level, size):
-	with openslide.open_slide(slide_path) as slide:
-		tile_pilimage = slide.read_region((int(level0_pos[0]), int(level0_pos[1])), level,
-										  (int(size[0]), int(size[1])))
-		return tile_pilimage
+from common_openslide.slide_helper import SlideHelper
+from common_openslide.utils import load_tile
 
 
 class SlideGraphicsItem(QGraphicsItem):
-	def __init__(self, slide_path: str, thread_pool: ThreadPoolExecutor):
+	# Painting, QPixmap manipulation and feature.done_callback - everything is done in main gui-thread.
+	# So no need of synchronization primitives like locks or mutexes.
+	# What is done in concurrent threads - is ONLY READING images from slide file.
+	# All subsequent actions like building QPixmap, putting it into cache and painting is done in main gui-thread.
+
+	def __init__(self, slide_path: str, thread_pool: ThreadPoolExecutor, initial_cell_size=2 ** 11, debug=False):
 		super().__init__()
 		self.slide_helper = SlideHelper(slide_path)
 		self.level0_size = self.slide_helper.level_dimensions[0]
@@ -111,15 +106,12 @@ class SlideGraphicsItem(QGraphicsItem):
 				cell_exposed_level_rect = exposed_level_rect.intersected(QRectF(cell_level_rect))
 				cell_pixmap_exposed_level_rect = cell_exposed_level_rect.translated(-cell_level_rect.topLeft())
 
-				cache_mutex_locker = QMutexLocker(cache_mutex)
 				cell_pixmap = QPixmapCache.find(cache_key)
 				if cell_pixmap:
-					cache_mutex_locker.unlock()
 					painter.drawPixmap(cell_exposed_level_rect, cell_pixmap, cell_pixmap_exposed_level_rect)
 				else:
 					if not self.ongoing_cell_loading.get(cache_key, False):
 						self.ongoing_cell_loading[cache_key] = True
-						cache_mutex_locker.unlock()
 						cell_pilimage_future = self.thread_pool.submit(load_tile, self.slide_helper.slide_path,
 																	   (cell_scene_rect.left(), cell_scene_rect.top()),
 																	   level, (self.cell_size_x, self.cell_size_y))
@@ -128,8 +120,6 @@ class SlideGraphicsItem(QGraphicsItem):
 						# exposedRect will differ from old exposedRect
 						done_callback = self.build_done_callback_closure(cache_key, QRectF(cell_scene_rect))
 						cell_pilimage_future.add_done_callback(done_callback)
-					else:
-						cache_mutex_locker.unlock()
 
 					for higher_level in range(level + 1, self.slide_helper.get_max_level() + 1):
 						higher_level_downsample = self.slide_helper.get_downsample_for_level(higher_level)
@@ -143,9 +133,7 @@ class SlideGraphicsItem(QGraphicsItem):
 						higherlevel_cache_key = self.build_cell_cache_key(higher_level,
 																		  higherlevel_cell_rect.top(),
 																		  higherlevel_cell_rect.left())
-						cache_mutex_locker = QMutexLocker(cache_mutex)
 						higherlevel_cell_pixmap = QPixmapCache.find(higherlevel_cache_key)
-						cache_mutex_locker.unlock()
 						if higherlevel_cell_pixmap:
 							higherlevel_cell_higherlevel_rect = cell_to_level.mapRect(higherlevel_cell_rect)
 							cell_higherlevel_part_rect = cell_higherlevel_rect.translated(
@@ -163,10 +151,8 @@ class SlideGraphicsItem(QGraphicsItem):
 	def build_done_callback_closure(self, cache_key, scene_rect_to_update):
 		def done_callback(cell_pilimage_future):
 			cell_pixmap = pilimage_to_pixmap(cell_pilimage_future.result())
-			cache_mutex_locker = QMutexLocker(cache_mutex)
 			QPixmapCache.insert(cache_key, cell_pixmap)
 			self.ongoing_cell_loading[cache_key] = False
-			cache_mutex_locker.unlock()
 			self.scene().update(scene_rect_to_update.translated(self.pos()))
 
 		return done_callback

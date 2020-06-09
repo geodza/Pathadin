@@ -1,8 +1,8 @@
 from PyQt5.QtCore import QFileInfo, QFile
 
 from common_qt.action.select_json_file_action import SelectJsonFileAction
-from slide_viewer.ui.common.model import AnnotationTreeItems
-from slide_viewer.ui.slide.widget.interface.annotation_service import AnnotationService
+from annotation.model import AnnotationTreeItems
+from slide_viewer.ui.slide.widget.annotation.annotation_service import AnnotationService
 
 
 def load_annotations(annotation_service: AnnotationService, file_path: str) -> None:

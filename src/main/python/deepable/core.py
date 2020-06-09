@@ -1,12 +1,10 @@
 import collections
 import copy
 import typing
+from typing import Any, Union, List, Dict, Set, Optional
 
-import attr
 from dataclasses import fields, is_dataclass, dataclass, asdict
 from pydantic import BaseModel
-
-from typing import Any, Union, List, Dict, Set, Optional
 
 DataClass = Any
 Deepable = Union[dict, DataClass]
@@ -50,7 +48,7 @@ def isnamedtupletype(t) -> bool:
 #     if isinstance()
 
 def is_deepable(obj) -> bool:
-	return isinstance(obj, dict) or is_dataclass(obj) or attr.has(type(obj)) or isinstance(obj, BaseModel) \
+	return isinstance(obj, dict) or is_dataclass(obj) or isinstance(obj, BaseModel) \
 		   or isnamedtupleinstance(obj) or isinstance(obj, (list, tuple))
 
 
@@ -146,8 +144,6 @@ def deep_keys(obj: Deepable) -> list:
 	#     return list(obj.keys())
 	elif isinstance(obj, (list, tuple)):
 		return [str(i) for i in range(len(obj))]
-	elif attr.has(type(obj)):
-		return [f.name for f in attr.fields(type(obj))]
 	elif isinstance(obj, BaseModel):
 		return [name for name in obj.__fields__]
 	elif is_dataclass(obj):
@@ -159,16 +155,14 @@ def deep_keys(obj: Deepable) -> list:
 
 
 def deep_type_init_keys(obj: type) -> list:
-	if attr.has(obj):
-		return [f.name for f in attr.fields(obj) if f.init]
-	elif issubclass(obj, BaseModel):
+	if issubclass(obj, BaseModel):
 		return obj.__fields__
 	elif is_dataclass(obj):
 		return [f.name for f in fields(obj) if f.init]
 	elif isnamedtupletype(obj):
 		return obj._fields
 	else:
-		raise ValueError(f'deep_type_keys for {obj} is not implemented')
+		raise ValueError(f'deep_type_init_keys for {obj} is not implemented')
 
 
 def deep_contains(obj: Deepable, key: str) -> bool:
@@ -352,13 +346,13 @@ def deep_diff_ignore_order(obj1: Optional[Deepable], obj2: Optional[Deepable]) -
 	keys2 = set(deep_keys_deep(obj2)) if obj2 else set()
 	keys1_only = keys1 - keys2
 	keys2_only = keys2 - keys1
-	added_keys = set(k for k in keys2_only if not any(k.startswith(k2) for k2 in keys2_only if k != k2))
-	removed_keys = set(k for k in keys1_only if not any(k2.startswith(k2) for k2 in keys1_only if k != k2))
+	added_keys = set(k for k in keys2_only if not any(k.startswith(k2 + '.') for k2 in keys2_only))
+	removed_keys = set(k for k in keys1_only if not any(k.startswith(k2 + '.') for k2 in keys1_only))
 	keys_both = keys1.intersection(keys2)
-	changed_keys = set(k for k in keys_both if not any(k2.startswith(k) for k2 in keys_both if k != k2))
+	changed_keys = set(k for k in keys_both if not any(k2.startswith(k + '.') for k2 in keys_both))
 
-	added_keys = set(k for k in added_keys if not any(k.startswith(k2) for k2 in changed_keys))
-	removed_keys = set(k for k in removed_keys if not any(k.startswith(k2) for k2 in changed_keys))
+	added_keys = set(k for k in added_keys if not any(k.startswith(k2 + '.') for k2 in changed_keys))
+	removed_keys = set(k for k in removed_keys if not any(k.startswith(k2 + '.') for k2 in changed_keys))
 
 	added = {}
 	for key in added_keys:

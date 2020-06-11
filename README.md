@@ -24,7 +24,7 @@ Minimum system requirements for adequate experience for provided binaries includ
 **Getting started**
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
 * http://www.pathadin.eu/
-* Latest release ([10.06.2020](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing
+* Latest release ([10.06.2020][Google Drive](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing
 ))
 * [Updates](https://gitlab.com/Digipathology/Pathadin/-/wikis/Updates)
 

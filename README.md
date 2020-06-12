@@ -28,7 +28,7 @@ Minimum system requirements for adequate experience for provided binaries includ
 **Latest release [*10.06.2020*]**
 - [Google Drive](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing)
 - [Pathadin.eu](https://www.pathadin.eu/pathadin/Pathadin%20Setup.exe)
-- [Update information](https://gitlab.com/Digipathology/Pathadin/-/wikis/Updates)
+- [Update information](https://gitlab.com/Digipathology/Pathadin/-/wikis/Update-information)
 
 
 **Stroma and gland seprataion for manuscript "Pathadin – a simple tool for quantitative pathology."**

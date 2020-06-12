@@ -7,28 +7,26 @@ The concept of Pathadin differs from other desktop WSI alternatives: in contrast
 Among Java solutions, Pathadin is entirely Python 3.6 software built with PyQT5 GUI. Pathadin is based on the openslide library. The central analytic libraries include Keras, Skimage/ Sklearn, and Histomics TK.
 
 Pathadin project provides:
-* Main graphical user interface (GUI)-application
-* Tool for slicing digital slides – a convenient feature for dataset generation for machine learning or usage in alternative software
-* Simply reproducable example of U- net model training.
+- Main graphical user interface (GUI)-application
+- Tool for slicing digital slides – a convenient feature for dataset generation for machine learning or usage in alternative software
+- Simply reproducable example of U- net model training.
+- Supports all the Openslide formats for Whole Slide Imaging (WSI), as the main image formats.
 
+The U-net model training can be performed separately from GUI due to training been computationally heavy and excessively dynamic, thus irrational to be enclosed by GUI.
 
-The U-net model training is performed separately from GUI due to training been computationally heavy and excessively dynamic, thus irrational to be enclosed by GUI.
+**DOWNLOAD: latest release 10.06.2020**
+- [From Google Drive](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing)
+- [From pathadin.eu server (179 MB)](https://www.pathadin.eu/pathadin/Pathadin%20Setup.exe)
+- [Information about updates](https://gitlab.com/Digipathology/Pathadin/-/wikis/Update-information)
 
-Minimum system requirements for adequate experience for provided binaries include
+**Minimum system requirements for adequate experience for provided binaries include**
 * Monitor resolution 1280 × 720
 * Operation system Windows 7 SP1 or newer
 * CPU Intel DualCore, RAM 4 GB
 
-**Supports all the Openslide formats for Whole Slide Imaging (WSI), as the main image formats.**
-
 **Getting started**
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
 * http://www.pathadin.eu/
-
-**Latest release [*10.06.2020*]**
-- [Google Drive](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing)
-- [Pathadin.eu](https://www.pathadin.eu/pathadin/Pathadin%20Setup.exe)
-- [Update information](https://gitlab.com/Digipathology/Pathadin/-/wikis/Update-information)
 
 
 **Stroma and gland seprataion for manuscript "Pathadin – a simple tool for quantitative pathology."**

@@ -2,13 +2,20 @@
   "app_name": "Pathadin",
   "author": "Pathadin",
   "main_module": "src/main/python/app.py",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "hidden_imports": [
     "pywt._extensions._cwt",
     "sklearn.utils._cython_blas",
     "sklearn.neighbors.typedefs",
     "sklearn.neighbors.quad_tree",
     "sklearn.tree._utils",
-    "pkg_resources.py2_warn"
+    "pkg_resources.py2_warn",
+    "filter.pathadin_gray_manual_threshold_filter_plugin",
+    "filter.pathadin_hsv_manual_threshold_filter_plugin",
+    "filter.pathadin_keras_model_filter_plugin",
+    "filter.pathadin_kmeans_filter_plugin",
+    "filter.pathadin_nuclei_filter_plugin",
+    "filter.pathadin_positive_pixel_count_filter_plugin",
+    "filter.pathadin_skimage_threshold_filter_plugin"
   ]
 }

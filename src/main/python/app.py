@@ -9,8 +9,8 @@ from common_qt.util.message_handler import qt_message_handler
 from slide_viewer.app_context import AppContext
 from slide_viewer.config import cache_size_in_kb
 
+
 if __name__ == '__main__':
-	sys.path.insert(0, 'filter')
 	appctxt = AppContext()
 	warnings.simplefilter('error', Image.DecompressionBombWarning)
 	QtCore.qInstallMessageHandler(qt_message_handler)

@@ -16,7 +16,7 @@ class AbstractItemViewContextMenuDelegate(ContextMenuDelegate, ABC, Generic[I, V
 		self.view = view
 
 	def on_context_menu(self, position: QPoint) -> None:
-		print("on_context_menu")
+		# print("on_context_menu")
 		index = self.view.indexAt(position)
 		menu = self.create_menu(index)
 		if menu:

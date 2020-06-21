@@ -70,7 +70,7 @@ class AnnotationFilterProcessor2():
 					pass
 			filter_task = self.filter_processor.filter_task(filter_data, slide_path, annotation_model)
 			new_task = self.pool.submit(filter_task)
-			print("new_task submitted", cache_key)
+			# print("new_task submitted", cache_key)
 			add_to_global_pending(cache_key, new_task)
 			self.scheduled_or_running_tasks[annotation_id].append(new_task)
 

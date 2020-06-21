@@ -38,11 +38,11 @@ class CompositeItemViewContextMenuDelegate(AbstractItemViewContextMenuDelegate, 
 
 	def create_menu(self, index: I) -> QMenu:
 		if index.isValid():
-			print("create menu with delegate")
+			# print("create menu with delegate")
 			return self.find_delegate(index).create_menu(index)
 		else:
 			menus = [d.create_menu(index) for d in self.find_delegates(index)]
-			print("create menu with delegates", len(menus))
+			# print("create menu with delegates", len(menus))
 			menu = QMenu()
 			for i, m in enumerate(menus):
 				menu.addMenu(m)

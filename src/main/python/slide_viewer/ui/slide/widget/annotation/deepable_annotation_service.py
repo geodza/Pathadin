@@ -98,7 +98,6 @@ class DeepableAnnotationService(QObject, AnnotationService, metaclass=ABCQMeta):
 		new_points[-1]=p
 		self.root[f'{id_}.geometry.points'] = new_points
 
-	@log()
 	def edit_filter_results(self, id_: str, filter_results: FilterResults) -> None:
 		self.root[f'{id_}.filter_results'] = filter_results
 

@@ -1,3 +1,5 @@
+import os
+import sys
 from typing import Optional
 
 from PyQt5.QtCore import Qt
@@ -33,6 +35,19 @@ class AppContext(ApplicationContext, IconProvider, metaclass=ABCQMeta):
 
 	def __init__(self):
 		super().__init__()
+
+		# https://stackoverflow.com/questions/404744/determining-application-path-in-a-python-exe-generated-by-pyinstaller
+		if getattr(sys, 'frozen', False):
+			# If the application is run as a bundle, the PyInstaller bootloader
+			# extends the sys module by a flag frozen=True and sets the app
+			# path into variable _MEIPASS'.
+			application_path = sys._MEIPASS
+		else:
+			application_path = os.path.dirname(os.path.abspath(__file__))
+		filters_path = os.path.join(application_path, 'filter')
+		# sys.path.insert(0, filters_path)
+		sys.path.insert(0, 'filter')
+		print(sys.path)
 		filter_plugins = load_filter_plugins()
 		mw = MainWindow(filter_plugins)
 

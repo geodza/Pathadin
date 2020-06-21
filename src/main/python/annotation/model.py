@@ -75,6 +75,10 @@ class P(BaseModel):
 
 
 if __name__ == '__main__':
+	import pydantic
+
+	print('compiled:', pydantic.compiled)
+
 	b = B(bb="2")
 	p = P(a="1", b=b)
 	pd = p.dict()

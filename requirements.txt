@@ -7,7 +7,7 @@ typing-extensions==3.7.4.2
 mypy-extensions==0.4.3
 fbs==0.8.6
 PyQt5==5.9.2 #fbs
-# pyinstaller==3.4 #fbs, downgrading pip to 18.1 may be required.
+pyinstaller==3.4 #fbs, downgrading pip to 18.1 may be required.
 # Related issues:
 # https://ru.stackoverflow.com/questions/951400/%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0-%D0%BF%D1%80%D0%B8-%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5-pyinstaller-%D1%87%D0%B5%D1%80%D0%B5%D0%B7-pip
 # https://github.com/pypa/pip/issues/6264
@@ -16,12 +16,12 @@ tensorflow==1.14.0
 # numpy==1.18.4 # tensorflow
 # h5py==2.10.0 # tensorflow
 Keras==2.3.1
-# scipy==1.4.1 # keras
+scipy==1.3.1 # pyinstaller 3.4 has wrong hook-scipy for newer versions of scipy so it will miss needed dlls https://github.com/pyinstaller/pyinstaller/issues/4533
 openslide-python==1.1.1
 # Pillow==7.1.2 # openslide-python
 opencv-python==4.2.0.34
-scikit-learn==0.23.1
-scikit-image==0.17.2
+scikit-learn==0.22 # pyinstaller 3.4 hasn't hook-sklearn so it will miss needed dlls https://github.com/pyinstaller/pyinstaller/pull/4613
+scikit-image==0.16.2
 # imageio==2.8.0 # scikit-image
 # matplotlib==3.2.1 # scikit-image
 Shapely==1.7.0
@@ -35,3 +35,5 @@ girder-client==3.1.0 # for histomics
 # Related issues:
 # https://github.com/akaszynski/pyansys/issues/14
 # https://stackoverflow.com/questions/32262976/cython-buffer-type-mismatch-expected-int-but-got-long
+setuptools==45.3.0
+# setuptools==40.6.2

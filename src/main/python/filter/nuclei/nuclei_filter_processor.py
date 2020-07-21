@@ -1,6 +1,6 @@
 from typing import Hashable, Callable
 
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter.nuclei.nuclei_filter import nuclei_filter
 from filter_processor.filter_processor import FilterProcessor, F
 from filter_processor.filter_processor_factory import FilterProcessorFactory

@@ -10,7 +10,8 @@ from common.timeit_utils import timing
 from common_image.core.mode_convert import convert_ndimg
 from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg
-from filter.common.filter_model import FilterResults, FilterOutput
+from filter.common.filter_output import FilterOutput
+from filter.common.filter_results import FilterResults
 from filter.positive_pixel_count.positive_pixel_count_filter_model import PositivePixelCountParams, \
 	PositivePixelCountFilterData
 from annotation_image.reagion_data import RegionData

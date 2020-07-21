@@ -1,6 +1,6 @@
 from typing import Hashable, Callable
 
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter_processor.filter_processor import FilterProcessor, F
 from filter_processor.filter_processor_factory import FilterProcessorFactory
 from filter.keras.keras_model_filter import keras_model_filter

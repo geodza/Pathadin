@@ -4,7 +4,7 @@ from typing import TypeVar
 from dataclasses import field, dataclass
 
 from filter.common.filter_data_factory import FilterDataFactory, FilterDataFactoryFactory
-from filter.common.filter_model import FilterData
+from filter.common.filter_data import FilterData
 
 F = TypeVar('F', bound=FilterData)
 

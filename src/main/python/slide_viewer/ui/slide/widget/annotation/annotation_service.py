@@ -3,7 +3,7 @@ from typing import List, Dict, Tuple
 
 from PyQt5.QtCore import pyqtBoundSignal
 
-from filter.common.filter_model import FilterResults
+from filter.common.filter_results import FilterResults
 from annotation.model import AnnotationModel, AnnotationStats
 
 ituple = Tuple[int, int]

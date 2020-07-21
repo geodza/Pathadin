@@ -3,7 +3,7 @@ from annotation_image.core import build_region_data, read_masked_region
 from annotation_image.reagion_data import RegionData
 from common.timeit_utils import timing
 from common_image.core.mode_convert import convert_ndimg
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter.common.threshold_filter import threshold_filter
 from filter.manual_threshold.manual_threshold_filter_model import GrayManualThresholdFilterData, \
 	HSVManualThresholdFilterData

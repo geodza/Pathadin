@@ -1,7 +1,7 @@
 import typing
 
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
-from filter.common.filter_model import FilterData
+from filter.common.filter_data import FilterData
 
 
 class FilterDataService:

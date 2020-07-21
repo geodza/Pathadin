@@ -20,7 +20,7 @@ from filter_template.filter_template_item_view_context_menu_delegate_factory imp
 	FilterTemplateItemViewContextMenuDelegateFactory
 from filter_template.filter_template_item_view_delegate import ImmutableFilterTemplateTreeViewDelegate
 from filter_template.filter_template_item_viewl_delegate_factory import FilterTemplateItemViewDelegateFactory
-from filter.common.filter_model import FilterData
+from filter.common.filter_data import FilterData
 
 from filter.keras.keras_model_filter_model import KerasModelParams, KerasModelFilterData, KerasModelParams_
 

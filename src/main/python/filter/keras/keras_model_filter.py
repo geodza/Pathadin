@@ -15,7 +15,8 @@ from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg
 from common_openslide.slide_helper import SlideHelper
 from common_shapely.shapely_utils import get_polygon_bbox_size, get_polygon_bbox_pos, scale_at_origin, locate
-from filter.common.filter_model import FilterResults, FilterOutput
+from filter.common.filter_output import FilterOutput
+from filter.common.filter_results import FilterResults
 from filter.keras.keras_model_filter_model import KerasModelParams, KerasModelFilterData
 from slice.annotation_shapely_utils import annotation_geom_to_shapely_geom
 from slice.image_shapely_utils import get_slide_polygon_bbox_rgb_region

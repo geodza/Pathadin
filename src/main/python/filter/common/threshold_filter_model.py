@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from common.dataclass_utils import dataclass_fields
-from filter.common.filter_model import FilterData
+from filter.common.filter_data import FilterData
 
 
 @dataclass(frozen=True)

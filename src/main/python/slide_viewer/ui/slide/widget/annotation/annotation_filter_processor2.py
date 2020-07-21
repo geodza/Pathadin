@@ -10,7 +10,7 @@ from annotation.model import AnnotationModel
 from common.concurrent_utils import not_canceled_done_callback
 from common.timeit_utils import timing
 from common_image_qt.core import ndimg_to_bitmap
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter_processor.filter_processor import FilterProcessor
 from slide_viewer.cache_config import cache_lock, add_to_global_pending, \
 	get_from_global_pending, \

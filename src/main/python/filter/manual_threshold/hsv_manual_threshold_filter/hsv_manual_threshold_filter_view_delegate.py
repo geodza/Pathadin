@@ -13,7 +13,7 @@ from deepable.core import first_last_keys
 from deepable_qt.model.deepable_model_index import DeepableQModelIndex
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
 from deepable_qt.view.deepable_tree_view import DeepableTreeView
-from filter.common.filter_model import FilterData
+from filter.common.filter_data import FilterData
 from filter.manual_threshold.manual_threshold_filter_model import HSVManualThresholdFilterData, \
 	HSVManualThresholdFilterData_
 from filter_template.filter_template_item_model_delegate_factory import FilterTemplateItemModelDelegateFactory, \

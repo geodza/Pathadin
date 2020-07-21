@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import TypeVar, Generic
 
 from filter_processor.filter_processor import FilterProcessor
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 
 F = TypeVar('F')
 

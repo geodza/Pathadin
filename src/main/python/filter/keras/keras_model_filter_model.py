@@ -3,7 +3,8 @@ from typing import Optional, ClassVar
 from dataclasses import field, dataclass
 
 from common.dataclass_utils import dataclass_fields
-from filter.common.filter_model import FilterData, FilterOutput
+from filter.common.filter_output import FilterOutput
+from filter.common.filter_data import FilterData
 
 
 @dataclass(frozen=True)

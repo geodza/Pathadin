@@ -12,7 +12,8 @@ from common_qt.mvc.view.delegate.factory.abstract_item_view_context_menu_delegat
 from common_qt.mvc.view.delegate.factory.abstract_item_view_delegate_factory import AbstractItemViewDelegateFactory
 from filter.common.filter_data_factory import FilterDataFactoryFactory
 from filter_processor.filter_processor_factory import FilterProcessorFactory
-from filter.common.filter_model import FilterOutput, FilterData
+from filter.common.filter_output import FilterOutput
+from filter.common.filter_data import FilterData
 
 I = typing.TypeVar('I', bound=QModelIndex)
 M = typing.TypeVar('M', bound=QAbstractItemModel)

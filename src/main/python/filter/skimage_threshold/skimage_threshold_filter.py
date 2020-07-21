@@ -4,7 +4,7 @@ from dataclasses import asdict
 from common.dict_utils import remove_none_values
 from common_image.core.mode_convert import convert_ndimg
 from common_image.core.skimage_threshold import find_ndimg_skimage_threshold
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter.common.threshold_filter import threshold_filter
 from filter.skimage_threshold.skimage_threshold_filter_model import SkimageThresholdFilterData, \
 	SkimageMinimumThresholdFilterData, \

@@ -1,6 +1,6 @@
 from typing import Hashable, Callable
 
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter.manual_threshold.manual_threshold_filter import hsv_manual_threshold_filter
 from filter_processor.filter_processor import FilterProcessor, F
 from filter_processor.filter_processor_factory import FilterProcessorFactory

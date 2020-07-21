@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Hashable, Callable
 
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from annotation.model import AnnotationModel
 
 F = TypeVar('F')

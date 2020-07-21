@@ -5,7 +5,7 @@ from typing import TypeVar, Generic, Optional, Tuple, Dict, Any, Type
 from dacite import from_dict, Config
 from dataclasses import dataclass
 
-from filter.common.filter_model import FilterData, FilterData_
+from filter.common.filter_data import FilterData, FilterData_
 
 F = TypeVar('F', bound=FilterData)
 

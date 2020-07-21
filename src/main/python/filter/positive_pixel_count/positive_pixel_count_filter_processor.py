@@ -1,6 +1,6 @@
 from typing import Hashable, Callable
 
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter_processor.filter_processor import FilterProcessor, F
 from filter_processor.filter_processor_factory import FilterProcessorFactory
 from filter.positive_pixel_count.positive_pixel_count_filter import positive_pixel_count_filter

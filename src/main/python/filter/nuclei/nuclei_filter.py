@@ -9,7 +9,8 @@ from common.timeit_utils import timing
 from common_htk.nuclei import ndimg_to_nuclei_seg_mask
 from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg
-from filter.common.filter_model import FilterResults, FilterOutput
+from filter.common.filter_output import FilterOutput
+from filter.common.filter_results import FilterResults
 from filter.nuclei.nuclei_filter_model import NucleiParams, NucleiFilterData
 
 

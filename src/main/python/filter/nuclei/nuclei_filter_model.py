@@ -3,7 +3,7 @@ from typing import Dict, ClassVar
 from dataclasses import field, dataclass
 
 from common.dataclass_utils import dataclass_fields
-from filter.common.filter_model import FilterData, ColumnDef, CsvExportConfig
+from filter.common.filter_data import ColumnDef, CsvExportConfig, FilterData
 
 
 def default_stain_color_map():

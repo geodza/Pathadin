@@ -2,7 +2,7 @@ from typing import Hashable, Callable
 
 from annotation.model import AnnotationModel
 from annotation_image.core import build_region_data
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter.kmeans.kmeans_filter import kmeans_filter
 from filter.kmeans.kmeans_filter_model import KMeansFilterData
 from filter_processor.filter_processor import FilterProcessor, F

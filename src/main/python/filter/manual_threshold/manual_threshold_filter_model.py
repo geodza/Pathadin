@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from common.dataclass_utils import dataclass_fields
 from common_image.model.color_mode import ColorMode
-from filter.common.filter_model import ColumnDef, CsvExportConfig
+from filter.common.filter_data import ColumnDef, CsvExportConfig
 from filter.common.threshold_filter_model import ThresholdFilterData
 
 def default_manual_threshold_csv_export_config():

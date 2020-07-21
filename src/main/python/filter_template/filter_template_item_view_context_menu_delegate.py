@@ -7,7 +7,7 @@ from common_qt.mvc.view.delegate.abstract_item_view_context_menu_delegate import
 from deepable_qt.model.deepable_model_index import DeepableQModelIndex
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
 from deepable_qt.view.deepable_tree_view import DeepableTreeView
-from filter.common.filter_model import FilterData
+from filter.common.filter_data import FilterData
 
 I = DeepableQModelIndex
 M = DeepableTreeModel

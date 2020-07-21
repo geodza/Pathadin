@@ -9,7 +9,8 @@ from common_image.core.hist import ndimg_to_hist
 from common_image.core.hist_html import build_histogram_html, build_hist_dict
 from common_image.core.kmeans import ndimg_to_quantized_ndimg
 from common_image_qt.core import ndimg_to_qimg
-from filter.common.filter_model import FilterOutput, FilterResults
+from filter.common.filter_output import FilterOutput
+from filter.common.filter_results import FilterResults
 from filter.kmeans.kmeans_filter_model import KMeansParams, KMeansFilterData
 
 

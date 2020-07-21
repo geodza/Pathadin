@@ -6,7 +6,7 @@ from typing import ClassVar, Optional, List, Tuple
 from pydantic import BaseModel
 
 from annotation.annotation_type import AnnotationType
-from filter.common.filter_model import FilterResults
+from filter.common.filter_results import FilterResults
 
 
 class TreeViewConfig(BaseModel):

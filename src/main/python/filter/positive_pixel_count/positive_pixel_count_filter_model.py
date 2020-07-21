@@ -4,7 +4,7 @@ from dataclasses import field, dataclass
 from histomicstk.segmentation import positive_pixel_count as ppc
 
 from common.dataclass_utils import dataclass_fields
-from filter.common.filter_model import FilterData, CsvExportConfig, ColumnDef
+from filter.common.filter_data import ColumnDef, CsvExportConfig, FilterData
 
 
 @dataclass(frozen=True)

@@ -8,7 +8,7 @@ from common_qt.mvc.model.delegate.item_model_delegate import AbstractItemModelDe
 from deepable.core import first_last_keys
 from deepable_qt.model.deepable_model_index import DeepableQModelIndex
 from deepable_qt.model.standard_deepable_tree_model_delegate import StandardDeepableTreeModelDelegate
-from filter.common.filter_model import FilterData, FilterData_
+from filter.common.filter_data import FilterData, FilterData_
 from filter_template.filter_item_model_delegate_rule import FilterItemModelDelegateRule
 
 I = DeepableQModelIndex

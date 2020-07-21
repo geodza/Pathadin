@@ -2,7 +2,7 @@ from typing import Hashable, Callable
 
 from annotation.model import AnnotationModel
 from annotation_image.core import build_region_data
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter.manual_threshold.manual_threshold_filter import gray_manual_threshold_filter
 from filter.manual_threshold.manual_threshold_filter_model import GrayManualThresholdFilterData
 from filter_processor.filter_processor import FilterProcessor, F

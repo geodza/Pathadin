@@ -4,7 +4,8 @@ from common_image.core.hist_html import build_histogram_html, build_hist_dict
 from common_image.core.threshold import ndimg_to_thresholded_ndimg
 from common_image.model.ndimg import Ndimg
 from common_image_qt.core import ndimg_to_qimg
-from filter.common.filter_model import FilterResults, FilterOutput
+from filter.common.filter_output import FilterOutput
+from filter.common.filter_results import FilterResults
 
 
 @timing

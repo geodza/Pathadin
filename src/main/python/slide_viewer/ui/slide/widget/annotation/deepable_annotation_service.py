@@ -7,7 +7,7 @@ from common.log_utils import log
 from common_qt.abcq_meta import ABCQMeta
 from deepable.core import toplevel_keys
 from deepable_qt.model.deepable_tree_model import DeepableTreeModel
-from filter.common.filter_model import FilterResults
+from filter.common.filter_results import FilterResults
 from slide_viewer.ui.slide.widget.annotation.annotation_service import AnnotationService
 
 ituple = Tuple[int, int]

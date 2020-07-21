@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from common.timeit_utils import timing
 from common_image_qt.core import ndimg_to_bitmap
-from filter.common.filter_model import FilterOutput
+from filter.common.filter_output import FilterOutput
 from filter_processor.filter_processor import FilterProcessor
 from slide_viewer.cache_config import cache_
 from slide_viewer.ui.slide.widget.annotation.annotation_service import AnnotationService

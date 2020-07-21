@@ -6,7 +6,7 @@ import dataclasses
 from dataclasses import dataclass, field
 
 from common.dataclass_utils import dataclass_fields
-from filter.common.filter_model import FilterData, CsvExportConfig, ColumnDef
+from filter.common.filter_data import ColumnDef, CsvExportConfig, FilterData
 
 
 @unique

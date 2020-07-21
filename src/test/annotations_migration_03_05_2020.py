@@ -35,8 +35,11 @@ def convert_file(source_path, target_path) -> None:
 
 
 if __name__ == '__main__':
-    convert_file(r'D:\temp\slides\slide1_annotations.json', r'D:\temp\slides\slide1_annotations_new.json')
-    convert_file(r'D:\temp\slides\slide3_annotations.json', r'D:\temp\slides\slide3_annotations_new.json')
-    convert_file(r'D:\temp\slides\slide4_annotations.json', r'D:\temp\slides\slide4_annotations_new.json')
-    convert_file(r'D:\temp\slides\slide5_annotations.json', r'D:\temp\slides\slide5_annotations_new.json')
-    convert_file(r'D:\temp\slides\slide6_annotations.json', r'D:\temp\slides\slide6_annotations_new.json')
+    # convert_file(r'D:\temp\slides\slide1_annotations.json', r'D:\temp\slides\slide1_annotations_new.json')
+    # convert_file(r'D:\temp\slides\slide3_annotations.json', r'D:\temp\slides\slide3_annotations_new.json')
+    # convert_file(r'D:\temp\slides\slide4_annotations.json', r'D:\temp\slides\slide4_annotations_new.json')
+    # convert_file(r'D:\temp\slides\slide5_annotations.json', r'D:\temp\slides\slide5_annotations_new.json')
+    # convert_file(r'D:\temp\slides\slide6_annotations.json', r'D:\temp\slides\slide6_annotations_new.json')
+
+    convert_file(r'C:\Users\User\temp\pathadin_examples\data\slide1_annotations.json', r'C:\Users\User\temp\pathadin_examples\data\slide1_annotations.json')
+    convert_file(r'C:\Users\User\temp\pathadin_examples\data\slide2_annotations.json', r'C:\Users\User\temp\pathadin_examples\data\slide2_annotations.json')

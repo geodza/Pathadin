@@ -15,7 +15,7 @@ def filelike_open(source: FileLike, mode):
         with open(source, mode) as f:
             yield f
     else:
-        return source
+        yield source
 
 
 def copy_file_obj(source: FileLike, target: FileLike) -> None:

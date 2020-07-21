@@ -216,7 +216,7 @@ if __name__ == '__main__':
     image_tuples = zip(named_images, named_labels)
     image_tuples_limit = 300
     image_tuples = itertools.islice(image_tuples, image_tuples_limit)
-    print(f"Image-label pairs (first {image_tuples_limit}):")
+    print(f"Image-label pairs (limit by {image_tuples_limit}):")
     plot_named_ndarrays_tuples_by_batches(image_tuples, ncols=6, tuples_per_plot=12)
 
     # To download file to localhost you can download it as "Browser download file"

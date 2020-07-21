@@ -1,5 +1,7 @@
 if __name__ == '__main__':
-    # Install required binaries and packages
+    # Install required binaries and packages.
+    # openslide-python can't be installed with latest setuptools so we need to downgrade it.
+    # !pip install setuptools==45.3.0
     # !apt-get install openslide-tools
     # !pip install scikit-image opencv-python shapely h5py openslide-python dataclasses pydantic
     #
@@ -16,67 +18,88 @@ if __name__ == '__main__':
     root_path = pathlib.Path.home().joinpath("temp/pathadin_examples/data")
     root_path.mkdir(parents=True, exist_ok=True)
 
-
     # In this example we will show how to generate label/image patches from slide images.
-    # We will generate:
+    # We will generate patch pairs of (patch_slide_image, patch_label_image) where:
     # 1) patch_slide_image - color patch image from slide
     # 2) patch_label_image - binary patch image as result of drawing annotation region with color specified in annotation
-    # To better explain idea of annotation-drawing we will show screenshot from main application.
+    #
+    # To better explain idea of annotation-drawing there is a screenshot from main application:
+    # https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/slide1_annotation_example.png
     # In this screenshot we have 2 annotations: one stroma(red) annotation and one glands(blue) annotation.
-    # Attribute user_attrs.label_color in annotation specifies with what color this annotation will be drawn.
-    def show_app_slide1_annotations_screenshot():
-        from common_urllib.core import load_gdrive_file
-
-        app_slide1_annotations_screenshot_path = str(root_path.joinpath('app_slide1_annotations_screenshot_path.png'))
-        load_gdrive_file('1bO9a0LSdXsuvt9o4wkpBw-zldOrIMQBM', app_slide1_annotations_screenshot_path)
-        from IPython.display import Image, display
-        img = Image(filename=app_slide1_annotations_screenshot_path, width=800)
-        print("Screenshot of slide1 annotations in main application:")
-        display(img)
-
-
-    # show_app_slide1_annotations_screenshot()
+    # Attribute user_attrs.label_color in annotation specifies with what color this annotation will be drawn:
+    # glands - with color=0(black in binary image)
+    # stroma - with color=255(white in binary image)
 
     # Lets begin our example itself.
-    # Define paths to slides and annotations.
-    # Choose one method below to use your data or example data.
+    # Define paths to slides and annotations. SlidePath is a pair: (slide image path, slide annotations json file path).
+    # We have prepared 3 methods of defining data for example.
+    # Choose one of the methods below:
+    # 1) define_example_tiny_data() - 2 screenshots from original slides.
+    #    To make example more reproducible and lightweight we have cut 2 small regions from slides and interpret them as real slides.
+    #    2 jpeg images(~8Mb) will be downloaded and used as source data.
+    #    Useful for fast and lightweight example run.
+    # 2) define_example_original_data() - 5 original mrxs slides.
+    #    5 original slides in zip archives(~8Gb) will be downloaded over the network to disk and used as source data.
+    # 3) define_my_custom_data() - your custom data.
+    #    Define paths to source data manually.
+
     from slice.slide_path import SlidePath
 
 
-    def define_example_data():
-        # Original mrxs slide is about 4gb memory.
-        # To make example more reproducible and lightweight we cut a small region from it and interpret it as a real slide.
+    def define_example_tiny_data():
+        from common_urllib.core import load_file
+        slides_root_url = 'https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/tiny_data'
+        slide_names = ['slide1', 'slide2']
         slide_paths = []
-        slide1_path = str(root_path.joinpath("slide1.jpeg").resolve())
-        slide1_annotations_path = str(root_path.joinpath("slide1_annotations.json").resolve())
-        slide2_path = str(root_path.joinpath("slide2.jpeg").resolve())
-        slide2_annotations_path = str(root_path.joinpath("slide2_annotations.json").resolve())
-        slide_paths.append(SlidePath(slide1_path, slide1_annotations_path))
-        slide_paths.append(SlidePath(slide2_path, slide2_annotations_path))
+        for slide_name in slide_names:
+            slide_url = slides_root_url + '/' + slide_name + '.jpeg'
+            slide_path = root_path.joinpath(slide_name + '.jpeg')
+            load_file(slide_url, str(slide_path))
+            annotations_url = slides_root_url + '/' + slide_name + '_annotations.json'
+            annotations_path = root_path.joinpath(slide_name + '_annotations.json')
+            load_file(annotations_url, str(annotations_path))
 
-        def load_images_and_annotations():
-            from common_urllib.core import load_gdrive_file
-            load_gdrive_file('1n8TDA-4gnNSb0fUFhm5i7J5FitfcJVoH', slide1_path)
-            load_gdrive_file('1He8XhiRTw6zGiVqlYLtqSGeHiI4th1LX', slide1_annotations_path)
-            load_gdrive_file('1BrpN42SZoaz46CjqUQNy2rn5seRBui0w', slide2_path)
-            load_gdrive_file('1itDFGs83HiGuSGLNV-G1BVJUOuv1LPtO', slide2_annotations_path)
+            slide_paths.append(SlidePath(str(slide_path.resolve()), str(annotations_path.resolve())))
 
-        load_images_and_annotations()
+        return slide_paths
+
+
+    def define_example_original_data():
+        import zipfile
+        from common_urllib.core import load_file
+        slides_root_url = 'https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data'
+        slide_names=['slide1','slide2','slide3','slide4','slide5']
+        slide_paths = []
+        for slide_name in slide_names:
+            slide_archive_url = slides_root_url + '/' + slide_name + '.zip'
+            slide_archive_path = root_path.joinpath(slide_name + '.zip')
+            slide_dir = root_path.joinpath(slide_name)
+            load_file(slide_archive_url, str(slide_archive_path))
+            with zipfile.ZipFile(slide_archive_path, "r") as zip_ref:
+                zip_ref.extractall(slide_dir)
+
+            annotations_url = slides_root_url + '/' + slide_name + '_annotations.json'
+            annotations_path = root_path.joinpath(slide_name + '_annotations.json')
+            load_file(annotations_url, str(annotations_path))
+
+            slide_paths.append(SlidePath(str(slide_dir.joinpath(slide_name + '.mrxs').resolve()), str(annotations_path.resolve())))
         return slide_paths
 
 
     def define_my_custom_data():
-        # Original big-size slides.
-        slide_paths = []
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide1.mrxs", r"D:\temp\slides\annotations3\slide1_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\annotations3\slide5_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide3.mrxs", r"D:\temp\slides\annotations3\slide3_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide4.mrxs", r"D:\temp\slides\annotations3\slide4_annotations.json"))
-        slide_paths.append(SlidePath(r"D:\temp\slides\slide6.mrxs", r"D:\temp\slides\annotations3\slide6_annotations.json"))
+        slide_paths = [
+            SlidePath(r"D:\temp\slides\slide1.mrxs", r"D:\temp\slides\slide1_annotations.json"),
+            SlidePath(r"D:\temp\slides\slide2.mrxs", r"D:\temp\slides\slide2_annotations.json"),
+            SlidePath(r"D:\temp\slides\slide3.mrxs", r"D:\temp\slides\slide3_annotations.json"),
+            SlidePath(r"D:\temp\slides\slide4.mrxs", r"D:\temp\slides\slide4_annotations.json"),
+            SlidePath(r"D:\temp\slides\slide5.mrxs", r"D:\temp\slides\slide5_annotations.json"),
+        ]
         return slide_paths
 
 
-    # slide_paths = define_example_data()
+    # Choose one of the methods below
+    # slide_paths = define_example_tiny_data()
+    # slide_paths = define_example_original_data()
     slide_paths = define_my_custom_data()
 
     # There are several use-cases for slicing slide-images.
@@ -127,6 +150,7 @@ if __name__ == '__main__':
     from slice.model.patch_image_source_config import PatchImageSourceConfig
 
 
+    # A helper method to create config object in one line.
     def build_config_for_slide_path(slide_path: SlidePath) -> PatchImageSourceConfig:
         return PatchImageSourceConfig(
             slide_path=slide_path.slide_path,
@@ -167,8 +191,8 @@ if __name__ == '__main__':
     # We will save arrays as image files inside zip archive.
     from ndarray_persist.save import save_named_ndarrays
 
-    patches_path = root_path.joinpath("slice_example_patches2.zip")
-    # save_named_ndarrays(named_ndarrays, str(patches_path), delete_if_exists=True, verbosity=1)
+    patches_path = root_path.joinpath("slice_example_patches.zip")
+    save_named_ndarrays(named_ndarrays, str(patches_path), delete_if_exists=True, verbosity=1)
 
     # We have just saved both labels and images.
     # Now we can load both labels and images from data store as one data-flow.
@@ -190,8 +214,9 @@ if __name__ == '__main__':
     named_images = images_loader.load_named_ndarrays()
     named_labels = labels_loader.load_named_ndarrays()
     image_tuples = zip(named_images, named_labels)
-    image_tuples = itertools.islice(image_tuples, 300)
-    print("Image-label pairs:")
+    image_tuples_limit = 300
+    image_tuples = itertools.islice(image_tuples, image_tuples_limit)
+    print(f"Image-label pairs (first {image_tuples_limit}):")
     plot_named_ndarrays_tuples_by_batches(image_tuples, ncols=6, tuples_per_plot=12)
 
     # To download file to localhost you can download it as "Browser download file"

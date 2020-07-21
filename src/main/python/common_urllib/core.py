@@ -1,20 +1,37 @@
 import pathlib
 import urllib.request
+from contextlib import contextmanager
 from io import BytesIO
+from os import PathLike
 from shutil import copyfileobj
 from typing import Union
 
-
-def copy_file_obj(source: BytesIO, target: Union[str, BytesIO]) -> None:
-    if isinstance(target, str):
-        with open(target, 'wb') as f:
-            copyfileobj(source, f)
-    elif isinstance(target, BytesIO):
-        copyfileobj(source, target)
+FileLike = Union[str, PathLike, BytesIO]
 
 
-def load_gdrive_file(file_id: str, file: Union[str, BytesIO], force=False) -> None:
-    if isinstance(file, str) and pathlib.Path(file).exists() and not force:
+@contextmanager
+def filelike_open(source: FileLike, mode):
+    if isinstance(source, (str, PathLike)):
+        with open(source, mode) as f:
+            yield f
+    else:
+        return source
+
+
+def copy_file_obj(source: FileLike, target: FileLike) -> None:
+    with filelike_open(source, 'rb') as fs, filelike_open(target, 'wb') as ft:
+        copyfileobj(fs, ft)
+
+
+def load_file(url: str, file: FileLike, force=False) -> None:
+    if isinstance(file, (str, PathLike)) and pathlib.Path(file).exists() and not force:
+        return
+    with urllib.request.urlopen(url) as resp:
+        copy_file_obj(resp, file)
+
+
+def load_gdrive_file(file_id: str, file: FileLike, force=False) -> None:
+    if isinstance(file, (str, PathLike)) and pathlib.Path(file).exists() and not force:
         return
     url = f'https://drive.google.com/uc?export=downlod&id={file_id}'
     with urllib.request.urlopen(url) as resp:
@@ -28,5 +45,3 @@ def load_gdrive_file(file_id: str, file: Union[str, BytesIO], force=False) -> No
                 copy_file_obj(resp, file)
         else:
             copy_file_obj(resp, file)
-
-

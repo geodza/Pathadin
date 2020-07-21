@@ -2,11 +2,15 @@ if __name__ == '__main__':
     # Install required binaries and packages.
     # openslide-python can't be installed with latest setuptools so we need to downgrade it.
     # !pip install setuptools==45.3.0
+    #
     # !apt-get install openslide-tools
     # !pip install scikit-image opencv-python shapely h5py openslide-python dataclasses pydantic
     #
     # We need to clone project and add it to sys.path (we haven't installable packages yet)
+    # import shutil
+    # shutil.rmtree('Pathadin')
     # !git clone https://gitlab.com/Digipathology/Pathadin.git
+    # !cd Pathadin && git checkout a4f1d8e378fe6b95b8475b80833049d3f0dd12c4
     #
     path_to_project = r'D:\projects\Pathadin\src\main\python'
     # path_to_project = 'Pathadin/src/main/python'

@@ -14,22 +14,22 @@ Pathadin project provides:
 
 The U-net model training can be performed separately from GUI due to training been computationally heavy and excessively dynamic, thus irrational to be enclosed by GUI.
 
-#####DOWNLOAD: latest release 10.06.2020
+##### DOWNLOAD: latest release 10.06.2020
 - [From Google Drive](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing)
 - [From pathadin.eu server (179 MB)](https://www.pathadin.eu/pathadin/Pathadin%20Setup.exe)
 - [Information about updates](https://gitlab.com/Digipathology/Pathadin/-/wikis/Update-information)
 
-#####Minimum system requirements for adequate experience for provided binaries include
+##### Minimum system requirements for adequate experience for provided binaries include
 * Monitor resolution 1280 × 720
 * Operation system Windows 7 SP1 or newer
 * CPU Intel DualCore, RAM 4 GB
 
-#####Getting started
+##### Getting started
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
 * http://www.pathadin.eu/
 
 
-#####Stroma and gland separation for manuscript *"Pathadin – a simple tool for quantitative pathology."*
+##### Stroma and gland separation for manuscript *"Pathadin – a simple tool for quantitative pathology."*
 * [Example of generating dataset - slice_example](https://colab.research.google.com/drive/1ZWul3MWKwKVNJXz6S1AsMeDifrSWpkla?usp=sharing)
 * [Dataset - archive of patches generated in slice_example](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/data/slice_example_patches.zip)
 * [Screenshot of dataset archive structure](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/slice_example_patches_screen.png)
@@ -37,7 +37,7 @@ The U-net model training can be performed separately from GUI due to training be
 * [Trained model - h5 keras model trained in segmentation_example](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
 * [Screenshot of trained model usage as filter in Pathadin main app](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
 
-#####Original mrxs slides used for dataset generation in slice_example:
+##### Original mrxs slides used for dataset generation in slice_example:
 * [slide1.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide1.zip)
 * [slide2.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide2.zip)
 * [slide3.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide3.zip)
@@ -50,7 +50,7 @@ The U-net model training can be performed separately from GUI due to training be
 * [slide5_annotations.json](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide5_annotations.json)
 
 
-#####Full-size examples (.mrxs):
+##### Full-size examples (.mrxs):
 * [Biopsy H&E, 40x (0,5 GB)](https://www.pathadin.eu/pathadin/biopsy(40x).zip)
 * [H&E (1.1 GB)](https://www.pathadin.eu/pathadin/H&E.zip)
 * [H&E(2 GB)](https://www.pathadin.eu/pathadin/HemEosin.zip)

@@ -59,9 +59,11 @@ if __name__ == '__main__':
             slide_url = slides_root_url + '/' + slide_name + '.jpeg'
             slide_path = root_path.joinpath(slide_name + '.jpeg')
             load_file(slide_url, str(slide_path))
+            print(f"downloaded: {slide_url}")
             annotations_url = slides_root_url + '/' + slide_name + '_annotations.json'
             annotations_path = root_path.joinpath(slide_name + '_annotations.json')
             load_file(annotations_url, str(annotations_path))
+            print(f"downloaded: {annotations_url}")
 
             slide_paths.append(SlidePath(str(slide_path.resolve()), str(annotations_path.resolve())))
 
@@ -79,12 +81,14 @@ if __name__ == '__main__':
             slide_archive_path = root_path.joinpath(slide_name + '.zip')
             slide_dir = root_path.joinpath(slide_name)
             load_file(slide_archive_url, str(slide_archive_path))
+            print(f"downloaded: {slide_archive_url}")
             with zipfile.ZipFile(slide_archive_path, "r") as zip_ref:
                 zip_ref.extractall(slide_dir)
 
             annotations_url = slides_root_url + '/' + slide_name + '_annotations.json'
             annotations_path = root_path.joinpath(slide_name + '_annotations.json')
             load_file(annotations_url, str(annotations_path))
+            print(f"downloaded: {annotations_url}")
 
             slide_paths.append(SlidePath(str(slide_dir.joinpath(slide_name + '.mrxs').resolve()), str(annotations_path.resolve())))
         return slide_paths

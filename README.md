@@ -1,6 +1,6 @@
 # Pathadin
 
-Pathadin is tool for quick and simple quantitative pathology. It is developed in close collaboration between programmists and pathologists of the Estonian Digital Pathology Association ([EDIPA](https://pathology.ee/)).
+Pathadin is a tool for quick and simple quantitative pathology. It is developed in close collaboration between programmists and pathologists of the Estonian Digital Pathology Association ([EDIPA](https://pathology.ee/)).
 
 The concept of Pathadin differs from other desktop WSI alternatives: in contrast to unitary solutions, which require rather powerful machines, it is a combinatory toolset, where each part can be separately updated and modified; this also includes the opportunity of the A.I. training without strict linkage to the local computer, as described further. Such an approach gives a better understanding of functional elements of modern computer-assisted image analysis, makes the program more flexible in the context of modification, updating and testing different models, and allows users to run digital pathology on the basic hardware.
 
@@ -9,33 +9,48 @@ Among Java solutions, Pathadin is entirely Python 3.6 software built with PyQT5 
 Pathadin project provides:
 - Main graphical user interface (GUI)-application
 - Tool for slicing digital slides – a convenient feature for dataset generation for machine learning or usage in alternative software
-- Simply reproducable example of U- net model training.
+- Simply reproducable example of U-net model training.
 - Supports all the Openslide formats for Whole Slide Imaging (WSI), as the main image formats.
 
 The U-net model training can be performed separately from GUI due to training been computationally heavy and excessively dynamic, thus irrational to be enclosed by GUI.
 
-**DOWNLOAD: latest release 10.06.2020**
+#####DOWNLOAD: latest release 10.06.2020
 - [From Google Drive](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing)
 - [From pathadin.eu server (179 MB)](https://www.pathadin.eu/pathadin/Pathadin%20Setup.exe)
 - [Information about updates](https://gitlab.com/Digipathology/Pathadin/-/wikis/Update-information)
 
-**Minimum system requirements for adequate experience for provided binaries include**
+#####Minimum system requirements for adequate experience for provided binaries include
 * Monitor resolution 1280 × 720
 * Operation system Windows 7 SP1 or newer
 * CPU Intel DualCore, RAM 4 GB
 
-**Getting started**
+#####Getting started
 * Pathadin [Wiki](https://gitlab.com/Digipathology/Pathadin/-/wikis/home) on GitLab
 * http://www.pathadin.eu/
 
 
-**Stroma and gland seprataion for manuscript "Pathadin – a simple tool for quantitative pathology."**
-* [Dataset](https://www.pathadin.eu/pathadin/slice_example_patches.zip)
-* [Trained model](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
-* [Segmentation example](https://colab.research.google.com/drive/1kc9mKy1ldCQCFXIzy8l_tqGC2FGLcqOd)
-* [Generating dataset](https://colab.research.google.com/drive/107Pyqbz2FIkyQTAAXsebK-nkWh0O5BQN)
+#####Stroma and gland separation for manuscript *"Pathadin – a simple tool for quantitative pathology."*
+* [Example of generating dataset - slice_example](https://colab.research.google.com/drive/1ZWul3MWKwKVNJXz6S1AsMeDifrSWpkla?usp=sharing)
+* [Dataset - archive of patches generated in slice_example](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/data/slice_example_patches.zip)
+* [Screenshot of dataset archive structure](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/slice_example_patches_screen.png)
+* [Example of U-net model training - segmentation_example](https://colab.research.google.com/drive/19uCd12Ru9Gu3Mk9wOgTPmJ6ItKyy1pWl?usp=sharing)
+* [Trained model - h5 keras model trained in segmentation_example](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
+* [Screenshot of trained model usage as filter in Pathadin main app](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
 
-**Full-size examples (.mrxs):**
+#####Original mrxs slides used for dataset generation in slice_example:
+* [slide1.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide1.zip)
+* [slide2.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide2.zip)
+* [slide3.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide3.zip)
+* [slide4.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide4.zip)
+* [slide5.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide5.zip)
+* [slide1_annotations.json](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide1_annotations.json)
+* [slide2_annotations.json](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide2_annotations.json)
+* [slide3_annotations.json](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide3_annotations.json)
+* [slide4_annotations.json](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide4_annotations.json)
+* [slide5_annotations.json](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide5_annotations.json)
+
+
+#####Full-size examples (.mrxs):
 * [Biopsy H&E, 40x (0,5 GB)](https://www.pathadin.eu/pathadin/biopsy(40x).zip)
 * [H&E (1.1 GB)](https://www.pathadin.eu/pathadin/H&E.zip)
 * [H&E(2 GB)](https://www.pathadin.eu/pathadin/HemEosin.zip)

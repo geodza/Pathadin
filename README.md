@@ -39,7 +39,7 @@ The U-net model training can be performed separately from GUI due to training be
 * [Trained model - h5 keras model trained in segmentation_example](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
 * [Screenshot of trained model usage as filter in Pathadin main app](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)
 
-[NB! Adding atributes for annotations (for dataset generation)](https://gitlab.com/Digipathology/Pathadin/-/wikis/Annotations)
+**[NB! Adding atributes for annotations (for dataset generation)](https://gitlab.com/Digipathology/Pathadin/-/wikis/Annotations)**
 
 ##### Original mrxs slides used for dataset generation in slice_example:
 * [slide1.zip](https://www.pathadin.eu/pathadin/pathadin_examples/slice_example/original_data/slide1.zip)

@@ -1,6 +1,6 @@
 # Pathadin
 
-Pathadin is a tool for quick and simple quantitative pathology. It is developed in close collaboration between programmists and pathologists of the Estonian Digital Pathology Association ([EDIPA](https://pathology.ee/)). Main developer @dimathe47, @Digipathology (concept)
+Pathadin is a tool for quick and simple quantitative pathology. It is developed in close collaboration between programmists and pathologists of the Estonian Digital Pathology Association ([EDIPA](https://pathology.ee/)). Main developers @dimathe47, @Digipathology (concept)
 
 The concept of Pathadin differs from other desktop WSI alternatives: in contrast to unitary solutions, which require rather powerful machines, it is a combinatory toolset, where each part can be separately updated and modified; this also includes the opportunity of the A.I. training without strict linkage to the local computer, as described further. Such an approach gives a better understanding of functional elements of modern computer-assisted image analysis, makes the program more flexible in the context of modification, updating and testing different models, and allows users to run digital pathology on the basic hardware.
 

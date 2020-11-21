@@ -42,7 +42,7 @@ The U-net model training can be performed separately from GUI due to training be
 **[NB! Adding atributes for annotations (for dataset generation)](https://gitlab.com/Digipathology/Pathadin/-/wikis/Annotations)**
 
 **[Json validator](https://www.jsonschemavalidator.net/)**.
-**Download schema from [Google Drive](https://drive.google.com/file/d/1HNBHM_bFZ4ySrucATiyi6MBIDosCg4oX/view?usp=sharing)**
+**Download schema from [Google Drive](https://drive.google.com/file/d/1HNBHM_bFZ4ySrucATiyi6MBIDosCg4oX/view?usp=sharing).**
 **Thanks to @alegvo**
 
 ##### Original mrxs slides used for dataset generation in slice_example:

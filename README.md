@@ -14,9 +14,9 @@ Pathadin project provides:
 
 The U-net model training can be performed separately from GUI due to training been computationally heavy and excessively dynamic, thus irrational to be enclosed by GUI.
 
-##### DOWNLOAD: latest release 10.06.2020
-- [From Google Drive](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing)
-- [From pathadin.eu server (179 MB)](https://www.pathadin.eu/pathadin/Pathadin%20Setup.exe)
+##### DOWNLOAD: latest release 24.11.2020
+- [Previous (from Google Drive)](https://drive.google.com/file/d/1cdsMnvA7apIe_uVluG4WS0goSyEHVEJC/view?usp=sharing)
+- [From pathadin.eu server (179 MB)](https://pathadin.eu/pathadin/temp/24_11_2020/PathadinSetup.exe)
 - [Information about updates](https://gitlab.com/Digipathology/Pathadin/-/wikis/Update-information)
 
 ##### Minimum system requirements for adequate experience for provided binaries include

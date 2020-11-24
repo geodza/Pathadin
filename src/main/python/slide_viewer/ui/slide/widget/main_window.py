@@ -35,8 +35,7 @@ from slide_viewer.ui.slide.widget.annotation.deepable_annotation_service import 
 from slide_viewer.ui.slide.widget.filter.filter_data_service import FilterDataService
 from slide_viewer.ui.slide.widget.filter.filters_tree_view import create_filters_tree_view, create_filters_tree_model, \
 	create_filter_processor
-from slide_viewer.ui.slide.widget.filtered_annotation_model_delegate import FilteredAnnotationModelDelegate, \
-	FilterAnnotationViewDelegate
+from slide_viewer.ui.slide.widget.filtered_annotation_model_delegate import FilterAnnotationViewDelegate
 from slide_viewer.ui.slide.widget.graphics_view_mdi_sub_window import GraphicsViewMdiSubWindow
 from slide_viewer.ui.slide.widget.interface.active_annotation_service_provider import ActiveAnnotationServiceProvider
 from slide_viewer.ui.slide.widget.interface.active_annotation_tree_view_provider import ActiveAnnotationTreeViewProvider
@@ -124,6 +123,8 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 			SkimageMeanThresholdFilterData('S', 'SkimageMean'),
 			PositivePixelCountFilterData('P', 'PPC'),
 			KerasModelFilterData('E', 'KerasModel', keras_model_params=KerasModelParams(model_path)),
+			KerasModelFilterData('EM', 'KerasModel_multi_class',
+								 keras_model_params=KerasModelParams(model_path, cmap='viridis')),
 		]
 
 		self.view_mdi = QMdiArea(self)

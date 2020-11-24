@@ -1,10 +1,13 @@
-from typing import Optional, ClassVar
+from typing import Optional
 
 from dataclasses import field, dataclass
 
 from common.dataclass_utils import dataclass_fields
-from filter.common.filter_output import FilterOutput
 from filter.common.filter_data import FilterData
+
+KERAS_MODEL_PARAMS_DEFAULT_COLOR_TUPLE_PATTERN = "(0, 255, 0, 'y')"
+KERAS_MODEL_PARAMS_DEFAULT_MULTICLASS_CMAP = 'viridis'
+KERAS_MODEL_PARAMS_DEFAULT_CMAP = KERAS_MODEL_PARAMS_DEFAULT_COLOR_TUPLE_PATTERN
 
 
 @dataclass(frozen=True)
@@ -12,6 +15,8 @@ class KerasModelParams:
 	model_path: Optional[str] = None
 	alpha_scale: float = 0.5
 	invert: bool = False
+	scale_image: bool = True
+	cmap: str = KERAS_MODEL_PARAMS_DEFAULT_CMAP
 
 
 @dataclass_fields

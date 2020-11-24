@@ -10,6 +10,7 @@
     "sklearn.neighbors.quad_tree",
     "sklearn.tree._utils",
     "pkg_resources.py2_warn",
+    "tensorflow_core.python",
     "filter.pathadin_gray_manual_threshold_filter_plugin",
     "filter.pathadin_hsv_manual_threshold_filter_plugin",
     "filter.pathadin_keras_model_filter_plugin",

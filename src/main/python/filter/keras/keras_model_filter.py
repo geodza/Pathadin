@@ -1,3 +1,6 @@
+from ast import literal_eval
+
+import matplotlib.pyplot as plt
 import numpy as np
 import openslide
 import skimage
@@ -17,7 +20,8 @@ from common_openslide.slide_helper import SlideHelper
 from common_shapely.shapely_utils import get_polygon_bbox_size, get_polygon_bbox_pos, scale_at_origin, locate
 from filter.common.filter_output import FilterOutput
 from filter.common.filter_results import FilterResults
-from filter.keras.keras_model_filter_model import KerasModelParams, KerasModelFilterData
+from filter.keras.keras_model_filter_model import KerasModelParams, KerasModelFilterData, \
+	KERAS_MODEL_PARAMS_DEFAULT_CMAP, KERAS_MODEL_PARAMS_DEFAULT_COLOR_TUPLE_PATTERN
 from slice.annotation_shapely_utils import annotation_geom_to_shapely_geom
 from slice.image_shapely_utils import get_slide_polygon_bbox_rgb_region
 
@@ -34,6 +38,26 @@ def keras_model_filter(annotation: AnnotationModel, filter_data: KerasModelFilte
 	rd = build_region_data(img_path, annotation, annotation.filter_level)
 	results = _keras_model_filter(rd, filter_data.keras_model_params)
 	return results
+
+
+# nrows, ncols = get_polygon_bbox_size(polygon0, level_scale)
+def convert_image(ndarray: np.ndarray, scale: bool) -> np.ndarray:
+	if scale:
+		return np.atleast_3d(np.squeeze(ndarray / 255)).astype(np.float32)
+	else:
+		return np.atleast_3d(ndarray).astype(np.float32)
+
+
+def convert_patch_label(patch_label):
+	if np.atleast_3d(patch_label).shape[-1] != 1:
+		patch_label = np.argmax(patch_label, axis=-1).astype(dtype=np.float32)
+		patch_label = np.expand_dims(patch_label, axis=-1)
+		# https://github.com/tensorflow/tensorflow/blob/r1.8/tensorflow/python/keras/_impl/keras/preprocessing/image.py#L313
+		patch_label = patch_label + max(-np.min(patch_label), 0)
+		patch_label_max = np.max(patch_label)
+		if patch_label_max != 0:
+			patch_label /= patch_label_max
+	return patch_label
 
 
 # @gcached
@@ -64,9 +88,21 @@ def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> FilterOutpu
 	# filter_image = np.empty((*filter_image_size, 3), dtype='uint8')
 	filter_image = np.zeros((*filter_image_size, 4), dtype='uint8')
 
-	# nrows, ncols = get_polygon_bbox_size(polygon0, level_scale)
-	def convert_image(ndarray: np.ndarray) -> np.ndarray:
-		return np.atleast_3d(np.squeeze(ndarray / 255)).astype(np.float32)
+	cmap = params.cmap or KERAS_MODEL_PARAMS_DEFAULT_CMAP
+	cm = None
+	color_tuple = None
+	color_arr = None
+	color_tuple_indexes = []
+	try:
+		cm = plt.get_cmap(cmap)
+	except ValueError:
+		try:
+			color_tuple_pattern = literal_eval(cmap)
+		except ValueError:
+			color_tuple_pattern = KERAS_MODEL_PARAMS_DEFAULT_COLOR_TUPLE_PATTERN
+		color_tuple_indexes = [i for i, c in enumerate(color_tuple_pattern) if 'y' == str(c).lower()]
+		color_list = [0 if i in color_tuple_indexes else c / 255 for i, c in enumerate(color_tuple_pattern)]
+		color_arr = np.array(color_list, dtype=np.float32)
 
 	# height0, width0 = get_polygon_bbox_size(polygon0)
 	p0 = get_polygon_bbox_pos(polygon0)
@@ -78,7 +114,7 @@ def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> FilterOutpu
 			patch_image_shape = patch_image.ndarray.shape
 			if patch_image_shape[:2] != input_size:
 				patch_image = resize_ndimg(patch_image, input_size)
-			patch_ndarray = convert_image(patch_image.ndarray)
+			patch_ndarray = convert_image(patch_image.ndarray, params.scale_image)
 			patch_images_batch = np.array([patch_ndarray])
 			patch_labels_batch = keras_model.predict(patch_images_batch)
 			patch_label = patch_labels_batch[0]
@@ -88,22 +124,34 @@ def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> FilterOutpu
 			# io.show()
 			# io.imshow(np.squeeze(patch_label))
 			# io.show()
+			patch_label = convert_patch_label(patch_label)
+
 			x, y = int(x0 * level_scale), int(y0 * level_scale)
 			nrows, ncols = (int(input_size[0] * level_scale), int(input_size[1] * level_scale))
 			patch_label_ = patch_label
 			if patch_label_.shape[:2] != (nrows, ncols):
 				patch_label_ = resize_ndarray(patch_label_, (nrows, ncols))
 			patch_label_ = skimage.util.invert(patch_label_) if params.invert else patch_label_
-			patch_label_ *= params.alpha_scale
-			patch_label_ = skimage.util.img_as_ubyte(patch_label_)
-			patch_label_ = patch_label_.reshape(patch_label_.shape[:2])
+			# patch_label_ *= params.alpha_scale
+
+			if cm:
+				patch_image = cm(np.squeeze(patch_label_))
+			else:
+				patch_image = np.zeros((*patch_label_.shape[:2], 4), dtype=np.float32)
+				patch_image[:, :, :] = color_arr
+				# patch_image[:, :, :3] /= 255
+				for i in color_tuple_indexes:
+					patch_image[:, :, i] = np.squeeze(patch_label_)
+			patch_image[..., 3] *= params.alpha_scale
+			patch_image_ubyte = skimage.util.img_as_ubyte(patch_image)
+			# patch_image_ubyte = patch_label_.reshape(patch_image_ubyte.shape[:2])
 			nrows, ncols = min(nrows, filter_image[y:, ...].shape[0]), min(ncols, filter_image[y:, x:, ...].shape[1])
-			filter_image[y:y + nrows, x:x + ncols, 3] = patch_label_[:nrows, :ncols]
+			filter_image[y:y + nrows, x:x + ncols, ...] = patch_image_ubyte[:nrows, :ncols]
 
 	# mask_color = np.array([0, 255, 0, 0], dtype='uint8')
 	# region_mask_rgba = np.tile(mask_color, region_mask.shape)
 	# region_mask_rgba[..., 3] = np.squeeze(region_mask)
-	filter_image[..., 1] = 255
+	# filter_image[..., 3] *= params.alpha_scale
 	# io.imshow(np.squeeze(filter_image))
 	# io.show()
 	polygon_ = scale_at_origin(locate(polygon0, polygon0), level_scale)

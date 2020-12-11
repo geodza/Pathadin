@@ -49,14 +49,12 @@ def convert_image(ndarray: np.ndarray, scale: bool) -> np.ndarray:
 
 
 def convert_patch_label(patch_label):
-	if np.atleast_3d(patch_label).shape[-1] != 1:
+	classes_count = np.atleast_3d(patch_label).shape[-1]
+	if classes_count != 1:
 		patch_label = np.argmax(patch_label, axis=-1).astype(dtype=np.float32)
 		patch_label = np.expand_dims(patch_label, axis=-1)
 		# https://github.com/tensorflow/tensorflow/blob/r1.8/tensorflow/python/keras/_impl/keras/preprocessing/image.py#L313
-		patch_label = patch_label + max(-np.min(patch_label), 0)
-		patch_label_max = np.max(patch_label)
-		if patch_label_max != 0:
-			patch_label /= patch_label_max
+		patch_label /= classes_count - 1
 	return patch_label
 
 
@@ -67,13 +65,13 @@ def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> FilterOutpu
 	input_shape = keras_model.input_shape[1:]
 	input_size = input_shape[:2]
 	# TODO get from KerasModelParams
-	input_scale = 1
+	patch_size_scale = params.patch_size_scale or 1
 	rescale_source_patch = True
 	polygon0 = annotation_geom_to_shapely_geom(
 		AnnotationGeometry(annotation_type=rd.annotation_type, origin_point=rd.origin_point, points=rd.points))
 	polygon_size0 = get_polygon_bbox_size(polygon0)
 
-	input_size0 = (input_size[0] * input_scale, input_size[1] * input_scale)
+	input_size0 = (input_size[0] * patch_size_scale, input_size[1] * patch_size_scale)
 
 	sh = SlideHelper(rd.img_path)
 	level = rd.level
@@ -118,16 +116,10 @@ def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> FilterOutpu
 			patch_images_batch = np.array([patch_ndarray])
 			patch_labels_batch = keras_model.predict(patch_images_batch)
 			patch_label = patch_labels_batch[0]
-			# tile_mask = tile_mask>=0.5
-			# tile_mask = tile_mask/2
-			# io.imshow(np.squeeze(patch_ndarray))
-			# io.show()
-			# io.imshow(np.squeeze(patch_label))
-			# io.show()
 			patch_label = convert_patch_label(patch_label)
 
 			x, y = int(x0 * level_scale), int(y0 * level_scale)
-			nrows, ncols = (int(input_size[0] * level_scale), int(input_size[1] * level_scale))
+			nrows, ncols = (int(input_size0[0] * level_scale), int(input_size0[1] * level_scale))
 			patch_label_ = patch_label
 			if patch_label_.shape[:2] != (nrows, ncols):
 				patch_label_ = resize_ndarray(patch_label_, (nrows, ncols))
@@ -148,12 +140,6 @@ def _keras_model_filter(rd: RegionData, params: KerasModelParams) -> FilterOutpu
 			nrows, ncols = min(nrows, filter_image[y:, ...].shape[0]), min(ncols, filter_image[y:, x:, ...].shape[1])
 			filter_image[y:y + nrows, x:x + ncols, ...] = patch_image_ubyte[:nrows, :ncols]
 
-	# mask_color = np.array([0, 255, 0, 0], dtype='uint8')
-	# region_mask_rgba = np.tile(mask_color, region_mask.shape)
-	# region_mask_rgba[..., 3] = np.squeeze(region_mask)
-	# filter_image[..., 3] *= params.alpha_scale
-	# io.imshow(np.squeeze(filter_image))
-	# io.show()
 	polygon_ = scale_at_origin(locate(polygon0, polygon0), level_scale)
 	bool_mask_ndarray = create_polygon_image(polygon_, 'L', 255, create_mask=False).ndarray
 	qimg = ndimg_to_qimg(Ndimg(filter_image, "RGBA", bool_mask_ndarray))

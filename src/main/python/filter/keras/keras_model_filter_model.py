@@ -16,6 +16,7 @@ class KerasModelParams:
 	alpha_scale: float = 0.5
 	invert: bool = False
 	scale_image: bool = True
+	patch_size_scale: float = 1.0
 	cmap: str = KERAS_MODEL_PARAMS_DEFAULT_CMAP
 
 

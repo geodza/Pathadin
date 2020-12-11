@@ -18,12 +18,13 @@ initial_scene_background_color = "#A088BDBC"
 # slide_path = r'D:\slide_cbir_47\temp\slides\slide-43\slide-2019-08-12T14-43-33-R1-S6.mrxs'
 # slide_path=r"D:\slide_cbir_47\temp\slides\slide-2019-09-19T18-08-52-R28-S3.mrxs"
 # slide_path=r"D:\temp\slides_more\hsv_hue_sat.png"
-slide_path=None
-model_path=None
+slide_path = None
+model_path = None
+# slide_path = "E:\slides\slide1.mrxs"
+# model_path = r"E:\slides\model_5_classes_level_2_zoom_5_256x256.h5"
 # slide_path = r"C:\Users\Public\Pictures\Sample Pictures\Lighthouse.jpg"
 # slide_path = r"D:\temp\slides\slide1.mrxs"
 # model_path=r"C:\Users\User\GoogleDisk\pathadin_examples\data\segmentation_model.h5"
 # slide_annotations_path = r'D:\slide_cbir_47\temp\slides\slide-43\slide-2019-08-12T14-43-33-R1-S6_annotations.json'
 # slide_path = r'C:\Users\User\GoogleDisk\Pictures\Animals\animals.png'
 # slide_path = r'C:\Users\DIMA\PycharmProjects\slide_cbir_47\temp\slides\Aperio\CMU-1.svs'
-

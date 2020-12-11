@@ -125,6 +125,9 @@ class MainWindow(QMainWindow, ActiveViewProvider, ActiveAnnotationTreeViewProvid
 			KerasModelFilterData('E', 'KerasModel', keras_model_params=KerasModelParams(model_path)),
 			KerasModelFilterData('EM', 'KerasModel_multi_class',
 								 keras_model_params=KerasModelParams(model_path, cmap='viridis')),
+			KerasModelFilterData('EMZ', 'KerasModel_multi_class_zoom_5',
+								 keras_model_params=KerasModelParams(model_path, alpha_scale=0.8, patch_size_scale=4.0,
+																	 cmap='viridis')),
 		]
 
 		self.view_mdi = QMdiArea(self)

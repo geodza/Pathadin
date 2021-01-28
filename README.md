@@ -30,8 +30,8 @@ The U-net model training can be performed separately from GUI due to training be
 * https://doi.org/10.1016/j.acthis.2020.151619
 
 ##### **Additional infrotmation for the manuscript: "How to create an applied multiclass machine learning model in histology: a prostate based example"**
-- **Dataset generation ([Google Colab](https://colab.research.google.com/drive/1gY4rloBJj1xqR325AJDM_8CC6hDrqsl7?usp=sharing))
-- Model training ([Google Colab](https://colab.research.google.com/drive/1NMo3vjvpE_CGbXZLGSTa3pOwKYsAtCdX?usp=sharing))**
+- **Dataset generation ([Google Colab](https://colab.research.google.com/drive/1gY4rloBJj1xqR325AJDM_8CC6hDrqsl7?usp=sharing))** by @alegvo
+- **Model training ([Google Colab](https://colab.research.google.com/drive/1NMo3vjvpE_CGbXZLGSTa3pOwKYsAtCdX?usp=sharing))** by @alegvo
 
 
 

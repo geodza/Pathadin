@@ -32,6 +32,7 @@ The U-net model training can be performed separately from GUI due to training be
 
 
 ##### Stroma and gland separation for manuscript *"Pathadin – The essential set of tools to start with whole slide analysis"*
+**https://doi.org/10.1016/j.acthis.2020.151619**
 * [Example of generating dataset - slice_example](https://colab.research.google.com/drive/1ZWul3MWKwKVNJXz6S1AsMeDifrSWpkla?usp=sharing)
 * [Dataset - archive of patches generated in slice_example](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/data/slice_example_patches.zip)
 * [Screenshot of dataset archive structure](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/slice_example_patches_screen.png)

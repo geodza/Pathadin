@@ -29,9 +29,11 @@ The U-net model training can be performed separately from GUI due to training be
 * http://www.pathadin.eu/
 * https://doi.org/10.1016/j.acthis.2020.151619
 
+**Additional infrotmation for the manuscript: "How to create an applied multiclass machine learning model in histology: a prostate based example"**
+Dataset generation ([Google Colab](https://colab.research.google.com/drive/1gY4rloBJj1xqR325AJDM_8CC6hDrqsl7?usp=sharing))
+Model training ([Google Colab](https://colab.research.google.com/drive/1NMo3vjvpE_CGbXZLGSTa3pOwKYsAtCdX?usp=sharing))
 
-
-##### Stroma and gland separation for manuscript *"Pathadin – The essential set of tools to start with whole slide analysis"*
+Addtional information for the manuscript *"Pathadin – The essential set of tools to start with whole slide analysis"
 **https://doi.org/10.1016/j.acthis.2020.151619**
 * [Example of generating dataset - slice_example](https://colab.research.google.com/drive/1ZWul3MWKwKVNJXz6S1AsMeDifrSWpkla?usp=sharing)
 * [Dataset - archive of patches generated in slice_example](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/data/slice_example_patches.zip)

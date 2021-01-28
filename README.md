@@ -30,14 +30,14 @@ The U-net model training can be performed separately from GUI due to training be
 * https://doi.org/10.1016/j.acthis.2020.151619
 
 ##### **Additional infrotmation for the manuscript: "How to create an applied multiclass machine learning model in histology: a prostate based example"**
-- **Dataset generation ([Google Colab](https://colab.research.google.com/drive/1gY4rloBJj1xqR325AJDM_8CC6hDrqsl7?usp=sharing))** by @alegvo
-- **Model training ([Google Colab](https://colab.research.google.com/drive/1NMo3vjvpE_CGbXZLGSTa3pOwKYsAtCdX?usp=sharing))** by @alegvo
+- Dataset generation ([Google Colab](https://colab.research.google.com/drive/1gY4rloBJj1xqR325AJDM_8CC6hDrqsl7?usp=sharing)) by @alegvo
+- Model training ([Google Colab](https://colab.research.google.com/drive/1NMo3vjvpE_CGbXZLGSTa3pOwKYsAtCdX?usp=sharing)) by @alegvo
 
 
 
 ##### **Addtional information for the manuscript:"[Pathadin – The essential set of tools to start with whole slide analysis](https://doi.org/10.1016/j.acthis.2020.151619)"**
-* [Example of generating dataset - slice_example](https://colab.research.google.com/drive/1ZWul3MWKwKVNJXz6S1AsMeDifrSWpkla?usp=sharing)
-* [Dataset - archive of patches generated in slice_example](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/data/slice_example_patches.zip)
+* Dataset generation ([Google Colab](https://colab.research.google.com/drive/1ZWul3MWKwKVNJXz6S1AsMeDifrSWpkla?usp=sharing))
+* Model training ([Google Colab](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/data/slice_example_patches.zip))
 * [Screenshot of dataset archive structure](https://www.pathadin.eu/pathadin/pathadin_examples/segmentation_example/slice_example_patches_screen.png)
 * [Example of U-net model training - segmentation_example](https://colab.research.google.com/drive/19uCd12Ru9Gu3Mk9wOgTPmJ6ItKyy1pWl?usp=sharing)
 * [Trained model - h5 keras model trained in segmentation_example](https://www.pathadin.eu/pathadin/Stroma&Glands.h5)

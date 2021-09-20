@@ -69,5 +69,3 @@ The U-net model training can be performed separately from GUI due to training be
 * [H&E(2 GB)](https://www.pathadin.eu/pathadin/HemEosin.zip)
 * [Ki67(2.2 GB)](https://www.pathadin.eu/pathadin/Ki67.zip)
 * [Masson`s trichrome (1.8 GB)](https://www.pathadin.eu/pathadin/Massons.zip).
-
-##### [Example of ML validation](https://gitlab.com/Digipathology/Pathadin)
